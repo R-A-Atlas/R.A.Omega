@@ -16,5 +16,5 @@ if (-not $env:ATLAS_DISABLE_AUTH) {
     $env:ATLAS_DISABLE_AUTH = "true"
 }
 
-Write-Host "Starting R.A. Omega on http://127.0.0.1:$Port/option1" -ForegroundColor Cyan
+Write-Host "Starting R.A. Omega on http://127.0.0.1:$Port/app" -ForegroundColor Cyan
 python -m uvicorn api_server:app --host 0.0.0.0 --port $Port --reload

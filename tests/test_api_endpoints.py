@@ -64,6 +64,14 @@ def test_health_returns_ok(client: TestClient) -> None:
     assert "query_router" in body["engines"]
 
 
+@pytest.mark.parametrize("path", ["/app", "/chat", "/ra-omega", "/option1"])
+def test_main_chat_routes_return_html(client: TestClient, path: str) -> None:
+    r = client.get(path)
+    assert r.status_code == 200
+    assert "text/html" in r.headers.get("content-type", "")
+    assert "R.A. Omega" in r.text
+
+
 def test_regime_endpoint_returns_json(client: TestClient) -> None:
     r = client.get("/regime")
     assert r.status_code == 200

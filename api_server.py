@@ -27,7 +27,8 @@ Endpoints (research + query pipeline + portfolio require Authorization: Bearer <
     GET  /regime         — Current market regime (cached 5min)
     GET  /rag/status     — Chroma RAG stats (SEC + finance_knowledge; JWT)
     GET  /, /auth, /login — Zenith landing (Supabase sign in / sign up)
-    GET  /option1        — Main ATLAS chat UI (Option 1; primary app surface)
+    GET  /app            — Main R.A. Omega chat UI (stable product route)
+    GET  /option1        — Legacy alias for the same chat UI
     GET  /v4             — Optional atlas_dashboard_v4.html (advanced dashboard)
     GET  /atlas_dashboard_v2.html — Legacy v2 UI only
     GET  /history/reports   — Query-report history (for dashboard)
@@ -169,7 +170,7 @@ def get_omega():
 async def lifespan(app: FastAPI):
     log.info("R.A. Omega API Server starting...")
     log.info(
-        "Web UI: http://127.0.0.1:8000/ (Zenith) · http://127.0.0.1:8000/option1 (main chat)",
+        "Web UI: http://127.0.0.1:8000/ (Zenith) · http://127.0.0.1:8000/app (main chat)",
     )
     # Pre-load engines in background
     import threading
@@ -1188,6 +1189,9 @@ def serve_dashboard_v4():
     return _dashboard_html_response(ATLAS_DASHBOARD_V4)
 
 
+@app.get("/app")
+@app.get("/chat")
+@app.get("/ra-omega")
 @app.get("/option1")
 @app.get("/atlas_option1.html")
 def serve_atlas_option1_chat():
@@ -1972,7 +1976,7 @@ if __name__ == "__main__":
 
     print()
     print("  Zenith / auth:          http://127.0.0.1:8000/  ·  http://127.0.0.1:8000/auth")
-    print("  Main chat (Option 1):    http://127.0.0.1:8000/option1")
+    print("  Main chat:              http://127.0.0.1:8000/app")
     print("  Optional v4 dashboard: http://127.0.0.1:8000/v4  (atlas_dashboard_v4.html)")
     print("  Health:                 http://127.0.0.1:8000/health")
     print()
