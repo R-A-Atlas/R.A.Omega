@@ -1,0 +1,20 @@
+{
+  "skill": "atlas-scraper-data-cache-template",
+  "assertions": [
+    {
+      "id": "SK-01",
+      "description": "python -m py_compile atlas_core/utils/agent_utils.py exits with code 0 from repo root",
+      "type": "binary"
+    },
+    {
+      "id": "SK-02",
+      "description": "python -m py_compile atlas_agents/crypto/crypto_scraper.py exits with code 0 from repo root",
+      "type": "binary"
+    },
+    {
+      "id": "SK-03",
+      "description": "python atlas_agents/crypto/crypto_scraper.py --help exits with code 0 from repo root",
+      "type": "binary"
+    }
+  ]
+}

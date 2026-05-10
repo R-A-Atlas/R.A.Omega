@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Atlas — Intraday template (optional) · Research Template v3</title>
+<style>
+    :root {
+      --bg: #0b0f14;
+      --card: #121a24;
+      --border: #1e2a3a;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --green: #3dd68c;
+      --amber: #f0b429;
+      --red: #f87171;
+      --teal: #00D4AA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 2rem;
+      line-height: 1.5;
+    }
+    h1 { color: var(--teal); font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: var(--muted); font-size: 0.85rem; margin-bottom: 2rem; }
+    .section-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      margin: 1.5rem 0 0.5rem;
+    }
+    .ticker-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .research-ticker {
+      background: rgba(0,212,170,0.1);
+      border: 1px solid rgba(0,212,170,0.3);
+      color: var(--teal);
+      border-radius: 6px;
+      padding: 0.3rem 0.75rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      font-family: monospace;
+    }
+    .options-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .option-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-size: 0.8rem;
+      color: var(--text);
+    }
+    .option-card .sym { color: var(--amber); font-weight: 700; font-family: monospace; }
+    .note {
+      background: rgba(248,113,113,0.08);
+      border: 1px solid rgba(248,113,113,0.25);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.82rem;
+      color: var(--red);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+<div style="background:rgba(0,212,170,.1);border:1px solid rgba(0,212,170,.35);border-radius:8px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.82rem;line-height:1.55;color:var(--text);max-width:52rem">
+<strong style="color:var(--teal)">Primary app UI:</strong> use <code>dashboard.html</code> via <code>dashboard_server.py</code> at <code>http://localhost:8765</code> for deep research, report history, and manual portfolio tracking (no broker orders). This HTML file is an <strong>optional</strong> intraday/template target some schedulers inject into — not the main research surface.
+</div>
+<h1>Atlas Trade Intelligence</h1>
+<p class="subtitle">Research Template v3 — auto_bot.py may read this file to extract tickers when legacy intraday jobs run</p>
+<!-- ═══════════════════════════════════════════════════════════════════
+       TIER 1: CATALYSTS
+       auto_bot.py reads: #tier-1-catalysts .research-ticker
+       ADD / REMOVE tickers here to control what the bot monitors
+       ═══════════════════════════════════════════════════════════════════ -->
+<section id="tier-1-catalysts">
+<p class="section-title">Tier 1 — Immediate Catalysts (bot monitors these)</p>
+<div class="ticker-grid">
+<span class="research-ticker">BBAI</span>
+<span class="research-ticker">SOUN</span>
+<span class="research-ticker">BNGO</span>
+<span class="research-ticker">INOD</span>
+<span class="research-ticker">QBTS</span>
+<span class="research-ticker">RCAT</span>
+<span class="research-ticker">IONQ</span>
+</div>
+</section>
+<!-- ═══════════════════════════════════════════════════════════════════
+       OPTIONS TRADING
+       auto_bot.py reads: #options-trading [data-options-ticker]
+       These are the tickers the bot scans for cheap call options
+       ═══════════════════════════════════════════════════════════════════ -->
+<section id="options-trading">
+<p class="section-title">Options Watch (bot scans calls under $0.50 premium)</p>
+<div class="options-grid">
+<div class="option-watch-card" data-options-ticker="SOUN">
+<div class="sym">SOUN</div>
+<div>SoundHound AI · Voice AI</div>
+<div style="color:var(--muted);font-size:0.75rem;">Target: $12C June 20</div>
+<!-- Bot fills these at runtime: -->
+<div class="row"><span>Stock:</span> <span class="value" id="soun-stock-price">$9.14</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="soun-strike-price">$11.50</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="soun-expiration">2026-05-29</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="soun-move-needed">+30.52%</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="soun-cost">$43.00</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="soun-note">DTE: 22d</span></div>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:#7c83fd;font-size:.85em;">All 4 expirations scanned for SOUN</summary><table style="width:100%;border-collapse:collapse;font-size:.8em;margin-top:6px;"><thead><tr style="border-bottom:1px solid #444;color:#aaa;"><th>Expiry</th><th>DTE</th><th>Strike</th><th>Ask</th><th>Cost</th><th>Move%</th><th>IV</th><th>Note</th></tr></thead><tbody><tr style="background:#1e2a1e;"><td>2026-05-29</td><td>22d</td><td>$11.50</td><td>$0.4300</td><td>$43.00</td><td>30.52%</td><td>120.3%</td><td> ★ BEST</td></tr><tr style=""><td>2026-06-05</td><td>29d</td><td>$13.00</td><td>$0.4400</td><td>$44.00</td><td>47.05%</td><td>110.2%</td><td></td></tr><tr style=""><td>2026-06-18</td><td>42d</td><td>$13.00</td><td>$0.4200</td><td>$42.00</td><td>46.83%</td><td>108.2%</td><td></td></tr><tr style=""><td>2026-07-17</td><td>71d</td><td>$15.00</td><td>$0.4300</td><td>$43.00</td><td>68.82%</td><td>105.5%</td><td></td></tr></tbody></table></details></div>
+<div class="option-watch-card" data-options-ticker="BBAI">
+<div class="sym">BBAI</div>
+<div>BigBear.ai · Defense AI</div>
+<div style="color:var(--muted);font-size:0.75rem;">Target: $5C June 20</div>
+<div class="row"><span>Stock:</span> <span class="value" id="bbai-stock-price">$4.14</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="bbai-strike-price">$4.50</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="bbai-expiration">2026-05-29</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="bbai-move-needed">+17.15%</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="bbai-cost">$35.00</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="bbai-note">DTE: 22d</span></div>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:#7c83fd;font-size:.85em;">All 4 expirations scanned for BBAI</summary><table style="width:100%;border-collapse:collapse;font-size:.8em;margin-top:6px;"><thead><tr style="border-bottom:1px solid #444;color:#aaa;"><th>Expiry</th><th>DTE</th><th>Strike</th><th>Ask</th><th>Cost</th><th>Move%</th><th>IV</th><th>Note</th></tr></thead><tbody><tr style="background:#1e2a1e;"><td>2026-05-29</td><td>22d</td><td>$4.50</td><td>$0.3500</td><td>$35.00</td><td>17.15%</td><td>107.4%</td><td> ★ BEST</td></tr><tr style=""><td>2026-06-05</td><td>29d</td><td>$4.50</td><td>$0.4300</td><td>$43.00</td><td>19.08%</td><td>108.2%</td><td></td></tr><tr style=""><td>2026-06-18</td><td>42d</td><td>$5.00</td><td>$0.3300</td><td>$33.00</td><td>28.74%</td><td>104.7%</td><td></td></tr><tr style=""><td>2026-07-17</td><td>71d</td><td>$5.00</td><td>$0.4500</td><td>$45.00</td><td>31.64%</td><td>97.5%</td><td></td></tr></tbody></table></details></div>
+<div class="option-watch-card" data-options-ticker="BNGO">
+<div class="sym">BNGO</div>
+<div>Bionano Genomics · DNA/Cancer</div>
+<div style="color:var(--muted);font-size:0.75rem;">Target: $2.50C Sept 19</div>
+<div class="row"><span>Stock:</span> <span class="value" id="bngo-stock-price">$1.24</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="bngo-strike-price">—</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="bngo-expiration">—</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="bngo-move-needed">—</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="bngo-cost">—</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="bngo-note">No expirations found</span></div>
+</div>
+<div class="option-watch-card" data-options-ticker="INOD">
+<div class="sym">INOD</div>
+<div>Innodata · AI Data</div>
+<div style="color:var(--muted);font-size:0.75rem;">Top pick — fractional shares</div>
+<div class="row"><span>Stock:</span> <span class="value" id="inod-stock-price">$45.64</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="inod-strike-price">—</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="inod-expiration">—</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="inod-move-needed">—</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="inod-cost">—</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="inod-note">no call with ask ≤ $0.50</span></div>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:#7c83fd;font-size:.85em;">All 4 expirations scanned for INOD</summary><table style="width:100%;border-collapse:collapse;font-size:.8em;margin-top:6px;"><thead><tr style="border-bottom:1px solid #444;color:#aaa;"><th>Expiry</th><th>DTE</th><th>Strike</th><th>Ask</th><th>Cost</th><th>Move%</th><th>IV</th><th>Note</th></tr></thead><tbody><tr style=""><td>2026-05-29</td><td>22d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr><tr style=""><td>2026-06-05</td><td>29d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr><tr style=""><td>2026-06-18</td><td>42d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr><tr style=""><td>2026-07-17</td><td>71d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr></tbody></table></details></div>
+<div class="option-watch-card" data-options-ticker="QBTS">
+<div class="sym">QBTS</div>
+<div>D-Wave Quantum</div>
+<div style="color:var(--muted);font-size:0.75rem;">Quantum AI · 471% bookings surge</div>
+<div class="row"><span>Stock:</span> <span class="value" id="qbts-stock-price">$21.54</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="qbts-strike-price">$30.00</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="qbts-expiration">2026-05-29</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="qbts-move-needed">+41.37%</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="qbts-cost">$45.00</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="qbts-note">DTE: 22d</span></div>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:#7c83fd;font-size:.85em;">All 4 expirations scanned for QBTS</summary><table style="width:100%;border-collapse:collapse;font-size:.8em;margin-top:6px;"><thead><tr style="border-bottom:1px solid #444;color:#aaa;"><th>Expiry</th><th>DTE</th><th>Strike</th><th>Ask</th><th>Cost</th><th>Move%</th><th>IV</th><th>Note</th></tr></thead><tbody><tr style="background:#1e2a1e;"><td>2026-05-29</td><td>22d</td><td>$30.00</td><td>$0.4500</td><td>$45.00</td><td>41.37%</td><td>106.3%</td><td> ★ BEST</td></tr><tr style=""><td>2026-06-05</td><td>29d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr><tr style=""><td>2026-06-18</td><td>42d</td><td>$36.00</td><td>$0.4900</td><td>$49.00</td><td>69.41%</td><td>109.8%</td><td></td></tr><tr style=""><td>2026-07-17</td><td>71d</td><td>$48.00</td><td>$0.4800</td><td>$48.00</td><td>125.07%</td><td>103.3%</td><td></td></tr></tbody></table></details></div>
+<div class="option-watch-card" data-options-ticker="RCAT">
+<div class="sym">RCAT</div>
+<div>Red Cat Holdings · Defense Drones</div>
+<div style="color:var(--muted);font-size:0.75rem;">Drone AI · DoD catalyst watch</div>
+<div class="row"><span>Stock:</span> <span class="value" id="rcat-stock-price">$10.43</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="rcat-strike-price">$12.50</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="rcat-expiration">2026-05-29</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="rcat-move-needed">+24.35%</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="rcat-cost">$47.00</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="rcat-note">DTE: 22d</span></div>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:#7c83fd;font-size:.85em;">All 4 expirations scanned for RCAT</summary><table style="width:100%;border-collapse:collapse;font-size:.8em;margin-top:6px;"><thead><tr style="border-bottom:1px solid #444;color:#aaa;"><th>Expiry</th><th>DTE</th><th>Strike</th><th>Ask</th><th>Cost</th><th>Move%</th><th>IV</th><th>Note</th></tr></thead><tbody><tr style="background:#1e2a1e;"><td>2026-05-29</td><td>22d</td><td>$12.50</td><td>$0.4700</td><td>$47.00</td><td>24.35%</td><td>102.5%</td><td> ★ BEST</td></tr><tr style=""><td>2026-06-05</td><td>29d</td><td>$14.00</td><td>$0.4500</td><td>$45.00</td><td>38.54%</td><td>105.7%</td><td></td></tr><tr style=""><td>2026-06-18</td><td>42d</td><td>$14.00</td><td>$0.5000</td><td>$50.00</td><td>39.02%</td><td>99.2%</td><td></td></tr><tr style=""><td>2026-07-17</td><td>71d</td><td>$17.00</td><td>$0.4200</td><td>$42.00</td><td>67.02%</td><td>97.4%</td><td></td></tr></tbody></table></details></div>
+<div class="option-watch-card" data-options-ticker="IONQ">
+<div class="sym">IONQ</div>
+<div>IonQ · Quantum Computing</div>
+<div style="color:var(--muted);font-size:0.75rem;">Pure-play quantum · gov contracts</div>
+<div class="row"><span>Stock:</span> <span class="value" id="ionq-stock-price">$48.00</span></div>
+<div class="row"><span>Strike:</span> <span class="value" id="ionq-strike-price">$100.00</span></div>
+<div class="row"><span>Exp:</span> <span class="value" id="ionq-expiration">2026-06-18</span></div>
+<div class="row"><span>Move needed:</span> <span class="value" id="ionq-move-needed">+109.38%</span></div>
+<div class="row"><span>Cost:</span> <span class="value" id="ionq-cost">$50.00</span></div>
+<div class="row"><span>Note:</span> <span class="value" id="ionq-note">DTE: 42d</span></div>
+<details style="margin-top:8px;"><summary style="cursor:pointer;color:#7c83fd;font-size:.85em;">All 4 expirations scanned for IONQ</summary><table style="width:100%;border-collapse:collapse;font-size:.8em;margin-top:6px;"><thead><tr style="border-bottom:1px solid #444;color:#aaa;"><th>Expiry</th><th>DTE</th><th>Strike</th><th>Ask</th><th>Cost</th><th>Move%</th><th>IV</th><th>Note</th></tr></thead><tbody><tr style=""><td>2026-05-29</td><td>22d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr><tr style=""><td>2026-06-05</td><td>29d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr><tr style="background:#1e2a1e;"><td>2026-06-18</td><td>42d</td><td>$100.00</td><td>$0.5000</td><td>$50.00</td><td>109.38%</td><td>120.4%</td><td> ★ BEST</td></tr><tr style=""><td>2026-07-17</td><td>71d</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>no call with ask ≤ $0.50</td></tr></tbody></table></details></div>
+</div>
+</section>
+<!-- Bot injects critical alerts here -->
+<div id="critical-alerts-root"></div>
+<!-- Bot injects sentiment here -->
+<div id="daily-context-banner">
+<div class="inner">
+<h3>Daily AI Sentiment</h3>
+<div id="daily-sentiment-body">No specific aggregated headline news was available for any of the listed tickers overnight. Consequently, there are no news-driven positive or negative catalysts identified from this input. Sentiment based purely on this news feed is neutral for all tickers.</div>
+<div id="daily-win-prob-summary">BBAI: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.
+SOUN: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.
+BNGO: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.
+INOD: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.
+QBTS: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.
+RCAT: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.
+IONQ: win_prob=50% action=— exp=— strike=— — None identified from provided overnight news.</div>
+</div>
+</div>
+<div id="live-updated-at" style="color:var(--muted);font-size:0.8rem;margin-top:1rem;">Last updated: 2026-05-05 23:10:04 (local)</div>
+<div class="note">
+    NOT FINANCIAL ADVICE — AI research only. You can lose everything. Never invest more than you can afford to lose.
+  </div>
+<div id="robinhood-positions-root" style="margin:24px 0;padding:16px;background:#1a1a2e;border:1px solid #2a2a4a;border-radius:8px;"><h3 style="margin:0 0 4px;color:#7c83fd;">📊 Robinhood Portfolio Sync</h3><p style="margin:0 0 16px;color:#888;font-size:.85em;">0 stock  ·  0 option  ·  Updated 2026-05-05 23:10:04</p><div style="margin-bottom:24px;border:1px solid #2a2a4a;border-radius:6px;padding:12px;"><h4 style="margin:0 0 10px;color:#7c83fd;font-size:1em;">🤝 Joint Account <span style="font-weight:normal;color:#888;font-size:.85em;">(0 stock, 0 option)</span></h4><h5 style="margin:8px 0 4px;color:#aaa;font-size:.9em;">Stocks</h5><p style="color:#aaa;font-style:italic;">No stock holdings.</p><h5 style="margin:8px 0 4px;color:#aaa;font-size:.9em;">Options</h5><p style="color:#aaa;font-style:italic;">No open option positions.</p></div><div style="margin-bottom:24px;border:1px solid #2a2a4a;border-radius:6px;padding:12px;"><h4 style="margin:0 0 10px;color:#56cfe1;font-size:1em;">👤 Individual Account <span style="font-weight:normal;color:#888;font-size:.85em;">(0 stock, 0 option)</span></h4><h5 style="margin:8px 0 4px;color:#aaa;font-size:.9em;">Stocks</h5><p style="color:#aaa;font-style:italic;">No stock holdings.</p><h5 style="margin:8px 0 4px;color:#aaa;font-size:.9em;">Options</h5><p style="color:#aaa;font-style:italic;">No open option positions.</p></div></div></body>
+</html>

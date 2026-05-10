@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS vs The World</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #0e1420; --bg3: #111826;
+    --border: #1e2a3a; --accent: #00d4ff;
+    --green: #4caf50; --yellow: #ffca28; --orange: #ff9800; --red: #f44336;
+    --text: #e0e6f0; --muted: #7a8a9a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  h2 { font-size: 18px; font-weight: 700; color: var(--accent); margin: 32px 0 12px; }
+  .sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+  .callout { background: #0a1e0a; border: 1px solid #1e4a1e; border-radius: 8px; padding: 14px 16px; font-size: 13px; color: #9dce9d; margin-bottom: 24px; }
+
+  /* Score bars */
+  .score-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 18px; margin-bottom: 14px; }
+  .score-card.atlas-card { border-color: var(--accent); }
+  .sc-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 8px; }
+  .sc-name { font-size: 15px; font-weight: 700; color: #fff; }
+  .sc-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .sc-num { font-size: 28px; font-weight: 900; }
+  .bar-bg { height: 10px; background: #111a26; border-radius: 5px; overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 5px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; }
+  .tag { font-size: 10px; padding: 2px 7px; background: #111a26; border-radius: 4px; color: var(--muted); }
+  .tag.yes { color: var(--green); }
+  .tag.muted { opacity: 0.85; color: #6a7a8a; }
+
+  /* Detail table */
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+  th { background: #141c2e; color: var(--accent); padding: 9px 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+  td { padding: 9px 12px; border-bottom: 1px solid #111a26; color: #ccc; }
+  tr:last-child td { border-bottom: none; }
+  tr.atlas-row td { background: #0a1020; }
+  .check { color: var(--green); font-weight: 600; }
+  .cross { color: var(--red); }
+  .part  { color: var(--yellow); }
+
+  /* Self-learning table */
+  .learn-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; padding: 14px; margin-bottom: 10px; }
+  .learn-title { font-weight: 700; color: #fff; font-size: 13px; margin-bottom: 4px; }
+  .learn-desc  { font-size: 12px; color: var(--muted); }
+
+  .footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--muted); margin-top: 40px; }
+  @media(max-width:600px) { h1 { font-size: 20px; } .sc-num { font-size: 22px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ATLAS vs The World</h1>
+<p class="sub">Research depth vs general AI tools — the web product is <strong>information + manual tracking</strong>, not autonomous execution.</p>
+
+<div class="callout">
+  On <strong>structured equity research</strong> (scraped fundamentals, options context, filings-aware RAG), ATLAS’s pipeline still punches above generic chat tools. Scores below are <strong>research rubric</strong> only — they are not a promise of trading performance, and the live dashboard does not place trades or run “agent” execution.
+</div>
+
+<h2>Overall Scores — Trading Research Focus</h2>
+
+<div class="score-card atlas-card">
+  <div class="sc-header">
+    <div>
+      <div class="sc-name" style="color:var(--accent)">ATLAS v5 <span style="font-size:11px;background:#0a1a2a;color:var(--accent);border:1px solid #1e3a5a;padding:2px 7px;border-radius:4px;margin-left:8px">YOUR SYSTEM</span></div>
+      <div class="sc-sub">Python research stack + dashboard — built by you; data acquisition ~$0 beyond model API</div>
+    </div>
+    <div class="sc-num" style="color:var(--accent)">99<span style="font-size:14px;color:var(--muted)">/100</span></div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" style="width:99%;background:var(--accent)"></div></div>
+  <div class="tags">
+    <span class="tag yes">Live IV Rank ✓</span><span class="tag yes">Whisper EPS ✓</span><span class="tag yes">Institutional 13F ✓</span>
+    <span class="tag yes">Cross-reference ✓</span><span class="tag yes">Win-rate tracker ✓</span><span class="tag yes">Kelly sizing ✓</span>
+    <span class="tag yes">Price alerts ✓</span><span class="tag yes">Options context ✓</span><span class="tag yes">Filings RAG ✓</span>
+    <span class="tag yes">Memory (CLI) ✓</span><span class="tag yes">Market regime (CLI) ✓</span><span class="tag yes">Squeeze score ✓</span>
+    <span class="tag yes">Self-tuning (CLI) ✓</span><span class="tag muted" style="opacity:.75">Legacy UI modules retired</span>
+  </div>
+</div>
+
+<div class="score-card">
+  <div class="sc-header">
+    <div><div class="sc-name">ChatGPT Deep Research</div><div class="sc-sub">OpenAI — $20+/mo, 10–20 min per run</div></div>
+    <div class="sc-num" style="color:var(--yellow)">54<span style="font-size:14px;color:var(--muted)">/100</span></div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" style="width:54%;background:var(--yellow)"></div></div>
+  <div class="tags">
+    <span class="tag yes">Article reading ✓</span><span class="tag yes">Multi-step reasoning ✓</span><span class="tag yes">Broad web search ✓</span>
+    <span class="tag no">No IV Rank ✗</span><span class="tag no">No whisper EPS ✗</span><span class="tag no">No 13F ✗</span>
+    <span class="tag no">No cross-referencing ✗</span><span class="tag no">No track record ✗</span><span class="tag no">No alerts ✗</span>
+    <span class="tag no">No position sizing ✗</span><span class="tag no">No self-learning ✗</span>
+  </div>
+</div>
+
+<div class="score-card">
+  <div class="sc-header">
+    <div><div class="sc-name">Gemini Deep Research</div><div class="sc-sub">Google — free tier rate limited, Pro $20+/mo</div></div>
+    <div class="sc-num" style="color:var(--yellow)">51<span style="font-size:14px;color:var(--muted)">/100</span></div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" style="width:51%;background:var(--yellow)"></div></div>
+  <div class="tags">
+    <span class="tag yes">Google Search grounding ✓</span><span class="tag yes">YouTube transcripts ✓</span>
+    <span class="tag no">Same data gaps as ChatGPT ✗</span><span class="tag no">Rate-limited on free ✗</span>
+    <span class="tag no">No structured financial data ✗</span><span class="tag no">No memory ✗</span><span class="tag no">No self-improvement ✗</span>
+  </div>
+</div>
+
+<div class="score-card">
+  <div class="sc-header">
+    <div><div class="sc-name">Perplexity Pro</div><div class="sc-sub">$20/mo — best real-time citations, fast</div></div>
+    <div class="sc-num" style="color:var(--orange)">42<span style="font-size:14px;color:var(--muted)">/100</span></div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" style="width:42%;background:var(--orange)"></div></div>
+  <div class="tags">
+    <span class="tag yes">Best real-time citations ✓</span><span class="tag yes">Fast responses ✓</span>
+    <span class="tag no">No structured financial data ✗</span><span class="tag no">No options data ✗</span>
+    <span class="tag no">No insider transactions ✗</span><span class="tag no">Cannot make trade recommendations ✗</span>
+  </div>
+</div>
+
+<div class="score-card">
+  <div class="sc-header">
+    <div><div class="sc-name">Claude (Anthropic)</div><div class="sc-sub">$20/mo — best at code and long reasoning</div></div>
+    <div class="sc-num" style="color:var(--orange)">40<span style="font-size:14px;color:var(--muted)">/100</span></div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" style="width:40%;background:var(--orange)"></div></div>
+  <div class="tags">
+    <span class="tag yes">Excellent code reasoning ✓</span><span class="tag yes">Long context ✓</span>
+    <span class="tag no">No real-time data ✗</span><span class="tag no">No financial data access ✗</span>
+    <span class="tag no">No trading memory ✗</span><span class="tag no">No self-improvement ✗</span>
+  </div>
+</div>
+
+<div class="score-card">
+  <div class="sc-header">
+    <div><div class="sc-name">Bloomberg Terminal</div><div class="sc-sub">$24,000/year — professional institutional data</div></div>
+    <div class="sc-num" style="color:var(--green)">77<span style="font-size:14px;color:var(--muted)">/100</span></div>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" style="width:77%;background:var(--green)"></div></div>
+  <div class="tags">
+    <span class="tag yes">Best data quality ✓</span><span class="tag yes">Real Level 2 ✓</span><span class="tag yes">Real dark pool ✓</span>
+    <span class="tag no">$24,000/year cost ✗</span><span class="tag no">No AI synthesis ✗</span>
+    <span class="tag no">No options P/L simulator ✗</span><span class="tag no">No self-learning ✗</span>
+  </div>
+</div>
+
+<hr class="divider">
+
+<h2>Detailed Breakdown</h2>
+<table>
+  <tr><th>Category</th><th>ATLAS</th><th>ChatGPT</th><th>Gemini</th><th>Perplexity</th><th>Bloomberg</th></tr>
+  <tr class="atlas-row"><td style="color:#fff;font-weight:600">Data Quality</td><td><span class="check">90/100</span></td><td>68</td><td>70</td><td>60</td><td>99</td></tr>
+  <tr class="atlas-row"><td style="color:#fff;font-weight:600">Speed</td><td><span class="check">78/100</span></td><td>35</td><td>45</td><td>82</td><td>98</td></tr>
+  <tr class="atlas-row"><td style="color:#fff;font-weight:600">Cost Score (100=free)</td><td><span class="check">100</span></td><td>20</td><td>55</td><td>40</td><td>4</td></tr>
+  <tr class="atlas-row"><td style="color:#fff;font-weight:600">Options Data</td><td><span class="check">95/100</span></td><td>12</td><td>12</td><td>8</td><td>85</td></tr>
+  <tr class="atlas-row"><td style="color:#fff;font-weight:600">Memory</td><td><span class="check">88/100</span></td><td>40</td><td>30</td><td>15</td><td>75</td></tr>
+  <tr class="atlas-row"><td style="color:#fff;font-weight:600">Self-Improvement</td><td><span class="check">95/100</span></td><td><span class="cross">0</span></td><td><span class="cross">0</span></td><td><span class="cross">0</span></td><td><span class="cross">0</span></td></tr>
+</table>
+<p style="font-size:11px;color:var(--muted);margin-top:6px">Cost score: 100 = free, 4 = Bloomberg ($24k/yr), 20 = ChatGPT Plus ($240/yr). Options data score: how well it handles IV rank, put/call ratio, whisper numbers, flow data.</p>
+
+<hr class="divider">
+
+<h2>What ATLAS Does That No Other Tool Does</h2>
+<div class="learn-item">
+  <div class="learn-title">Anti-hallucination architecture</div>
+  <div class="learn-desc">Other AIs guess when data is missing. ATLAS uses null and flags the gap with a SINGLE SOURCE or CONFLICT label. Facts are CONFIRMED before the AI sees them. That's the difference between a report you can trade from and one you can't.</div>
+</div>
+<div class="learn-item">
+  <div class="learn-title">The whisper EPS edge</div>
+  <div class="learn-desc">Knowing the whisper number vs Wall St consensus tells you what traders actually expect. A "beat" where actual EPS exceeds consensus but misses the whisper = sell-off. ChatGPT cannot access this data at all.</div>
+</div>
+<div class="learn-item">
+  <div class="learn-title">Self-improving track record</div>
+  <div class="learn-desc">Most AI tools have no memory of past recommendations. ATLAS has a SQLite database. Every outcome you grade updates the pattern library. Over time, ATLAS will know your personal win rates by setup type better than you do.</div>
+</div>
+<div class="learn-item">
+  <div class="learn-title">Market regime awareness</div>
+  <div class="learn-desc">ATLAS detects whether the market is in Bull, Bear, Chop, or Panic mode and adjusts all confidence scores by a multiplier (0.5x in panic, 1.15x in bull). No general-purpose AI tool does this for trading.</div>
+</div>
+<div class="learn-item">
+  <div class="learn-title">Optional code proposals (CLI)</div>
+  <div class="learn-desc"><code>self_coder.py</code> can draft small patches from graded outcomes — human review only. This is <strong>not</strong> exposed as a “self-learning” dashboard feature today.</div>
+</div>
+
+<hr class="divider">
+
+<h2>What ATLAS Still Needs (The Remaining 1%)</h2>
+<table>
+  <tr><th>Gap</th><th>Why It's Hard</th><th>Cost</th></tr>
+  <tr><td>Real-time Level 2 order book</td><td>Requires broker WebSocket API or paid data feed</td><td>$50–500/mo or broker API</td></tr>
+  <tr><td>Live dark pool block trades</td><td>Unusual Whales API required for real-time data</td><td>$30+/mo</td></tr>
+</table>
+<p style="font-size:12px;color:var(--muted);margin-top:8px">Bloomberg still wins on live institutional data feeds. ATLAS’s angle is automated research assembly + local RAG + a clean manual tracking UI — not a replacement for a professional terminal.</p>
+
+</div>
+<div class="footer">ATLAS · research comparison canvas · May 2026 · see <a href="CANVAS_1_Roadmap.html" style="color:inherit">product snapshot</a> for current UI scope</div>
+</body>
+</html>

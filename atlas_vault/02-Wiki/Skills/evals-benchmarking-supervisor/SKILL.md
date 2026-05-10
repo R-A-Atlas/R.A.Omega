@@ -1,0 +1,23 @@
+# Skill: Evals Benchmarking Supervisor
+# ID: C8 | Division: 13-Cognitive
+# DBS Framework
+
+## [D] Direction
+Evals Benchmarking Supervisor — part of the ATLAS 13-Cognitive division.
+Output: atlas_vault/04-Projects/ATLAS/Notes/nightly_eval_*.md
+Source: Nightly 2am
+Read ATLAS_115_AGENT_SWARM.md for full specification and JSON schema.
+
+## [B] Blueprints
+Reference implementation: atlas_agents/crypto/crypto_scraper.py
+Shared utilities: atlas_core/utils/agent_utils.py
+  - requests_get_json(url, params) — handles 429, timeout, retry
+  - write_cache_json_pair(data, stable_name, prefix) — handles timestamps
+  - sleep_backoff(attempt) — exponential backoff
+
+## [S] Solutions
+Validate after implementation:
+  python -m py_compile atlas_agents/cognitive/eval_supervisor/__init__.py
+  python atlas_agents/cognitive/eval_supervisor/<scraper>.py --dry-run
+  python -m pytest tests/test_evals_benchmarking_supervisor.py -v
+  python -m atlas_core.validation.data_validator

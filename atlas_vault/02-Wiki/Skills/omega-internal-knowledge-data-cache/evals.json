@@ -1,0 +1,20 @@
+{
+  "skill": "omega-internal-knowledge-data-cache",
+  "assertions": [
+    {
+      "id": "SK-01",
+      "description": "python -m py_compile atlas_omega.py exits with code 0 from repo root",
+      "type": "binary"
+    },
+    {
+      "id": "SK-02",
+      "description": "python -c \"import atlas_omega\" exits with code 0 from repo root",
+      "type": "binary"
+    },
+    {
+      "id": "SK-03",
+      "description": "atlas_omega.py contains the substring crypto_top50_latest.json inside _load_internal_knowledge_payload intent_files (intent ↔ filename contract present)",
+      "type": "binary"
+    }
+  ]
+}

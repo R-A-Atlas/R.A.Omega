@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS — AI Financial Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #06070D;
+  --surface:   #0D0F1A;
+  --surface2:  #111320;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --cyan:      #00D4FF;
+  --cyan-dim:  rgba(0,212,255,0.10);
+  --cyan-mid:  rgba(0,212,255,0.20);
+  --green:     #00E5A0;
+  --green-dim: rgba(0,229,160,0.10);
+  --red:       #FF4560;
+  --red-dim:   rgba(255,69,96,0.12);
+  --amber:     #FFB020;
+  --amber-dim: rgba(255,176,32,0.10);
+  --text:      #E8EAF2;
+  --text2:     #7A7F9A;
+  --text3:     #454866;
+  --mono:      'JetBrains Mono', monospace;
+  --r:         14px;
+  --r-sm:      9px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',system-ui,sans-serif;
+  background:var(--bg);color:var(--text);
+  line-height:1.6;-webkit-font-smoothing:antialiased;
+  min-height:100vh;overflow-x:hidden;
+}
+h1,h2,h3,h4{font-family:'Unbounded',sans-serif;letter-spacing:-0.02em}
+
+/* NOISE OVERLAY */
+body::before{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+  opacity:0.4;
+}
+
+/* GRID DOTS BACKGROUND */
+body::after{
+  content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+  background-image:radial-gradient(circle,rgba(255,255,255,0.04) 1px,transparent 1px);
+  background-size:32px 32px;
+}
+
+/* NAV */
+.nav{
+  position:sticky;top:0;z-index:100;
+  height:56px;
+  background:rgba(6,7,13,0.85);
+  backdrop-filter:blur(24px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 24px;gap:16px;
+}
+.logo{
+  font-family:'Unbounded',sans-serif;font-size:16px;font-weight:700;
+  color:var(--text);letter-spacing:0.05em;
+  display:flex;align-items:center;gap:8px;
+}
+.logo-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--cyan);
+  box-shadow:0 0 8px var(--cyan),0 0 20px rgba(0,212,255,0.4);
+  animation:logo-pulse 2.5s ease-in-out infinite;
+}
+@keyframes logo-pulse{
+  0%,100%{box-shadow:0 0 8px var(--cyan),0 0 20px rgba(0,212,255,0.4)}
+  50%{box-shadow:0 0 12px var(--cyan),0 0 32px rgba(0,212,255,0.7),0 0 48px rgba(0,212,255,0.2)}
+}
+.nav-spacer{flex:1}
+.regime-pill{
+  display:flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+  padding:4px 12px;border-radius:20px;
+  background:var(--green-dim);color:var(--green);
+  border:1px solid rgba(0,229,160,0.2);
+  font-family:var(--mono);
+}
+.regime-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--green);
+  animation:blink 2s infinite;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.nav-time{font-family:var(--mono);font-size:12px;color:var(--text2)}
+.nav-btn{
+  display:flex;align-items:center;gap:6px;
+  padding:6px 14px;border-radius:8px;
+  font-size:12px;font-weight:600;letter-spacing:0.03em;
+  cursor:pointer;border:none;transition:all 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.nav-btn.ghost{background:transparent;color:var(--text2);border:1px solid var(--border)}
+.nav-btn.ghost:hover{color:var(--text);border-color:var(--border2)}
+.nav-btn.primary{
+  background:var(--cyan);color:#000;font-weight:700;
+  box-shadow:0 0 20px rgba(0,212,255,0.3);
+}
+.nav-btn.primary:hover{box-shadow:0 0 30px rgba(0,212,255,0.5);transform:translateY(-1px)}
+.sound-btn{
+  width:32px;height:32px;border-radius:8px;
+  background:var(--surface2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;color:var(--text2);font-size:16px;
+  transition:all 0.2s;
+}
+.sound-btn:hover{color:var(--cyan);border-color:rgba(0,212,255,0.3)}
+
+/* BENTO GRID */
+.bento{
+  position:relative;z-index:1;
+  display:grid;
+  grid-template-columns:1fr 340px;
+  grid-template-rows:auto auto auto;
+  gap:14px;
+  padding:20px 20px 30px;
+  max-width:1280px;margin:0 auto;
+}
+.card{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  position:relative;overflow:hidden;
+  transition:border-color 0.3s;
+}
+.card:hover{border-color:var(--border2)}
+.card-glow{
+  position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(0,212,255,0.05),transparent 70%);
+}
+
+/* CARD HEADER */
+.card-header{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 18px 12px;
+  border-bottom:1px solid var(--border);
+}
+.card-title{
+  font-family:'Unbounded',sans-serif;font-size:11px;font-weight:500;
+  letter-spacing:0.12em;text-transform:uppercase;color:var(--text2);
+}
+.card-badge{
+  font-family:var(--mono);font-size:10px;
+  padding:2px 8px;border-radius:4px;
+  background:var(--cyan-dim);color:var(--cyan);
+  border:1px solid rgba(0,212,255,0.2);
+}
+.card-dot{
+  width:6px;height:6px;border-radius:50%;margin-left:auto;
+}
+.card-dot.green{background:var(--green)}
+.card-dot.amber{background:var(--amber)}
+
+/* CHAT CARD — spans 2 rows */
+.chat-card{grid-column:1;grid-row:1/3;display:flex;flex-direction:column;min-height:620px}
+.chat-messages{
+  flex:1;padding:20px;display:flex;flex-direction:column;gap:16px;
+  overflow-y:auto;scroll-behavior:smooth;
+}
+.chat-messages::-webkit-scrollbar{width:4px}
+.chat-messages::-webkit-scrollbar-track{background:transparent}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* MESSAGES */
+.msg{display:flex;gap:10px;animation:msg-in 0.3s ease}
+@keyframes msg-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-avatar{
+  width:30px;height:30px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:13px;font-weight:700;
+}
+.msg-avatar.atlas{
+  background:var(--cyan-dim);color:var(--cyan);
+  border:1px solid rgba(0,212,255,0.3);
+  font-family:'Unbounded',sans-serif;font-size:9px;letter-spacing:0.05em;
+}
+.msg-avatar.user{background:var(--surface2);color:var(--text2);font-size:11px}
+.msg-content{flex:1;padding-top:4px}
+.msg-sender{
+  font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;
+  margin-bottom:4px;
+}
+.msg-sender.atlas{color:var(--cyan)}
+.msg-sender.user{color:var(--text2)}
+.msg-text{
+  font-size:14px;line-height:1.65;color:var(--text);
+}
+.msg-text .highlight{
+  color:var(--cyan);font-family:var(--mono);font-size:13px;
+}
+.msg-text .up{color:var(--green)}
+.msg-text .down{color:var(--red)}
+
+/* THINKING INDICATOR */
+.thinking{display:flex;align-items:center;gap:5px;padding:4px 0}
+.think-dot{
+  width:6px;height:6px;border-radius:50%;background:var(--cyan);
+  animation:think 1.4s ease-in-out infinite;
+}
+.think-dot:nth-child(2){animation-delay:0.2s}
+.think-dot:nth-child(3){animation-delay:0.4s}
+@keyframes think{
+  0%,80%,100%{transform:scale(0.6);opacity:0.3}
+  40%{transform:scale(1);opacity:1;box-shadow:0 0 8px var(--cyan)}
+}
+
+/* STREAMING CURSOR */
+.cursor{
+  display:inline-block;width:2px;height:14px;
+  background:var(--cyan);margin-left:2px;vertical-align:middle;
+  animation:cursor-blink 0.8s ease-in-out infinite;
+}
+@keyframes cursor-blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* CHAT INPUT */
+.chat-input-wrap{
+  padding:16px 18px;
+  border-top:1px solid var(--border);
+  display:flex;gap:10px;align-items:flex-end;
+}
+.chat-input{
+  flex:1;background:var(--surface2);
+  border:1px solid var(--border);border-radius:10px;
+  padding:10px 14px;font-size:14px;color:var(--text);
+  font-family:'DM Sans',sans-serif;resize:none;outline:none;
+  transition:border-color 0.2s;min-height:44px;max-height:120px;
+  line-height:1.5;
+}
+.chat-input::placeholder{color:var(--text3)}
+.chat-input:focus{border-color:rgba(0,212,255,0.4)}
+.send-btn{
+  width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  background:var(--cyan);border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  color:#000;font-size:18px;transition:all 0.2s;
+  box-shadow:0 0 16px rgba(0,212,255,0.25);
+}
+.send-btn:hover{box-shadow:0 0 24px rgba(0,212,255,0.5);transform:scale(1.05)}
+.send-btn:active{transform:scale(0.97)}
+
+/* QUICK PROMPTS */
+.quick-row{display:flex;gap:8px;flex-wrap:wrap;padding:0 18px 14px}
+.quick{
+  font-size:11px;font-weight:500;
+  padding:5px 12px;border-radius:6px;
+  border:1px solid var(--border);
+  background:var(--surface2);color:var(--text2);
+  cursor:pointer;transition:all 0.18s;white-space:nowrap;
+}
+.quick:hover{
+  border-color:rgba(0,212,255,0.35);color:var(--cyan);
+  background:var(--cyan-dim);
+}
+
+/* RIGHT COLUMN */
+.right-col{grid-column:2;display:flex;flex-direction:column;gap:14px}
+
+/* MARKET PULSE */
+.pulse-card{padding:0}
+.pulse-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:1px;
+  background:var(--border);
+}
+.pulse-item{
+  background:var(--surface);
+  padding:14px 16px;
+  transition:background 0.2s;
+}
+.pulse-item:hover{background:var(--surface2)}
+.pulse-label{font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;font-family:var(--mono);margin-bottom:4px}
+.pulse-val{font-family:var(--mono);font-size:18px;font-weight:500;line-height:1}
+.pulse-change{font-size:11px;margin-top:3px;font-family:var(--mono)}
+.pulse-val.up{color:var(--green)}
+.pulse-val.down{color:var(--red)}
+.pulse-val.neutral{color:var(--text)}
+.pulse-change.up{color:var(--green)}
+.pulse-change.down{color:var(--red)}
+
+/* SCAN RESULTS */
+.scan-card{}
+.scan-list{padding:4px 0}
+.scan-row{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 18px;border-bottom:1px solid var(--border);
+  cursor:pointer;transition:background 0.15s;
+}
+.scan-row:last-child{border-bottom:none}
+.scan-row:hover{background:var(--surface2)}
+.scan-rank{
+  font-family:'Unbounded',sans-serif;font-size:10px;font-weight:600;
+  color:var(--text3);width:16px;text-align:right;flex-shrink:0;
+}
+.scan-rank.top{color:var(--cyan)}
+.scan-ticker{
+  font-family:var(--mono);font-size:13px;font-weight:500;
+  color:var(--text);flex:1;
+}
+.scan-bucket{
+  font-size:9px;letter-spacing:0.08em;text-transform:uppercase;
+  padding:2px 6px;border-radius:4px;font-family:var(--mono);
+}
+.scan-bucket.penny{background:rgba(255,176,32,0.12);color:var(--amber)}
+.scan-bucket.low{background:rgba(0,229,160,0.1);color:var(--green)}
+.scan-bucket.mid{background:rgba(0,212,255,0.1);color:var(--cyan)}
+.scan-bucket.high{background:rgba(255,255,255,0.06);color:var(--text2)}
+.scan-score{
+  font-family:var(--mono);font-size:11px;
+  font-weight:600;
+}
+
+/* GRADE BARS */
+.grade-bar-wrap{display:flex;align-items:center;gap:6px;margin-top:2px}
+.grade-bar{
+  height:3px;border-radius:2px;
+  background:linear-gradient(90deg,var(--cyan),var(--green));
+  transition:width 1s cubic-bezier(0.4,0,0.2,1);
+}
+.grade-bar.amber{background:linear-gradient(90deg,var(--amber),rgba(255,176,32,0.4))}
+.grade-bar.red{background:linear-gradient(90deg,var(--red),rgba(255,69,96,0.4))}
+
+/* REGIME CARD */
+.regime-card{padding:18px}
+.regime-label{font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px}
+.regime-value{
+  font-family:'Unbounded',sans-serif;font-size:20px;font-weight:600;
+  color:var(--green);margin-bottom:6px;
+}
+.regime-sub{font-size:12px;color:var(--text2);line-height:1.5}
+.regime-bars{display:flex;gap:4px;margin-top:12px}
+.regime-bar{
+  flex:1;height:4px;border-radius:2px;
+  background:var(--border);overflow:hidden;
+}
+.regime-bar-fill{
+  height:100%;border-radius:2px;
+  transition:width 2s cubic-bezier(0.4,0,0.2,1);
+}
+
+/* BOTTOM ROW */
+.bottom-row{
+  grid-column:1/3;
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;
+}
+.stat-card{padding:18px}
+.stat-label{font-size:10px;color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;font-family:var(--mono);margin-bottom:8px}
+.stat-value{
+  font-family:'Unbounded',sans-serif;font-size:24px;font-weight:500;
+  line-height:1;margin-bottom:6px;
+}
+.stat-sub{font-size:12px;color:var(--text2)}
+.stat-sparkline{
+  margin-top:12px;display:flex;align-items:flex-end;gap:3px;height:32px;
+}
+.spark-bar{
+  flex:1;border-radius:2px;min-height:4px;
+  transition:height 1s ease;
+}
+
+/* TOOLTIP */
+.tip{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:6px;padding:6px 10px;
+  font-size:11px;white-space:nowrap;
+  pointer-events:none;opacity:0;transition:opacity 0.15s;z-index:50;
+  font-family:var(--mono);color:var(--text2);
+}
+.has-tip{position:relative}
+.has-tip:hover .tip{opacity:1}
+
+/* ALERT STRIP */
+.alert-strip{
+  position:fixed;bottom:20px;right:20px;z-index:200;
+  display:flex;flex-direction:column;gap:8px;pointer-events:none;
+}
+.alert{
+  background:var(--surface2);border:1px solid var(--border2);
+  border-radius:10px;padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+  font-size:13px;pointer-events:auto;
+  animation:alert-in 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  box-shadow:0 8px 32px rgba(0,0,0,0.4);
+  max-width:320px;
+}
+@keyframes alert-in{from{opacity:0;transform:translateX(40px) scale(0.9)}to{opacity:1;transform:none}}
+.alert-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.alert-text{flex:1;color:var(--text)}
+.alert-x{color:var(--text3);cursor:pointer;font-size:15px;flex-shrink:0;background:none;border:none;line-height:1}
+.alert-x:hover{color:var(--text)}
+
+/* THEME SCAN RUNNING ANIMATION */
+.scanning{
+  position:relative;overflow:hidden;
+}
+.scanning::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(90deg,transparent,rgba(0,212,255,0.06),transparent);
+  animation:scan-sweep 1.6s linear infinite;
+}
+@keyframes scan-sweep{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="logo">
+    <div class="logo-dot"></div>
+    ATLAS
+  </div>
+  <div class="regime-pill">
+    <div class="regime-dot"></div>
+    <span id="nav-regime">BULL TREND</span>
+  </div>
+  <div class="nav-spacer"></div>
+  <div class="nav-time" id="nav-time"></div>
+  <button class="sound-btn" id="sound-toggle" title="Toggle sound" onclick="toggleSound()">🔔</button>
+  <button class="nav-btn ghost">Positions</button>
+  <button class="nav-btn ghost">Research</button>
+  <button class="nav-btn primary" onclick="triggerScan()">⚡ Run Scan</button>
+</nav>
+
+<!-- BENTO GRID -->
+<div class="bento">
+
+  <!-- CHAT CARD -->
+  <div class="card chat-card">
+    <div class="card-glow"></div>
+    <div class="card-header">
+      <div class="card-title">Intelligence Terminal</div>
+      <div class="card-badge" id="model-badge">GEMINI 2.5 FLASH</div>
+      <div class="card-dot green" id="conn-dot" style="margin-left:auto"></div>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      <!-- Welcome message -->
+      <div class="msg">
+        <div class="msg-avatar atlas">AT</div>
+        <div class="msg-content">
+          <div class="msg-sender atlas">ATLAS</div>
+          <div class="msg-text">
+            Good morning. Markets are in <span class="highlight">BULL TREND</span> regime.
+            VIX at <span class="highlight">14.2</span> — volatility compressed.
+            SPY is <span class="up">+0.43%</span> pre-market.<br><br>
+            I've run a momentum scan overnight.
+            <span class="highlight">NVDA, SOUN, IONQ</span> are showing elevated relative volume.
+            Ask me anything — allocation, specific tickers, options setups, or run a full discovery scan.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="quick-row">
+      <div class="quick" onclick="quickPrompt('Scan AI stocks under $20')">⚡ AI stocks &lt;$20</div>
+      <div class="quick" onclick="quickPrompt('Best squeeze setups today')">🎯 Squeeze setups</div>
+      <div class="quick" onclick="quickPrompt('$1000 allocation breakdown')">💰 $1000 split</div>
+      <div class="quick" onclick="quickPrompt('Market regime analysis')">📊 Regime check</div>
+      <div class="quick" onclick="quickPrompt('Top momentum breakouts')">🚀 Momentum</div>
+    </div>
+
+    <div class="chat-input-wrap">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask ATLAS anything — stocks, options, allocation, analysis..." rows="1"
+        onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMessage()" title="Send">➤</button>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-col">
+
+    <!-- MARKET PULSE -->
+    <div class="card pulse-card">
+      <div class="card-glow"></div>
+      <div class="card-header">
+        <div class="card-title">Market Pulse</div>
+        <div class="card-dot green" id="pulse-dot"></div>
+      </div>
+      <div class="pulse-grid" id="pulse-grid">
+        <div class="pulse-item">
+          <div class="pulse-label">S&P 500</div>
+          <div class="pulse-val up" id="spy-val">5,621.8</div>
+          <div class="pulse-change up" id="spy-chg">▲ +0.43%</div>
+        </div>
+        <div class="pulse-item">
+          <div class="pulse-label">VIX</div>
+          <div class="pulse-val neutral" id="vix-val">14.2</div>
+          <div class="pulse-change down" id="vix-chg">▼ −1.1%</div>
+        </div>
+        <div class="pulse-item">
+          <div class="pulse-label">QQQ</div>
+          <div class="pulse-val up" id="qqq-val">481.4</div>
+          <div class="pulse-change up" id="qqq-chg">▲ +0.61%</div>
+        </div>
+        <div class="pulse-item">
+          <div class="pulse-label">10Y Yield</div>
+          <div class="pulse-val neutral" id="tny-val">4.31%</div>
+          <div class="pulse-change down" id="tny-chg">▼ −0.03</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCAN RESULTS -->
+    <div class="card scan-card" id="scan-card">
+      <div class="card-glow"></div>
+      <div class="card-header">
+        <div class="card-title">Top Picks</div>
+        <div class="card-badge" id="scan-theme-badge">MOMENTUM</div>
+        <div class="card-dot amber" style="margin-left:auto"></div>
+      </div>
+      <div class="scan-list" id="scan-list">
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- MARKET REGIME -->
+    <div class="card regime-card">
+      <div class="card-glow"></div>
+      <div class="regime-label">Regime Detector</div>
+      <div class="regime-value" id="regime-val">BULL TREND</div>
+      <div class="regime-sub" id="regime-sub">SPY above 20/50 MA · VIX &lt;20 · Breadth 62% advancing</div>
+      <div class="regime-bars">
+        <div class="regime-bar has-tip">
+          <div class="regime-bar-fill" id="rb-spy" style="width:75%;background:var(--green)"></div>
+          <div class="tip">SPY Trend: 75%</div>
+        </div>
+        <div class="regime-bar has-tip">
+          <div class="regime-bar-fill" id="rb-vix" style="width:30%;background:var(--cyan)"></div>
+          <div class="tip">VIX Risk: Low</div>
+        </div>
+        <div class="regime-bar has-tip">
+          <div class="regime-bar-fill" id="rb-breadth" style="width:62%;background:var(--amber)"></div>
+          <div class="tip">Breadth: 62%</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end right col -->
+
+  <!-- BOTTOM STATS ROW -->
+  <div class="bottom-row">
+
+    <div class="card stat-card">
+      <div class="card-glow"></div>
+      <div class="stat-label">Scans Run</div>
+      <div class="stat-value" id="scans-run">0</div>
+      <div class="stat-sub" id="last-scan">No scans yet today</div>
+      <div class="stat-sparkline" id="spark-scans"></div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-glow"></div>
+      <div class="stat-label">Avg Signal Score</div>
+      <div class="stat-value" id="avg-score" style="color:var(--cyan)">—</div>
+      <div class="stat-sub">Across last scan batch</div>
+      <div class="stat-sparkline" id="spark-scores"></div>
+    </div>
+
+    <div class="card stat-card">
+      <div class="card-glow"></div>
+      <div class="stat-label">Congress Tracker</div>
+      <div class="stat-value" style="font-size:16px;color:var(--amber)">3 Trades</div>
+      <div class="stat-sub">Last 7 days — Pelosi (BUY NVDA $140c)</div>
+      <div class="stat-sparkline" id="spark-congress"></div>
+    </div>
+
+  </div>
+
+</div><!-- end bento -->
+
+<!-- ALERT STRIP -->
+<div class="alert-strip" id="alert-strip"></div>
+
+<script>
+// ─── SOUND ENGINE ───────────────────────────────────────────────────────────
+let soundEnabled = true;
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playThinkTone() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'sine'; o.frequency.setValueAtTime(440, ctx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(660, ctx.currentTime + 0.15);
+    g.gain.setValueAtTime(0.04, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+    o.start(); o.stop(ctx.currentTime + 0.3);
+  } catch(e) {}
+}
+
+function playDoneTone() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    const notes = [523, 659, 784];
+    notes.forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.1;
+      g.gain.setValueAtTime(0.06, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+      o.start(t); o.stop(t + 0.35);
+    });
+  } catch(e) {}
+}
+
+function playTypeTone() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    const o = ctx.createOscillator();
+    const g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.type = 'square'; o.frequency.value = 800 + Math.random() * 400;
+    g.gain.setValueAtTime(0.008, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+    o.start(); o.stop(ctx.currentTime + 0.04);
+  } catch(e) {}
+}
+
+function playAlertTone() {
+  if (!soundEnabled) return;
+  try {
+    const ctx = getAudio();
+    [880, 1100].forEach((freq, i) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.type = 'sine'; o.frequency.value = freq;
+      const t = ctx.currentTime + i * 0.12;
+      g.gain.setValueAtTime(0.05, t);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+      o.start(t); o.stop(t + 0.2);
+    });
+  } catch(e) {}
+}
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  document.getElementById('sound-toggle').textContent = soundEnabled ? '🔔' : '🔕';
+  showAlert(soundEnabled ? 'Sound enabled' : 'Sound muted', 'cyan');
+}
+
+// ─── CLOCK ───────────────────────────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('nav-time').textContent =
+    now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false}) +
+    ' EST';
+}
+setInterval(updateClock, 1000); updateClock();
+
+// ─── LIVE MARKET FLICKER ────────────────────────────────────────────────────
+const marketData = {
+  spy: {val: 5621.8, chg: 0.43, el: 'spy-val', celEl: 'spy-chg', prefix:''},
+  vix: {val: 14.2,  chg: -1.1,  el: 'vix-val', celEl: 'vix-chg', prefix:''},
+  qqq: {val: 481.4, chg: 0.61, el: 'qqq-val', celEl: 'qqq-chg', prefix:''},
+  tny: {val: 4.31,  chg: -0.03, el: 'tny-val', celEl: 'tny-chg', prefix:'', suffix:'%'},
+};
+
+function flickerMarket() {
+  Object.entries(marketData).forEach(([k, d]) => {
+    const drift = (Math.random() - 0.5) * (k === 'vix' ? 0.08 : 0.4);
+    d.val = Math.max(0.1, d.val + drift);
+    d.chg += (Math.random() - 0.5) * 0.03;
+    const el = document.getElementById(d.el);
+    const cel = document.getElementById(d.celEl);
+    if (!el) return;
+    const up = d.chg >= 0;
+    const vStr = k === 'tny' ? d.val.toFixed(2) + '%' :
+                 k === 'vix' ? d.val.toFixed(1) :
+                 d.val >= 100 ? d.val.toFixed(1) : d.val.toFixed(2);
+    el.textContent = vStr;
+    el.className = 'pulse-val ' + (k === 'tny' || k === 'vix' ? 'neutral' : up ? 'up' : 'down');
+    if (cel) {
+      const sign = up ? '▲ +' : '▼ ';
+      cel.textContent = sign + Math.abs(d.chg).toFixed(2) + '%';
+      cel.className = 'pulse-change ' + (up ? 'up' : 'down');
+    }
+  });
+}
+setInterval(flickerMarket, 3500);
+
+// ─── SCAN RESULTS DATA ──────────────────────────────────────────────────────
+const demoScans = [
+  {rank:1, ticker:'SOUN',  score:82, bucket:'low',   signal:'RVOL 4.2x · SF 28% · RSI 58'},
+  {rank:2, ticker:'IONQ',  score:76, bucket:'low',   signal:'RVOL 2.8x · SF 22% · +9.2%/5d'},
+  {rank:3, ticker:'NVDA',  score:71, bucket:'high',  signal:'RVOL 1.9x · RSI 62 · AI catalyst'},
+  {rank:4, ticker:'MARA',  score:65, bucket:'mid',   signal:'RVOL 3.1x · SF 31% · BTC corr'},
+  {rank:5, ticker:'BBAI',  score:58, bucket:'penny', signal:'RVOL 5.7x · Earnings +3d'},
+];
+
+function renderScanList(items, theme) {
+  document.getElementById('scan-theme-badge').textContent = theme.toUpperCase();
+  const list = document.getElementById('scan-list');
+  list.innerHTML = '';
+  items.forEach(item => {
+    const scoreColor = item.score >= 75 ? 'var(--green)' : item.score >= 60 ? 'var(--amber)' : 'var(--red)';
+    const barColor = item.score >= 75 ? '' : item.score >= 60 ? 'amber' : 'red';
+    const barW = item.score;
+    list.innerHTML += `
+      <div class="scan-row" onclick="askAbout('${item.ticker}')">
+        <div class="scan-rank ${item.rank<=2?'top':''}">${item.rank}</div>
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+            <div class="scan-ticker">${item.ticker}</div>
+            <div class="scan-bucket ${item.bucket}">${item.bucket==='low'?'&lt;$20':item.bucket}</div>
+            <div class="scan-score" style="color:${scoreColor}">${item.score}</div>
+          </div>
+          <div style="font-size:10px;color:var(--text3);font-family:var(--mono)">${item.signal}</div>
+          <div class="grade-bar-wrap" style="margin-top:4px">
+            <div class="grade-bar ${barColor}" style="width:${barW}px;max-width:120px"></div>
+          </div>
+        </div>
+      </div>`;
+  });
+}
+renderScanList(demoScans, 'momentum');
+
+// ─── SPARKLINES ─────────────────────────────────────────────────────────────
+function renderSparkline(id, data, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const max = Math.max(...data);
+  el.innerHTML = data.map(v => {
+    const h = Math.max(4, Math.round((v / max) * 28));
+    return `<div class="spark-bar" style="height:${h}px;background:${color};opacity:${0.3 + (v/max)*0.7}"></div>`;
+  }).join('');
+}
+renderSparkline('spark-scans', [1,3,2,4,3,6,5,4,7,6,8,5], 'var(--cyan)');
+renderSparkline('spark-scores', [55,62,58,70,65,72,68,75,80,76,82,78], 'var(--green)');
+renderSparkline('spark-congress', [0,1,0,2,1,3,2,1,3,2,3,1], 'var(--amber)');
+
+// ─── ALERT SYSTEM ────────────────────────────────────────────────────────────
+let alertCount = 0;
+function showAlert(text, color='cyan') {
+  const strip = document.getElementById('alert-strip');
+  const id = 'alert-' + (++alertCount);
+  const colorMap = {cyan:'var(--cyan)', green:'var(--green)', red:'var(--red)', amber:'var(--amber)'};
+  const c = colorMap[color] || colorMap.cyan;
+  const div = document.createElement('div');
+  div.className = 'alert'; div.id = id;
+  div.innerHTML = `<div class="alert-dot" style="background:${c}"></div>
+    <div class="alert-text">${text}</div>
+    <button class="alert-x" onclick="document.getElementById('${id}').remove()">✕</button>`;
+  strip.appendChild(div);
+  playAlertTone();
+  setTimeout(() => { const el = document.getElementById(id); if(el) el.remove(); }, 5000);
+}
+
+// ─── CHAT ENGINE ─────────────────────────────────────────────────────────────
+let isReplying = false;
+let scansRun = 0;
+
+function addMessage(role, text, isHTML=false) {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg';
+  const isAtlas = role === 'atlas';
+  div.innerHTML = `
+    <div class="msg-avatar ${role}">${isAtlas ? 'AT' : '👤'}</div>
+    <div class="msg-content">
+      <div class="msg-sender ${role}">${isAtlas ? 'ATLAS' : 'YOU'}</div>
+      <div class="msg-text" id="msg-${Date.now()}">${isHTML ? text : escapeHtml(text)}</div>
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div.querySelector('.msg-text');
+}
+
+function escapeHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showThinking() {
+  const container = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg'; div.id = 'thinking-msg';
+  div.innerHTML = `
+    <div class="msg-avatar atlas">AT</div>
+    <div class="msg-content">
+      <div class="msg-sender atlas">ATLAS</div>
+      <div class="thinking">
+        <div class="think-dot"></div>
+        <div class="think-dot"></div>
+        <div class="think-dot"></div>
+      </div>
+    </div>`;
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  playThinkTone();
+}
+
+function removeThinking() {
+  const el = document.getElementById('thinking-msg');
+  if (el) el.remove();
+}
+
+async function streamText(el, text) {
+  el.innerHTML = '';
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  el.appendChild(cursor);
+  
+  const words = text.split(' ');
+  let accumulated = '';
+  
+  for (let i = 0; i < words.length; i++) {
+    accumulated += (i > 0 ? ' ' : '') + words[i];
+    el.innerHTML = accumulated + '<span class="cursor"></span>';
+    document.getElementById('chat-messages').scrollTop = 99999;
+    if (i % 3 === 0) playTypeTone();
+    await sleep(30 + Math.random() * 40);
+  }
+  
+  el.innerHTML = accumulated;
+  playDoneTone();
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// Demo responses for quick prompts
+const demoReplies = {
+  default: (q) => `Analyzing <span class="highlight">"${q}"</span> — scanning live market data, news velocity, and regime context...<br><br>
+    ⚡ <strong>Your ATLAS system</strong> is connected to yfinance, SEC EDGAR, Finviz screener, and 10+ live data sources. 
+    In production this triggers the full 4-pass progressive scan: universe pull → fast filter → signal scoring → deep rank with Gemini synthesis.<br><br>
+    <span class="up">Deploy <code>python api_server.py</code></span> and connect this dashboard to <span class="highlight">http://127.0.0.1:8000/v2</span> to get live responses here.`,
+  
+  scan: () => `Running <span class="highlight">MOMENTUM</span> scan...<br><br>
+    Pass 1 → Pulling 150 tickers from Finviz screener ✓<br>
+    Pass 2 → Fast filtering (yfinance parallel) ✓<br>
+    Pass 3 → Signal scoring → <span class="up">23 candidates</span> ✓<br>
+    Pass 4 → Deep ranking top 12... ✓<br><br>
+    <span class="highlight">Top picks updated</span> in scan panel. 
+    <span class="up">SOUN leads</span> with signal score 82 — RVOL 4.2x, short float 28%, RSI 58.
+    <span class="up">IONQ #2</span> at 76 — upcoming earnings catalyst in 5 days.`,
+};
+
+async function sendMessage() {
+  if (isReplying) return;
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  
+  input.value = '';
+  autoResize(input);
+  isReplying = true;
+  
+  addMessage('user', text);
+  await sleep(400);
+  showThinking();
+  await sleep(1800 + Math.random() * 1000);
+  removeThinking();
+  
+  const replyEl = addMessage('atlas', '', true);
+  const reply = demoReplies.default(text);
+  await streamText(replyEl, '');
+  replyEl.innerHTML = reply;
+  playDoneTone();
+  
+  isReplying = false;
+}
+
+function quickPrompt(text) {
+  document.getElementById('chat-input').value = text;
+  sendMessage();
+}
+
+function askAbout(ticker) {
+  quickPrompt(`Deep analysis of ${ticker} — entry, target, stop, and options setup`);
+}
+
+async function triggerScan() {
+  if (isReplying) return;
+  isReplying = true;
+  scansRun++;
+  document.getElementById('scans-run').textContent = scansRun;
+  document.getElementById('last-scan').textContent = 'Scan running...';
+  
+  const scanCard = document.getElementById('scan-card');
+  scanCard.classList.add('scanning');
+  
+  showAlert('Progressive scan started — pulling universe...', 'cyan');
+  
+  addMessage('user', 'Run a full progressive scan — best momentum setups right now');
+  await sleep(500);
+  showThinking();
+  await sleep(3000);
+  removeThinking();
+  
+  const themes = ['MOMENTUM', 'SQUEEZE', 'AI TECH', 'SMALL CAP'];
+  const theme = themes[scansRun % themes.length];
+  
+  // Fake new results
+  const newResults = [
+    {rank:1, ticker:['RGTI','ASTS','MARA','SOUN'][scansRun%4], score:79+Math.floor(Math.random()*10), bucket:'low',   signal:`RVOL ${(2+Math.random()*3).toFixed(1)}x · SF ${20+Math.floor(Math.random()*20)}%`},
+    {rank:2, ticker:['IONQ','BBAI','RIOT','PLTR'][scansRun%4], score:68+Math.floor(Math.random()*10), bucket:'mid',   signal:`RVOL ${(1.5+Math.random()*2).toFixed(1)}x · RSI ${55+Math.floor(Math.random()*15)}`},
+    {rank:3, ticker:['NVDA','AMD','ARQQ','CIFR'][scansRun%4],  score:61+Math.floor(Math.random()*10), bucket:'high',  signal:`RVOL ${(1.2+Math.random()*1.5).toFixed(1)}x · Earnings catalyst`},
+    {rank:4, ticker:['GFAI','NKLA','MULN','CENN'][scansRun%4], score:52+Math.floor(Math.random()*10), bucket:'penny', signal:`RVOL ${(3+Math.random()*4).toFixed(1)}x · High SF`},
+    {rank:5, ticker:['QBTS','RKLB','ACHR','JOBY'][scansRun%4], score:47+Math.floor(Math.random()*10), bucket:'low',   signal:`RVOL ${(1.8+Math.random()*2).toFixed(1)}x · Momentum building`},
+  ];
+  
+  renderScanList(newResults, theme);
+  scanCard.classList.remove('scanning');
+  
+  const avgScore = Math.round(newResults.reduce((a,b)=>a+b.score,0)/newResults.length);
+  document.getElementById('avg-score').textContent = avgScore;
+  document.getElementById('last-scan').textContent = `Last: ${new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}`;
+  
+  const replyEl = addMessage('atlas', '', true);
+  replyEl.innerHTML = demoReplies.scan();
+  playDoneTone();
+  showAlert(`Scan complete — top pick: ${newResults[0].ticker} (${newResults[0].score}/100)`, 'green');
+  
+  isReplying = false;
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(120, el.scrollHeight) + 'px';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ATLAS — Sign In</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: #0D1117;
+            color: #E6EDF3;
+            font-family: 'Inter', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        .card {
+            background: #161B22;
+            border: 1px solid #30363D;
+            border-radius: 12px;
+            padding: 2rem;
+            width: 100%;
+            max-width: 400px;
+        }
+        .brand {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .brand-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            color: #58A6FF;
+        }
+        .brand-sub {
+            font-size: 0.75rem;
+            color: #8B949E;
+            margin-top: 0.25rem;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid #30363D;
+            margin-bottom: 1.5rem;
+        }
+        .tab {
+            flex: 1;
+            padding: 0.625rem;
+            text-align: center;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #8B949E;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            background: none;
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            transition: color 0.15s, border-color 0.15s;
+        }
+        .tab.active {
+            color: #E6EDF3;
+            border-bottom-color: #58A6FF;
+        }
+        .field { margin-bottom: 1rem; }
+        label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #8B949E;
+            margin-bottom: 0.375rem;
+        }
+        input {
+            width: 100%;
+            background: #0D1117;
+            border: 1px solid #30363D;
+            border-radius: 6px;
+            padding: 0.625rem 0.75rem;
+            color: #E6EDF3;
+            font-size: 0.875rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+        input:focus { border-color: #58A6FF; }
+        .btn {
+            width: 100%;
+            padding: 0.7rem;
+            background: #1F6FEB;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 0.5rem;
+            transition: background 0.15s;
+        }
+        .btn:hover { background: #388BFD; }
+        .btn:disabled { background: #21262D; color: #8B949E; cursor: not-allowed; }
+        .error {
+            background: #3D1C1C;
+            border: 1px solid #6E2B2B;
+            color: #FF7B72;
+            border-radius: 6px;
+            padding: 0.625rem 0.75rem;
+            font-size: 0.8rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="brand">
+            <div class="brand-name">ATLAS_</div>
+            <div class="brand-sub">Institutional-Grade Financial Intelligence</div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" id="tab-signin" onclick="switchTab('signin')">Sign In</button>
+            <button class="tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+        </div>
+
+        <div id="error-msg" class="error"></div>
+
+        <div id="panel-signin">
+            <div class="field">
+                <label for="si-email">Email</label>
+                <input id="si-email" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="field">
+                <label for="si-password">Password</label>
+                <input id="si-password" type="password" placeholder="••••••••" autocomplete="current-password" />
+            </div>
+            <button class="btn" id="btn-signin" onclick="signIn()">Sign In</button>
+        </div>
+
+        <div id="panel-signup" class="hidden">
+            <div class="field">
+                <label for="su-email">Email</label>
+                <input id="su-email" type="email" placeholder="you@example.com" autocomplete="email" />
+            </div>
+            <div class="field">
+                <label for="su-password">Password</label>
+                <input id="su-password" type="password" placeholder="••••••••" autocomplete="new-password" />
+            </div>
+            <div class="field">
+                <label for="su-confirm">Confirm Password</label>
+                <input id="su-confirm" type="password" placeholder="••••••••" autocomplete="new-password" />
+            </div>
+            <button class="btn" id="btn-signup" onclick="signUp()">Create Account</button>
+        </div>
+    </div>
+
+    <script>
+        const cfg = window.__ATLAS_SB_CONFIG__ || {};
+        const sb = (cfg.url && cfg.anonKey)
+            ? supabase.createClient(cfg.url, cfg.anonKey)
+            : null;
+
+        function switchTab(tab) {
+            const isSignin = tab === 'signin';
+            document.getElementById('tab-signin').classList.toggle('active', isSignin);
+            document.getElementById('tab-signup').classList.toggle('active', !isSignin);
+            document.getElementById('panel-signin').classList.toggle('hidden', !isSignin);
+            document.getElementById('panel-signup').classList.toggle('hidden', isSignin);
+            clearError();
+        }
+
+        function showError(msg) {
+            const el = document.getElementById('error-msg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        function clearError() {
+            const el = document.getElementById('error-msg');
+            el.style.display = 'none';
+            el.textContent = '';
+        }
+
+        function setLoading(btnId, loading) {
+            const btn = document.getElementById(btnId);
+            btn.disabled = loading;
+            btn.textContent = loading
+                ? 'Please wait…'
+                : (btnId === 'btn-signin' ? 'Sign In' : 'Create Account');
+        }
+
+        async function signIn() {
+            clearError();
+            if (!sb) { showError('Auth not configured — missing Supabase keys.'); return; }
+            const email = document.getElementById('si-email').value.trim();
+            const password = document.getElementById('si-password').value;
+            if (!email || !password) { showError('Email and password are required.'); return; }
+            setLoading('btn-signin', true);
+            const { data, error } = await sb.auth.signInWithPassword({ email, password });
+            setLoading('btn-signin', false);
+            if (error) { showError(error.message); return; }
+            localStorage.setItem('atlas_access_token', data.session.access_token);
+            window.location.href = '/option1';
+        }
+
+        async function signUp() {
+            clearError();
+            if (!sb) { showError('Auth not configured — missing Supabase keys.'); return; }
+            const email = document.getElementById('su-email').value.trim();
+            const password = document.getElementById('su-password').value;
+            const confirm = document.getElementById('su-confirm').value;
+            if (!email || !password) { showError('Email and password are required.'); return; }
+            if (password !== confirm) { showError('Passwords do not match.'); return; }
+            if (password.length < 6) { showError('Password must be at least 6 characters.'); return; }
+            setLoading('btn-signup', true);
+            const { data, error } = await sb.auth.signUp({ email, password });
+            setLoading('btn-signup', false);
+            if (error) { showError(error.message); return; }
+            if (data.session) {
+                localStorage.setItem('atlas_access_token', data.session.access_token);
+                window.location.href = '/option1';
+            } else {
+                showError('Check your email for a confirmation link, then sign in.');
+            }
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Enter') return;
+            const isSignin = !document.getElementById('panel-signin').classList.contains('hidden');
+            if (isSignin) signIn(); else signUp();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+  "skill_id": "atlas-phase-gated-integration",
+  "version": "1.0.0",
+  "description": "Binary checks after a phased integration run. Each item must be true for the run to pass.",
+  "binary_assertions": [
+    {
+      "id": "PGI-01",
+      "assertion": "A written execution plan was produced and explicitly includes scope (in-scope paths or modules), risks, out-of-scope items, and a stop condition before the next dependency layer; no code edits were made in the assistant turn that first produced the plan.",
+      "verify": "Manual or transcript/order check; optional: plan artifact exists with timestamp before first diff."
+    },
+    {
+      "id": "PGI-02",
+      "assertion": "The set of changed file paths is a subset of the paths (or glob allowlist) listed in the approved plan; there are zero unlisted touched files.",
+      "verify": "git diff --name-only (or equivalent) compared to plan allowlist; empty diff only allowed if the approved phase was analysis/docs-only."
+    },
+    {
+      "id": "PGI-03",
+      "assertion": "For every modified file ending in .py, python -m py_compile <file> exits with code 0.",
+      "verify": "Shell: run py_compile on each changed .py from git diff."
+    },
+    {
+      "id": "PGI-04",
+      "assertion": "Project smoke import succeeds: python -c \"import api_server\" exits with code 0 from the ATLAS repo root (or the plan’s declared entry module if api_server was not in scope).",
+      "verify": "Shell: run from repo root; if only non-api files changed, plan must declare an alternate smoke target."
+    },
+    {
+      "id": "PGI-05",
+      "assertion": "If the plan declared forbidden paths or phases for a later pass, git diff --name-only matches zero files under those forbidden path prefixes for this run.",
+      "verify": "Shell: git diff --name-only filtered by forbidden globs/prefixes; must yield no lines."
+    }
+  ]
+}

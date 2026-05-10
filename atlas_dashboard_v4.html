@@ -1,0 +1,2753 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS — Financial Intelligence</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #0B1320;
+  --ink2: #1C2B3A;
+  --slate: #2E4057;
+  --muted: #6B7F99;
+  --fog: #A8B8C8;
+  --border: #DDE5EF;
+  --bg: #F4F7FB;
+  --surface: #FFFFFF;
+  --blue: #1A6EF0;
+  --blue-dim: #EBF2FF;
+  --green: #0EA855;
+  --green-dim: #E6F8EE;
+  --red: #E8283A;
+  --red-dim: #FDEAEC;
+  --amber: #E67E00;
+  --amber-dim: #FFF3E0;
+  --gold: #C9A227;
+  --r: 12px;
+  --shadow: 0 2px 12px rgba(11,19,32,0.06);
+  --shadow-lg: 0 8px 32px rgba(11,19,32,0.10);
+  --nav-bg: rgba(255,255,255,0.92);
+}
+[data-theme="dark"] {
+  --ink: #E8EDF5;
+  --ink2: #CBD5E4;
+  --slate: #9AAABF;
+  --muted: #6B7B94;
+  --fog: #3D4E63;
+  --border: #1E2D3F;
+  --bg: #0D1117;
+  --surface: #131B26;
+  --blue: #4A9EFF;
+  --blue-dim: rgba(74,158,255,0.12);
+  --green: #22C55E;
+  --green-dim: rgba(34,197,94,0.12);
+  --red: #F05252;
+  --red-dim: rgba(240,82,82,0.12);
+  --amber: #F59E0B;
+  --amber-dim: rgba(245,158,11,0.12);
+  --gold: #E5C467;
+  --shadow: 0 2px 12px rgba(0,0,0,0.3);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --nav-bg: rgba(13,17,23,0.92);
+}
+[data-theme="dark"] body { background: #0D1117; }
+[data-theme="dark"] .nav { background: var(--nav-bg); }
+[data-theme="dark"] .sidebar { background: #131B26; }
+[data-theme="dark"] .report-raw-pre { background: #060A10; color: #A8C4E0; }
+[data-theme="dark"] .form-input { background: #0D1117; border-color: var(--border); color: var(--ink); }
+[data-theme="dark"] .form-input:focus { background: #131B26; }
+[data-theme="dark"] .modal { background: #131B26; }
+[data-theme="dark"] .type-btn { background: #0D1117; }
+[data-theme="dark"] .btn-cancel { background: #0D1117; }
+[data-theme="dark"] .quick-q { background: #131B26; }
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg); color: var(--ink);
+  line-height: 1.6; -webkit-font-smoothing: antialiased;
+}
+h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+
+/* ── NAV ── */
+.nav {
+  position: sticky; top: 0; z-index: 200;
+  height: 60px; background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 28px; gap: 20px;
+}
+.nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: var(--ink); letter-spacing: -0.5px; }
+.nav-logo span { color: var(--blue); }
+.nav-regime {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+  background: var(--green-dim); color: var(--green);
+}
+.nav-regime .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); animation: pulse 2s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+.nav-spacer { flex: 1; }
+.nav-btn {
+  display: flex; align-items: center; gap: 6px; padding: 7px 14px;
+  border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer;
+  border: none; transition: all 0.15s; font-family: 'DM Sans', sans-serif;
+}
+.nav-btn.ghost { background: transparent; color: var(--muted); }
+.nav-btn.ghost:hover { color: var(--ink); background: var(--bg); }
+.nav-btn.primary { background: var(--ink); color: white; }
+.nav-btn.primary:hover { background: var(--blue); }
+
+/* ── LAYOUT ── */
+.shell { display: flex; min-height: calc(100vh - 60px); }
+.sidebar {
+  width: 260px; flex-shrink: 0; border-right: 1px solid var(--border);
+  background: var(--surface); padding: 20px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
+}
+.main { flex: 1; padding: 28px 32px; max-width: 1100px; }
+
+/* ── SIDEBAR ── */
+.sidebar-section { margin-bottom: 20px; }
+.sidebar-label {
+  font-size: 10px; font-weight: 700; color: var(--fog);
+  text-transform: uppercase; letter-spacing: 1.5px;
+  padding: 0 8px; margin-bottom: 6px;
+}
+.sidebar-item {
+  display: flex; align-items: center; gap: 10px; padding: 8px 10px;
+  border-radius: 8px; cursor: pointer; transition: all 0.12s;
+  font-size: 14px; font-weight: 500; color: var(--slate);
+  border: none; background: none; width: 100%; text-align: left;
+}
+.sidebar-item:hover { background: var(--bg); color: var(--ink); }
+.sidebar-item.active { background: var(--blue-dim); color: var(--blue); }
+.sidebar-item .icon { width: 18px; text-align: center; font-size: 15px; }
+.sidebar-position {
+  background: var(--bg); border-radius: 8px; padding: 10px 12px;
+  margin-bottom: 6px; cursor: pointer; transition: all 0.15s;
+}
+.sidebar-position:hover { background: var(--border); }
+.sp-ticker { font-weight: 700; font-size: 13px; color: var(--ink); }
+.sp-detail { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.sp-pnl { font-size: 12px; font-weight: 600; }
+.sp-pnl.pos { color: var(--green); }
+.sp-pnl.neg { color: var(--red); }
+
+.session-row {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  padding: 6px 4px; border-radius: 8px; margin-bottom: 4px;
+  border: 1px solid transparent;
+}
+.session-row.active-session { background: var(--blue-dim); border-color: rgba(26,110,240,0.22); }
+.session-select-btn {
+  flex: 1; min-width: 0; border: none; background: transparent; cursor: pointer;
+  text-align: left; font-size: 12px; color: var(--ink); font-family: 'DM Sans', sans-serif;
+  padding: 4px 6px; border-radius: 6px;
+}
+.session-select-btn:hover { background: var(--bg); }
+.session-row-actions { display: flex; gap: 2px; }
+.session-topic { width: 100%; font-size: 10px; color: var(--muted); padding: 0 6px 4px; }
+.session-context-pill {
+  font-size: 11px; color: var(--muted); padding: 6px 8px; margin-bottom: 8px;
+  border-radius: 8px; background: var(--bg); border: 1px solid var(--border);
+}
+
+.quick-stats-strip {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px;
+  padding: 12px 14px; border-radius: var(--r); background: var(--surface);
+  border: 1px solid var(--border); box-shadow: var(--shadow);
+}
+.qs-cell { display: flex; flex-direction: column; gap: 6px; }
+.qs-label {
+  font-size: 10px; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 0.06em;
+}
+.qs-meter { height: 8px; border-radius: 99px; background: var(--border); overflow: hidden; }
+.qs-fill { height: 100%; border-radius: 99px; transition: width 0.3s ease; min-width: 8px; }
+.qs-fill.ryg-red { background: var(--red); }
+.qs-fill.ryg-yellow { background: var(--amber); }
+.qs-fill.ryg-green { background: var(--green); }
+.qs-tag { font-size: 11px; font-weight: 700; text-transform: capitalize; }
+.qs-tag.ryg-red { color: var(--red); }
+.qs-tag.ryg-yellow { color: var(--amber); }
+.qs-tag.ryg-green { color: var(--green); }
+[data-theme="dark"] .quick-stats-strip { background: #0D1117; }
+
+/* ── SEARCH BAR ── */
+.search-wrap { margin-bottom: 28px; }
+.search-bar {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--surface); border: 2px solid var(--border);
+  border-radius: 14px; padding: 14px 18px;
+  box-shadow: var(--shadow); transition: border-color 0.15s;
+}
+.search-bar:focus-within { border-color: var(--blue); box-shadow: 0 0 0 4px rgba(26,110,240,0.08); }
+.search-bar input {
+  flex: 1; border: none; outline: none; font-size: 16px;
+  font-family: 'DM Sans', sans-serif; color: var(--ink); background: transparent;
+}
+.search-bar input::placeholder { color: var(--fog); }
+.search-bar .search-icon { color: var(--muted); font-size: 18px; }
+.search-btn {
+  background: var(--blue); color: white; border: none; padding: 9px 20px;
+  border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer;
+  transition: all 0.15s; font-family: 'DM Sans', sans-serif; white-space: nowrap;
+}
+.search-btn:hover { background: var(--ink); transform: translateY(-1px); }
+.search-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.quick-queries {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px;
+}
+.quick-q {
+  padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  color: var(--slate); background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; transition: all 0.12s;
+}
+.quick-q:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
+
+/* ── CARDS ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 20px 24px;
+  box-shadow: var(--shadow); margin-bottom: 16px;
+}
+.card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.card-title { font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700; color: var(--ink); }
+.card-sub { font-size: 12px; color: var(--muted); }
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.pill-green { background: var(--green-dim); color: var(--green); }
+.pill-red { background: var(--red-dim); color: var(--red); }
+.pill-amber { background: var(--amber-dim); color: var(--amber); }
+.pill-blue { background: var(--blue-dim); color: var(--blue); }
+
+/* ── RESULT CARDS ── */
+.result-wrap { display: none; }
+.result-wrap.visible { display: block; }
+.loading-bar {
+  height: 3px; background: var(--border); border-radius: 2px; overflow: hidden;
+  margin-bottom: 24px;
+}
+.loading-fill {
+  height: 100%; background: linear-gradient(90deg, var(--blue) 0%, #60A5FA 100%);
+  border-radius: 2px; animation: loadFill 45s ease-out forwards;
+}
+@keyframes loadFill { 0% { width: 0%; } 80% { width: 85%; } 100% { width: 85%; } }
+.loading-fill.loading-quick { animation: loadFillQuick 14s ease-out forwards; }
+@keyframes loadFillQuick { 0% { width: 0%; } 100% { width: 92%; } }
+.loading-label { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+.loading-label span { color: var(--blue); font-weight: 600; }
+
+.result-headline {
+  font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700;
+  color: var(--ink); margin-bottom: 8px; line-height: 1.3;
+}
+.result-brief { font-size: 15px; color: var(--slate); line-height: 1.7; margin-bottom: 20px; }
+
+.stats-row { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+.stat-box {
+  background: var(--bg); border-radius: 10px; padding: 14px 18px;
+  min-width: 120px; flex: 1;
+}
+.stat-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+.stat-val { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; color: var(--ink); }
+.stat-val.green { color: var(--green); }
+.stat-val.red { color: var(--red); }
+.stat-val.amber { color: var(--amber); }
+
+.scenario-row {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 14px;
+}
+.scenario-row:last-child { border: none; }
+.sc-prob { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; min-width: 44px; }
+.sc-label { font-weight: 700; min-width: 70px; font-size: 13px; }
+.sc-label.bull { color: var(--green); }
+.sc-label.base { color: var(--amber); }
+.sc-label.bear { color: var(--red); }
+.sc-body { flex: 1; color: var(--slate); font-size: 13px; line-height: 1.5; }
+
+.action-plan-item {
+  display: flex; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border);
+}
+.action-plan-item:last-child { border: none; }
+.step-num {
+  width: 26px; height: 26px; border-radius: 50%; background: var(--ink);
+  color: white; font-size: 12px; font-weight: 700; display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px;
+}
+.step-content .step-when { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+.step-content .step-action { font-weight: 600; font-size: 14px; color: var(--ink); margin-bottom: 2px; }
+.step-content .step-how { font-size: 13px; color: var(--slate); }
+
+.insight-box {
+  border-left: 3px solid var(--blue); background: var(--blue-dim);
+  padding: 14px 18px; border-radius: 0 var(--r) var(--r) 0; margin-bottom: 12px;
+  font-size: 14px; color: var(--ink); line-height: 1.6;
+}
+.insight-box.warn { border-color: var(--amber); background: var(--amber-dim); }
+.insight-box.danger { border-color: var(--red); background: var(--red-dim); }
+
+/* ── MY TRADES ── */
+.trades-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+.trade-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 18px 20px; box-shadow: var(--shadow);
+  transition: all 0.15s; cursor: pointer;
+}
+.trade-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+.tc-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+.tc-ticker { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 800; color: var(--ink); }
+.tc-name { font-size: 12px; color: var(--muted); }
+.tc-pnl { text-align: right; }
+.tc-pnl-val { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; }
+.tc-pnl-pct { font-size: 12px; font-weight: 500; }
+.tc-pnl-val.pos, .tc-pnl-pct.pos { color: var(--green); }
+.tc-pnl-val.neg, .tc-pnl-pct.neg { color: var(--red); }
+.tc-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 12px; }
+.tc-stat-label { color: var(--muted); }
+.tc-stat-val { font-weight: 600; color: var(--ink); }
+.tc-actions { display: flex; gap: 8px; margin-top: 14px; }
+.tc-btn {
+  flex: 1; padding: 7px; border-radius: 7px; font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; transition: all 0.12s;
+}
+.tc-btn.research { background: var(--blue-dim); color: var(--blue); }
+.tc-btn.research:hover { background: var(--blue); color: white; }
+.tc-btn.remove { background: var(--bg); color: var(--muted); }
+.tc-btn.remove:hover { background: var(--red-dim); color: var(--red); }
+
+/* ── ADD TRADE MODAL ── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(11,19,32,0.5);
+  backdrop-filter: blur(4px); z-index: 500; display: none;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface); border-radius: 16px; padding: 28px 32px;
+  width: 480px; max-width: 95vw; box-shadow: var(--shadow-lg);
+  animation: modalIn 0.2s ease;
+}
+@keyframes modalIn { from { transform: translateY(16px); opacity: 0; } to { transform: none; opacity: 1; } }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 20px; }
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 13px; font-weight: 600; color: var(--slate); margin-bottom: 5px; display: block; }
+.form-input {
+  width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+  font-size: 14px; font-family: 'DM Sans', sans-serif; color: var(--ink);
+  background: var(--bg); transition: border-color 0.15s; outline: none;
+}
+.form-input:focus { border-color: var(--blue); background: white; }
+.type-toggle { display: flex; gap: 6px; }
+.type-btn {
+  flex: 1; padding: 9px; border-radius: 7px; border: 1.5px solid var(--border);
+  font-size: 13px; font-weight: 600; cursor: pointer; background: var(--bg);
+  color: var(--muted); transition: all 0.12s; font-family: 'DM Sans', sans-serif;
+}
+.type-btn.active { border-color: var(--blue); background: var(--blue-dim); color: var(--blue); }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+.modal-actions button { flex: 1; padding: 11px; border-radius: 9px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; font-family: 'DM Sans', sans-serif; }
+.btn-cancel { background: var(--bg); color: var(--muted); }
+.btn-save { background: var(--ink); color: white; transition: background 0.15s; }
+.btn-save:hover { background: var(--blue); }
+
+/* ── TABS ── */
+.tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--bg); padding: 4px; border-radius: 10px; width: fit-content; }
+.tab {
+  padding: 8px 18px; border-radius: 7px; font-size: 14px; font-weight: 600;
+  cursor: pointer; transition: all 0.12s; color: var(--muted); border: none;
+  background: transparent; font-family: 'DM Sans', sans-serif;
+}
+.tab.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+
+/* ── EMPTY STATE ── */
+.empty {
+  text-align: center; padding: 48px 24px; color: var(--muted);
+}
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty h3 { font-family: 'Syne', sans-serif; font-size: 18px; color: var(--ink); margin-bottom: 6px; }
+.empty p { font-size: 14px; }
+
+/* ── WATCHLIST ── */
+.watchlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+.wl-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 16px; box-shadow: var(--shadow);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.wl-ticker { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 800; }
+.wl-price { font-size: 14px; font-weight: 500; color: var(--slate); }
+.wl-actions { display: flex; gap: 6px; }
+.wl-btn {
+  flex: 1; padding: 6px; border-radius: 6px; font-size: 11px; font-weight: 600;
+  cursor: pointer; border: none; font-family: 'DM Sans', sans-serif;
+}
+.wl-btn.research { background: var(--blue-dim); color: var(--blue); }
+.wl-btn.remove { background: var(--bg); color: var(--muted); }
+
+/* ── SECTION TITLE ── */
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.section-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; color: var(--ink); }
+
+/* ── RESULTS GRID ── */
+.result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.result-grid .full { grid-column: 1/-1; }
+@media (max-width: 700px) { .result-grid { grid-template-columns: 1fr; } }
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+@media (max-width: 900px) {
+  .sidebar { display: none; }
+  .main { padding: 20px 16px; }
+  .main-recent-strip { display: block !important; }
+}
+
+.main-recent-strip {
+  display: none; margin-bottom: 20px;
+}
+.main-recent-strip .sidebar-label { margin-bottom: 8px; }
+
+.sidebar-report-item {
+  display: block; width: 100%; padding: 8px 10px; margin-bottom: 4px;
+  border-radius: 8px; border: 1px solid var(--border); background: var(--bg);
+  cursor: pointer; text-align: left; font-size: 12px; font-family: 'DM Sans', sans-serif;
+  color: var(--slate); transition: all 0.12s;
+}
+.sidebar-report-item:hover { border-color: var(--blue); background: var(--blue-dim); color: var(--ink); }
+.sidebar-report-meta { font-size: 10px; color: var(--fog); margin-top: 2px; }
+.sidebar-report-wrap { position: relative; margin-bottom: 8px; }
+.sidebar-report-item-top { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; align-items: center; }
+.sidebar-report-actions {
+  position: absolute; top: 8px; right: 8px; display: none; gap: 2px; z-index: 2;
+}
+.sidebar-report-wrap:hover .sidebar-report-actions { display: flex; }
+.sr-action-btn {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+  width: 26px; height: 26px; padding: 0; cursor: pointer; font-size: 12px;
+  line-height: 1; color: var(--ink);
+}
+.sr-action-btn.danger { color: var(--red); }
+.sr-action-btn:hover { border-color: var(--blue); background: var(--blue-dim); }
+.sr-folder-move {
+  width: 100%; margin-top: 6px; font-size: 10px; padding: 4px 6px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+  font-family: 'DM Sans', sans-serif;
+}
+.domain-pill-report {
+  display: inline-block; font-size: 9px; font-weight: 700; padding: 2px 8px; border-radius: 999px;
+  letter-spacing: 0.03em; text-transform: uppercase;
+}
+.pill-domain-green { background: rgba(34,197,94,0.15); color: #22c55e; }
+.pill-domain-blue { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.pill-domain-violet { background: rgba(139,92,246,0.15); color: #8b5cf6; }
+.pill-domain-amber { background: rgba(245,158,11,0.15); color: #f59e0b; }
+.pill-domain-slate { background: var(--border); color: var(--muted); }
+.folder-block { margin-bottom: 12px; }
+.folder-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 6px 8px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border);
+  cursor: pointer; font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 6px;
+}
+.folder-header:hover { border-color: var(--blue); }
+.folder-chevron { font-size: 10px; color: var(--muted); }
+.reports-section-head { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+.btn-folder-new {
+  font-size: 11px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--surface); cursor: pointer; color: var(--ink); font-family: 'DM Sans', sans-serif;
+}
+.btn-folder-new:hover { border-color: var(--blue); background: var(--blue-dim); }
+.report-raw-pre {
+  font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.5;
+  background: var(--ink); color: #E2E8F0; padding: 14px; border-radius: 8px;
+  overflow-x: auto; max-height: 360px; white-space: pre-wrap; word-break: break-word;
+}
+.atlas-auth-slot {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: min(560px, 46vw);
+}
+.atlas-auth-input {
+  width: 118px;
+  max-width: 26vw;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+}
+.atlas-auth-user {
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+[data-theme="dark"] .atlas-auth-input { background: #0D1117; border-color: var(--border); }
+
+/* ── Chat-first layout (Gemini / ChatGPT–style) ── */
+:root { --topbar-h: 52px; --sidebar-w: 280px; }
+.nav-minimal {
+  height: var(--topbar-h);
+  padding: 0 20px;
+}
+.shell {
+  min-height: calc(100vh - var(--topbar-h));
+}
+.sidebar {
+  width: var(--sidebar-w);
+  top: var(--topbar-h);
+  height: calc(100vh - var(--topbar-h));
+  padding: 12px 10px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.sidebar-brand-mini {
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink);
+  padding: 4px 8px 10px;
+  letter-spacing: -0.03em;
+}
+.sidebar-brand-mini span { color: var(--blue); }
+.sidebar-new-chat {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: background 0.15s, border-color 0.15s, transform 0.12s;
+  box-shadow: var(--shadow);
+}
+.sidebar-new-chat:hover {
+  border-color: var(--blue);
+  background: var(--blue-dim);
+  transform: translateY(-1px);
+}
+.sidebar-search-wrap { margin-bottom: 14px; }
+.sidebar-search {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+}
+.sidebar-search:focus { border-color: var(--blue); }
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 8px;
+}
+.sidebar-scroll .sidebar-section:last-child { margin-bottom: 8px; }
+.sidebar-footer {
+  flex-shrink: 0;
+  margin-top: auto;
+  padding: 10px 4px 14px;
+  border-top: 1px solid var(--border);
+  position: relative;
+}
+.sidebar-user-trigger {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  transition: background 0.12s;
+}
+.sidebar-user-trigger:hover { background: var(--bg); }
+.sidebar-user-av {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--blue-dim);
+  color: var(--blue);
+  font-weight: 700;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sidebar-user-text { min-width: 0; flex: 1; }
+.sidebar-user-text .t1 {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-user-text .t2 { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.sidebar-user-chev { color: var(--muted); font-size: 16px; flex-shrink: 0; }
+.atlas-user-flyout {
+  display: none;
+  position: absolute;
+  bottom: 100%;
+  left: 6px;
+  right: 6px;
+  margin-bottom: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  padding: 12px;
+  z-index: 300;
+  max-height: min(70vh, 420px);
+  overflow-y: auto;
+}
+.atlas-user-flyout.open { display: block; }
+.atlas-flyout-section {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  margin: 10px 0 6px;
+}
+.atlas-flyout-section:first-child { margin-top: 0; }
+.atlas-auth-slot.flyout-auth {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: none;
+}
+.atlas-auth-slot.flyout-auth .atlas-auth-input {
+  width: 100%;
+  max-width: none;
+}
+.atlas-flyout-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 8px;
+  margin: 2px 0;
+  border-radius: 8px;
+  border: none;
+  background: var(--bg);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  text-align: left;
+  transition: background 0.12s;
+}
+.atlas-flyout-row:hover { background: var(--blue-dim); }
+.atlas-flyout-help {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+  padding: 6px 4px 4px;
+  border-top: 1px solid var(--border);
+  margin-top: 8px;
+}
+.tab-research-chat {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - var(--topbar-h));
+  max-width: 820px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px 16px;
+}
+.chat-stage { flex: 1; min-height: 0; overflow-y: auto; padding-top: 8px; }
+.chat-hero {
+  text-align: center;
+  padding: 32px 16px 20px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.chat-hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(22px, 4vw, 30px);
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.chat-hero-sub {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.composer-dock {
+  flex-shrink: 0;
+  padding-top: 12px;
+  background: linear-gradient(180deg, transparent 0%, var(--bg) 18%);
+}
+.composer-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+.composer-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--slate);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: all 0.12s;
+  box-shadow: var(--shadow);
+}
+.composer-chip:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  background: var(--blue-dim);
+}
+.composer-pill {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 8px 10px 8px 14px;
+  box-shadow: var(--shadow-lg);
+  max-width: 720px;
+  margin: 0 auto;
+}
+.composer-pill:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(74,158,255,0.12); }
+.composer-mode-wrap {
+  flex-shrink: 0;
+  align-self: center;
+}
+.composer-mode {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  max-width: 130px;
+}
+.composer-mode:focus { outline: none; border-color: var(--blue); }
+.composer-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  resize: none;
+  font-size: 15px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--ink);
+  background: transparent;
+  line-height: 1.45;
+  max-height: 160px;
+  min-height: 24px;
+  padding: 10px 4px;
+}
+.composer-input::placeholder { color: var(--fog); }
+.composer-send {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: var(--blue);
+  color: #fff;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.12s, background 0.15s;
+}
+.composer-send:hover:not(:disabled) { background: var(--ink); transform: scale(1.05); }
+.composer-send:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+.composer-foot {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 10px;
+  line-height: 1.45;
+}
+.chat-hero.hide-hero { display: none; }
+@media (max-width: 900px) {
+  .sidebar-new-chat { font-size: 13px; padding: 10px; }
+  .tab-research-chat { padding: 0 12px 12px; }
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav nav-minimal">
+  <div class="nav-logo">ATLAS<span>.</span></div>
+  <div class="nav-regime">
+    <div class="dot"></div>
+    <span id="regimeLabel">BULL MARKET</span>
+  </div>
+  <div class="nav-spacer"></div>
+</nav>
+
+<div class="shell">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand-mini">ATLAS<span>.</span></div>
+    <button type="button" class="sidebar-new-chat" onclick="createAtlasNewChat()">＋ New chat</button>
+    <div class="sidebar-search-wrap">
+      <input type="search" id="sidebarChatSearch" class="sidebar-search" placeholder="Search chats" autocomplete="off" oninput="filterAtlasChatSessions()" />
+    </div>
+
+    <div class="sidebar-scroll">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Workspace</div>
+        <button type="button" class="sidebar-item active" data-tab="research" onclick="showTab('research')"><span class="icon">💬</span> Chat</button>
+        <button type="button" class="sidebar-item" data-tab="portfolio" onclick="showTab('portfolio')"><span class="icon">📊</span> My Trades</button>
+        <button type="button" class="sidebar-item" data-tab="watchlist" onclick="showTab('watchlist')"><span class="icon">👁</span> Watchlist</button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Chats</div>
+        <div id="sessionContextPill" class="session-context-pill" style="display:none;"></div>
+        <div id="sidebarSessions"><div style="font-size:12px;color:var(--muted);padding:4px 8px;">—</div></div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">My Positions</div>
+        <div id="sidebarPositions">
+          <div style="font-size:12px;color:var(--muted);padding:4px 8px;">No positions yet</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="reports-section-head">
+          <div class="sidebar-label" style="margin:0">Recent reports</div>
+          <button type="button" class="btn-folder-new" onclick="promptNewProjectFolder()">📁 New folder</button>
+        </div>
+        <div id="sidebarReports"><div style="font-size:12px;color:var(--muted);padding:4px 8px;">No saved reports yet</div></div>
+        <button type="button" class="sidebar-item" style="font-size:12px;margin-top:6px" onclick="clearReportHistory()"><span class="icon">🗑</span> Clear history</button>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="sidebar-label">Ideas</div>
+        <button type="button" class="sidebar-item" onclick="setComposerOnly('Deep dive on SOUN — earnings, options flow, short squeeze thesis')"><span class="icon">📈</span> SOUN deep dive</button>
+        <button type="button" class="sidebar-item" onclick="setComposerOnly('Current macro environment — Fed policy, VIX, sector rotation')"><span class="icon">🌍</span> Macro</button>
+        <button type="button" class="sidebar-item" onclick="setComposerOnly('Best AI stocks under $15 with upcoming catalysts')"><span class="icon">🤖</span> AI screen</button>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+        <button type="button" class="sidebar-user-trigger" id="atlasFooterTrigger" aria-expanded="false" aria-haspopup="true" onclick="toggleAtlasUserFlyout(event)">
+        <div class="sidebar-user-av" id="atlasFooterAvatar">A</div>
+        <div class="sidebar-user-text">
+          <div class="t1" id="atlasFooterTitle">Account</div>
+          <div class="t2" id="atlasFooterHint">Settings & profile</div>
+        </div>
+        <span class="sidebar-user-chev">▾</span>
+      </button>
+      <div id="atlasUserFlyout" class="atlas-user-flyout" onclick="event.stopPropagation();">
+        <div class="atlas-flyout-section">Sign in</div>
+        <div id="atlasAuthSlot" class="atlas-auth-slot flyout-auth" aria-label="Account">
+          <span id="atlasAuthUser" class="atlas-auth-user mono" style="display:none;"></span>
+          <input type="email" id="atlasAuthEmail" class="atlas-auth-input" placeholder="Email" autocomplete="username">
+          <input type="password" id="atlasAuthPassword" class="atlas-auth-input" placeholder="Password" autocomplete="current-password">
+          <button type="button" class="nav-btn primary" id="atlasAuthSignInBtn" style="width:100%;justify-content:center;">Sign in</button>
+          <button type="button" class="nav-btn ghost" id="atlasAuthSignOutBtn" style="display:none;width:100%;justify-content:center;">Sign out</button>
+        </div>
+        <div class="atlas-flyout-section">Preferences</div>
+        <button type="button" class="atlas-flyout-row" onclick="atlasToggleTheme();">Theme <span id="atlasThemeLabel">—</span></button>
+        <button type="button" class="atlas-flyout-row" onclick="atlasUserFlyoutClose(); showTab('watchlist');">Open watchlist</button>
+        <button type="button" class="atlas-flyout-row" onclick="atlasUserFlyoutClose(); openAddTrade();">＋ Add trade</button>
+        <div class="atlas-flyout-help">
+          <strong>Tip</strong>: Use <em>Quick chat</em> for normal conversation (fast). Use <em>Deep research</em> for the full Omega → analysis pipeline.
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main" style="max-width:none;padding:0;">
+
+    <!-- RESEARCH TAB -->
+    <div id="tab-research" class="tab-research-chat">
+      <div class="chat-stage">
+        <div id="chatHero" class="chat-hero">
+          <h1 class="chat-hero-title">What’s on your mind?</h1>
+          <p class="chat-hero-sub">Chat naturally here, or switch the composer to <strong>Deep research</strong> when you want the full engine (screens, filings, multi-step analysis).</p>
+        </div>
+
+      <div id="mainRecentStrip" class="main-recent-strip">
+        <div class="sidebar-label">Recent reports</div>
+        <div id="mainRecentReports"></div>
+      </div>
+
+      <!-- LOADING STATE -->
+      <div id="loadingState" style="display:none;">
+        <div class="loading-bar"><div class="loading-fill" id="loadingBarFill"></div></div>
+        <div class="loading-label" id="loadingLabel"><span>Working</span> Preparing your answer…</div>
+      </div>
+
+      <!-- RESULTS -->
+      <div id="resultWrap" class="result-wrap">
+        <!-- injected by JS -->
+      </div>
+
+      <!-- DEFAULT STATE -->
+      <div id="defaultState">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-top:8px;">
+          <div class="card" style="cursor:pointer" onclick="setQuery('Deep dive on SOUN — earnings, options flow, short squeeze thesis')">
+            <div style="font-size:28px;margin-bottom:8px;">📈</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Stock & Options</div>
+            <div style="font-size:13px;color:var(--muted);">Earnings, IV crush, theta, price targets, squeeze score</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="setQuery('Help me buy a car — explain loan rates, dealers near me, best strategy')">
+            <div style="font-size:28px;margin-bottom:8px;">🚗</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Car Buying</div>
+            <div style="font-size:13px;color:var(--muted);">Loan rates by credit score, local dealers, payment math</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="setQuery('How do I pay off my debt fastest — avalanche vs snowball explained')">
+            <div style="font-size:28px;margin-bottom:8px;">💳</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Debt Payoff</div>
+            <div style="font-size:13px;color:var(--muted);">Avalanche vs snowball, exact months, interest savings</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="setQuery('I want to buy a house — mortgage rates, down payment, FHA vs conventional')">
+            <div style="font-size:28px;margin-bottom:8px;">🏠</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Home Buying</div>
+            <div style="font-size:13px;color:var(--muted);">Mortgage scenarios, local lenders, PMI math</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="setQuery('Bitcoin and Ethereum analysis — macro correlation, on-chain data')">
+            <div style="font-size:28px;margin-bottom:8px;">₿</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Crypto</div>
+            <div style="font-size:13px;color:var(--muted);">On-chain data, macro correlation, realistic scenarios</div>
+          </div>
+          <div class="card" style="cursor:pointer" onclick="setQuery('Help me plan for retirement — 401k vs Roth, compound growth, monthly target')">
+            <div style="font-size:28px;margin-bottom:8px;">🎯</div>
+            <div style="font-weight:700;font-size:15px;margin-bottom:4px;">Retirement</div>
+            <div style="font-size:13px;color:var(--muted);">401k vs Roth, compound projections, monthly savings target</div>
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div class="composer-dock">
+        <div class="composer-chips">
+          <button type="button" class="composer-chip" onclick="atlasSetComposerMode('chat'); setComposerOnly('')">💬 Quick chat</button>
+          <button type="button" class="composer-chip" onclick="atlasSetComposerMode('deep'); setComposerOnly('Research and analyze: ')">🔬 Deep research</button>
+          <button type="button" class="composer-chip" onclick="atlasSetComposerMode('deep'); setComposerOnly('Look up data and summarize: ')">🌐 Look something up</button>
+        </div>
+        <div class="composer-pill">
+          <textarea id="queryInput" class="composer-input" rows="1" placeholder="Message ATLAS…" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); runQuery(); }"></textarea>
+          <div class="composer-mode-wrap">
+            <select id="atlasComposerMode" class="composer-mode" title="Quick chat uses /query (fast for hello). Deep research tries Omega then pipelines." onchange="atlasOnComposerModeUi();">
+              <option value="chat">Quick</option>
+              <option value="deep">Deep</option>
+            </select>
+          </div>
+          <button type="button" class="composer-send" onclick="runQuery()" id="searchBtn" title="Send">➤</button>
+        </div>
+        <p class="composer-foot">Enter to send · Shift+Enter for newline · Quick = fast conversation + /query · Deep = Omega + full analysis fallbacks</p>
+      </div>
+    </div>
+
+    <!-- PORTFOLIO TAB -->
+    <div id="tab-portfolio" style="display:none;padding:28px 32px;max-width:1100px;margin:0 auto;">
+      <div class="section-head">
+        <div class="section-title">My Trades</div>
+        <button class="nav-btn primary" onclick="openAddTrade()">+ Add Trade</button>
+      </div>
+      <div id="tradesGrid" class="trades-grid">
+        <div class="empty">
+          <div class="empty-icon">📊</div>
+          <h3>No trades yet</h3>
+          <p>Add a stock or options position to track your P&L and get instant analysis.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- WATCHLIST TAB -->
+    <div id="tab-watchlist" style="display:none;padding:28px 32px;max-width:1100px;margin:0 auto;">
+      <div class="section-head">
+        <div class="section-title">Watchlist</div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="text" id="wlInput" placeholder="Add ticker..." class="form-input" style="width:140px;padding:8px 12px;" onkeydown="if(event.key==='Enter')addToWatchlist()"/>
+          <button class="nav-btn primary" onclick="addToWatchlist()">Add</button>
+        </div>
+      </div>
+      <div id="watchlistGrid" class="watchlist-grid">
+        <div class="empty">
+          <div class="empty-icon">👁</div>
+          <h3>Nothing on watch</h3>
+          <p>Add tickers to monitor for news, alerts, and quick research.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- ADD TRADE MODAL -->
+<div class="modal-overlay" id="addTradeModal">
+  <div class="modal">
+    <div class="modal-title">Add a trade</div>
+    <div class="form-group">
+      <label class="form-label">Ticker symbol</label>
+      <input type="text" id="mt-ticker" class="form-input" placeholder="e.g. SOUN" style="text-transform:uppercase;">
+    </div>
+    <div class="form-group">
+      <label class="form-label">What did you buy?</label>
+      <div class="type-toggle">
+        <button class="type-btn active" id="type-stock" onclick="setType('stock')">Stock</button>
+        <button class="type-btn" id="type-call" onclick="setType('call')">Call Option</button>
+        <button class="type-btn" id="type-put" onclick="setType('put')">Put Option</button>
+      </div>
+    </div>
+
+    <div id="stock-fields">
+      <div class="form-group">
+        <label class="form-label">Number of shares</label>
+        <input type="number" id="mt-qty" class="form-input" placeholder="e.g. 10">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Price paid per share ($)</label>
+        <input type="number" id="mt-price" class="form-input" placeholder="e.g. 9.37">
+      </div>
+    </div>
+
+    <div id="options-fields" style="display:none;">
+      <div class="form-group">
+        <label class="form-label">Strike price ($)</label>
+        <input type="number" id="mt-strike" class="form-input" placeholder="e.g. 14.00">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Expiration date</label>
+        <input type="date" id="mt-expiry" class="form-input">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Premium paid per share ($)</label>
+        <input type="number" id="mt-premium" class="form-input" placeholder="e.g. 0.52">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Number of contracts</label>
+        <input type="number" id="mt-contracts" class="form-input" placeholder="e.g. 1" value="1">
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeAddTrade()">Cancel</button>
+      <button class="btn-save" onclick="saveTrade()">Add to my trades</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── API: use 127.0.0.1 (IPv4) so Node/browser resolution matches Python on Windows
+const ATLAS_API_DEFAULT = 'http://127.0.0.1:8000';
+/** Long-running batched LLM (POST /query, /omega) — keep in sync with gemini_limiter.GEMINI_HTTP_TIMEOUT_MS */
+const ATLAS_QUERY_FETCH_MS = 300000;
+function apiBase() {
+  try { return (localStorage.getItem('atlas_api_base') || ATLAS_API_DEFAULT).replace(/\/$/, ''); }
+  catch (_) { return ATLAS_API_DEFAULT; }
+}
+
+/** Supabase browser client (set when dashboard is served with SUPABASE_URL + SUPABASE_ANON_KEY). */
+let atlasSb = null;
+
+async function atlasApiAuthHeaders(base) {
+  const h = Object.assign({}, base || {});
+  if (atlasSb) {
+    try {
+      const { data } = await atlasSb.auth.getSession();
+      const tok = data && data.session && data.session.access_token;
+      if (tok) h['Authorization'] = 'Bearer ' + tok;
+    } catch (e) {
+      console.warn('atlasApiAuthHeaders', e);
+    }
+  }
+  return h;
+}
+
+function initAtlasSupabaseClient() {
+  const cfg = window.__ATLAS_SB_CONFIG__;
+  if (!cfg || !cfg.url || !cfg.anonKey) {
+    updateAtlasAuthUi();
+    return;
+  }
+  const g = window.supabase;
+  if (!g || typeof g.createClient !== 'function') {
+    console.warn('ATLAS: @supabase/supabase-js not loaded');
+    updateAtlasAuthUi();
+    return;
+  }
+  atlasSb = g.createClient(cfg.url, cfg.anonKey, {
+    auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true },
+  });
+  const slot = document.getElementById('atlasAuthSlot');
+  if (slot) slot.style.display = 'flex';
+  atlasSb.auth.onAuthStateChange(function () {
+    updateAtlasAuthUi();
+  });
+  const bIn = document.getElementById('atlasAuthSignInBtn');
+  const bOut = document.getElementById('atlasAuthSignOutBtn');
+  if (bIn) bIn.addEventListener('click', function () { atlasAuthSignIn(); });
+  if (bOut) bOut.addEventListener('click', function () { atlasAuthSignOut(); });
+  updateAtlasAuthUi();
+}
+
+async function updateAtlasAuthUi() {
+  const title = document.getElementById('atlasFooterTitle');
+  const hint = document.getElementById('atlasFooterHint');
+  const av = document.getElementById('atlasFooterAvatar');
+  if (!atlasSb) {
+    if (title) title.textContent = 'Account';
+    if (hint) hint.textContent = 'Sign in (serve dashboard with Supabase keys)';
+    if (av) av.textContent = 'A';
+    return;
+  }
+  const emailIn = document.getElementById('atlasAuthEmail');
+  const passIn = document.getElementById('atlasAuthPassword');
+  const btnIn = document.getElementById('atlasAuthSignInBtn');
+  const btnOut = document.getElementById('atlasAuthSignOutBtn');
+  const userEl = document.getElementById('atlasAuthUser');
+  const slot = document.getElementById('atlasAuthSlot');
+  if (!emailIn || !passIn || !btnIn || !btnOut || !userEl) return;
+  let session = null;
+  try {
+    const res = await atlasSb.auth.getSession();
+    session = res && res.data ? res.data.session : null;
+  } catch (e) {
+    console.warn('getSession', e);
+  }
+  if (session && session.user) {
+    emailIn.style.display = 'none';
+    passIn.style.display = 'none';
+    btnIn.style.display = 'none';
+    btnOut.style.display = 'flex';
+    userEl.style.display = 'block';
+    const em = session.user.email || session.user.id || '';
+    userEl.textContent = em.length > 24 ? em.slice(0, 24) + '…' : em;
+    userEl.title = em;
+    if (slot) slot.classList.add('atlas-auth-logged-in');
+    if (title) title.textContent = em.length > 22 ? em.slice(0, 22) + '…' : em;
+    if (hint) hint.textContent = 'Account & settings';
+    if (av) av.textContent = (em.trim()[0] || 'A').toUpperCase();
+  } else {
+    emailIn.style.display = '';
+    passIn.style.display = '';
+    btnIn.style.display = 'flex';
+    btnOut.style.display = 'none';
+    userEl.style.display = 'none';
+    if (slot) slot.classList.remove('atlas-auth-logged-in');
+    if (title) title.textContent = 'Account';
+    if (hint) hint.textContent = 'Sign in to sync chats & history';
+    if (av) av.textContent = 'A';
+  }
+}
+
+async function atlasAuthSignIn() {
+  if (!atlasSb) return;
+  const email = (document.getElementById('atlasAuthEmail') && document.getElementById('atlasAuthEmail').value || '').trim();
+  const password = document.getElementById('atlasAuthPassword') && document.getElementById('atlasAuthPassword').value || '';
+  if (!email || !password) {
+    alert('Enter email and password.');
+    return;
+  }
+  const r = await atlasSb.auth.signInWithPassword({ email: email, password: password });
+  if (r.error) {
+    alert(r.error.message);
+    return;
+  }
+  await updateAtlasAuthUi();
+  await refreshRegimeNav();
+  await syncPositionsFromServer();
+  await maybeMigrateLegacyWatchlist();
+  await syncWatchlistFromServer();
+  await syncHistoryFromServer();
+}
+
+async function atlasAuthSignOut() {
+  if (!atlasSb) return;
+  await atlasSb.auth.signOut();
+  await updateAtlasAuthUi();
+  watchlist = { tickers: [] };
+  renderWatchlist();
+  await refreshRegimeNav();
+}
+
+function normalizePositionsState(raw) {
+  let o = raw;
+  if (typeof o === 'string') {
+    try { o = JSON.parse(o || '{}'); } catch (_) { o = {}; }
+  }
+  if (!o || typeof o !== 'object') o = {};
+  return {
+    stocks: Array.isArray(o.stocks) ? o.stocks : [],
+    options: Array.isArray(o.options) ? o.options : [],
+    paper_trades: Array.isArray(o.paper_trades) ? o.paper_trades : [],
+  };
+}
+
+function unrealizedPnlParts(p) {
+  const isOpt = !!p.strike;
+  const cur = p.current_price;
+  if (cur == null || cur === '' || Number.isNaN(Number(cur))) return null;
+  if (isOpt) {
+    const pnl = (Number(cur) - Number(p.avg_premium)) * (Number(p.contracts) || 1) * 100;
+    const base = Number(p.avg_premium);
+    const pct = base ? ((Number(cur) - base) / base) * 100 : 0;
+    return { pnl, pct };
+  }
+  const pnl = (Number(cur) - Number(p.avg_buy_price)) * (Number(p.shares) || 1);
+  const base = Number(p.avg_buy_price);
+  const pct = base ? ((Number(cur) - base) / base) * 100 : 0;
+  return { pnl, pct };
+}
+
+async function syncPositionsFromServer() {
+  try {
+    const h = await atlasApiAuthHeaders({});
+    const r = await fetch(apiBase() + '/positions', { headers: h, signal: AbortSignal.timeout(10000) });
+    if (!r.ok) return false;
+    const data = await r.json();
+    positions = normalizePositionsState(data);
+    try {
+      localStorage.setItem('atlas_positions', JSON.stringify({ stocks: positions.stocks, options: positions.options }));
+    } catch (_) {}
+    renderSidebar();
+    renderTrades();
+    return true;
+  } catch (e) {
+    console.warn('syncPositionsFromServer', e);
+    return false;
+  }
+}
+
+async function refreshRegimeNav() {
+  const el = document.getElementById('regimeLabel');
+  if (!el) return;
+  try {
+    const r = await fetch(apiBase() + '/regime', {
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(20000),
+    });
+    const d = await r.json();
+    const raw = (d && d.regime != null) ? String(d.regime) : 'UNKNOWN';
+    el.textContent = raw.replace(/_/g, ' ').toUpperCase();
+    const parts = [];
+    if (d && d.signal) parts.push(String(d.signal));
+    if (d && d.vix != null && d.vix !== '') parts.push('VIX: ' + d.vix);
+    el.title = parts.length ? parts.join(' · ') : '';
+  } catch (e) {
+    el.textContent = 'REGIME UNAVAILABLE';
+    el.title = String(e && e.message ? e.message : e);
+    console.warn('refreshRegimeNav', e);
+  }
+}
+
+async function syncWatchlistFromServer() {
+  try {
+    const h = await atlasApiAuthHeaders({});
+    const r = await fetch(apiBase() + '/watchlist', { headers: h, signal: AbortSignal.timeout(10000) });
+    if (!r.ok) {
+      renderWatchlist();
+      return false;
+    }
+    const data = await r.json();
+    const tickers = Array.isArray(data.tickers) ? data.tickers : [];
+    watchlist = { tickers: tickers.map(function (t) { return String(t).toUpperCase().trim(); }).filter(Boolean) };
+    renderWatchlist();
+    return true;
+  } catch (e) {
+    console.warn('syncWatchlistFromServer', e);
+    renderWatchlist();
+    return false;
+  }
+}
+
+/** One-time: push legacy localStorage watchlist to API if server list is empty. */
+async function maybeMigrateLegacyWatchlist() {
+  try {
+    if (typeof sessionStorage !== 'undefined' && sessionStorage.getItem('atlas_wl_legacy_migrated') === '1') return;
+    const raw = localStorage.getItem('atlas_watchlist');
+    if (!raw) return;
+    let parsed;
+    try { parsed = JSON.parse(raw); } catch (_) { return; }
+    const tickers = Array.isArray(parsed.tickers) ? parsed.tickers : [];
+    if (!tickers.length) {
+      localStorage.removeItem('atlas_watchlist');
+      return;
+    }
+    const h = await atlasApiAuthHeaders({});
+    if (!h.Authorization) return;
+    const chk = await fetch(apiBase() + '/watchlist', { headers: h, signal: AbortSignal.timeout(10000) });
+    if (!chk.ok) return;
+    const cur = await chk.json();
+    if (Array.isArray(cur.tickers) && cur.tickers.length > 0) {
+      localStorage.removeItem('atlas_watchlist');
+      if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('atlas_wl_legacy_migrated', '1');
+      return;
+    }
+    for (let i = 0; i < tickers.length; i++) {
+      const t = String(tickers[i] || '').toUpperCase().trim();
+      if (!t) continue;
+      await fetch(apiBase() + '/watchlist', {
+        method: 'POST',
+        headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ ticker: t }),
+        signal: AbortSignal.timeout(8000),
+      });
+    }
+    localStorage.removeItem('atlas_watchlist');
+    if (typeof sessionStorage !== 'undefined') sessionStorage.setItem('atlas_wl_legacy_migrated', '1');
+  } catch (e) {
+    console.warn('maybeMigrateLegacyWatchlist', e);
+  }
+}
+
+if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout !== 'function') {
+  AbortSignal.timeout = function (ms) {
+    const c = new AbortController();
+    setTimeout(function () { c.abort(); }, ms);
+    return c.signal;
+  };
+}
+
+const ATLAS_REPORT_HISTORY_KEY = 'atlas_report_history';
+const ATLAS_REPORT_HISTORY_MAX = 40;
+const ATLAS_FOLDER_FOLD_KEY = 'atlas_collapsed_folder_headers';
+const ATLAS_ACTIVE_SESSION_KEY = 'atlas_active_session_id';
+
+window.__atlasSessionsCache = [];
+
+function getActiveSessionId() {
+  try {
+    const v = localStorage.getItem(ATLAS_ACTIVE_SESSION_KEY);
+    return v && String(v).trim() ? String(v).trim() : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+function setActiveSessionId(id) {
+  try {
+    if (id) localStorage.setItem(ATLAS_ACTIVE_SESSION_KEY, String(id));
+    else localStorage.removeItem(ATLAS_ACTIVE_SESSION_KEY);
+  } catch (_) {}
+  updateSessionContextPill();
+  loadSessionsSidebar();
+  syncHistoryFromServer();
+}
+
+function updateSessionContextPill() {
+  const pill = document.getElementById('sessionContextPill');
+  if (!pill) return;
+  const sid = getActiveSessionId();
+  if (!sid) {
+    pill.style.display = 'none';
+    pill.textContent = '';
+    return;
+  }
+  const s = (window.__atlasSessionsCache || []).find(x => String(x.id) === String(sid));
+  const topic = s && s.context_topic ? String(s.context_topic) : '';
+  if (topic) {
+    pill.style.display = 'block';
+    pill.textContent = 'Context: ' + topic;
+  } else {
+    pill.style.display = 'none';
+    pill.textContent = '';
+  }
+}
+
+async function loadSessionsSidebar() {
+  const el = document.getElementById('sidebarSessions');
+  if (!el) return;
+  try {
+    const r = await fetch(apiBase() + '/sessions', {
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) throw new Error('sessions_http');
+    const d = await r.json();
+    window.__atlasSessionsCache = Array.isArray(d.sessions) ? d.sessions : [];
+    const sessions = window.__atlasSessionsCache;
+    if (!sessions.length) {
+      el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 8px;">No chats — tap New chat</div>';
+      updateSessionContextPill();
+      return;
+    }
+    const active = getActiveSessionId();
+    el.innerHTML = sessions.map(s => {
+      const id = String(s.id);
+      const act = active === id ? ' active-session' : '';
+      const title = escapeHtml((s.title || 'Chat').slice(0, 40));
+      const topic = s.context_topic ? escapeHtml(String(s.context_topic).slice(0, 28)) : '';
+      const rawSearch = ((s.title || '') + ' ' + (s.context_topic || '')).toLowerCase();
+      const safeSearch = rawSearch.replace(/"/g, '');
+      return `<div class="session-row${act}" data-session-search="${escapeHtml(safeSearch)}">
+        <button type="button" class="session-select-btn" onclick="selectAtlasSession(${JSON.stringify(id)})">${title}</button>
+        <div class="session-row-actions">
+          <button type="button" class="sr-action-btn" title="Rename" onclick="event.stopPropagation();renameAtlasSession(${JSON.stringify(id)})">✎</button>
+          <button type="button" class="sr-action-btn danger" title="Archive" onclick="event.stopPropagation();archiveAtlasSession(${JSON.stringify(id)})">📦</button>
+          <button type="button" class="sr-action-btn danger" title="Delete" onclick="event.stopPropagation();deleteAtlasSession(${JSON.stringify(id)})">🗑</button>
+        </div>
+        ${topic ? `<div class="session-topic">${topic}</div>` : ''}
+      </div>`;
+    }).join('');
+    updateSessionContextPill();
+    filterAtlasChatSessions();
+  } catch (e) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:4px 8px;">Chats unavailable (sign in)</div>';
+  }
+}
+
+async function createAtlasNewChat() {
+  try {
+    const r = await fetch(apiBase() + '/sessions', {
+      method: 'POST',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ title: 'New chat' }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) {
+      const d = await r.json();
+      if (d.session && d.session.id) {
+        setActiveSessionId(String(d.session.id));
+      }
+    }
+  } catch (err) { console.warn('createAtlasNewChat', err); }
+  const def = document.getElementById('defaultState');
+  const rw = document.getElementById('resultWrap');
+  const hero = document.getElementById('chatHero');
+  if (def) def.style.display = 'block';
+  if (rw) { rw.innerHTML = ''; rw.className = 'result-wrap'; }
+  if (hero) hero.classList.remove('hide-hero');
+  showTab('research');
+}
+
+function selectAtlasSession(id) {
+  setActiveSessionId(id);
+}
+
+async function renameAtlasSession(id) {
+  const t = prompt('Chat name');
+  if (t == null) return;
+  try {
+    const r = await fetch(apiBase() + '/sessions/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ title: (t || '').trim() || 'Chat' }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) await loadSessionsSidebar();
+  } catch (_) {}
+}
+
+async function archiveAtlasSession(id) {
+  try {
+    const r = await fetch(apiBase() + '/sessions/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ archived: true }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) {
+      if (getActiveSessionId() === String(id)) setActiveSessionId(null);
+      await loadSessionsSidebar();
+    }
+  } catch (_) {}
+}
+
+async function deleteAtlasSession(id) {
+  if (!confirm('Delete this chat session? Saved reports stay in history.')) return;
+  try {
+    const r = await fetch(apiBase() + '/sessions/' + encodeURIComponent(id), {
+      method: 'DELETE',
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) {
+      if (getActiveSessionId() === String(id)) setActiveSessionId(null);
+      await loadSessionsSidebar();
+    }
+  } catch (_) {}
+}
+
+function inferRiskLevelQuick(r) {
+  let hi = 0;
+  const fm = Array.isArray(r.failure_modes) ? r.failure_modes : [];
+  for (const m of fm) {
+    const s = String((m && m.severity) || '').toLowerCase();
+    if (s === 'critical' || s === 'high') hi++;
+  }
+  const risks = Array.isArray(r.risks_and_tripwires) ? r.risks_and_tripwires : [];
+  for (const x of risks) {
+    const s = String((x && x.severity) || '').toLowerCase();
+    if (s === 'critical' || s === 'high') hi++;
+  }
+  const kr = Array.isArray(r.key_risks) ? r.key_risks : [];
+  for (const x of kr) {
+    const s = String((x && x.severity) || '').toLowerCase();
+    if (s === 'high') hi++;
+  }
+  if (hi >= 3) return 'high';
+  if (hi >= 1) return 'medium';
+  return 'low';
+}
+
+function inferFinancialImpactQuick(r) {
+  const rat = String(r.overall_rating || '').toLowerCase().replace(/\s+/g, '_');
+  if (rat.includes('strong_buy') || rat === 'buy') return 'high';
+  if (rat.includes('strong_sell') || rat === 'sell') return 'low';
+  const urg = String(r.urgency || '').toLowerCase();
+  if (urg === 'critical' || urg === 'urgent') return 'high';
+  return 'medium';
+}
+
+function buildQuickStatsStrip(r) {
+  const risk = inferRiskLevelQuick(r);
+  const impact = inferFinancialImpactQuick(r);
+  const rw = risk === 'high' ? '100%' : risk === 'medium' ? '55%' : '28%';
+  const iw = impact === 'high' ? '92%' : impact === 'medium' ? '50%' : '32%';
+  const riskC = risk === 'high' ? 'ryg-red' : risk === 'medium' ? 'ryg-yellow' : 'ryg-green';
+  const impactC = impact === 'high' ? 'ryg-green' : impact === 'medium' ? 'ryg-yellow' : 'ryg-red';
+  return `<div class="quick-stats-strip" role="img" aria-label="Risk and financial impact summary">
+    <div class="qs-cell">
+      <span class="qs-label">Risk level</span>
+      <div class="qs-meter"><div class="qs-fill ${riskC}" style="width:${rw}"></div></div>
+      <span class="qs-tag ${riskC}">${risk}</span>
+    </div>
+    <div class="qs-cell">
+      <span class="qs-label">Financial impact</span>
+      <div class="qs-meter"><div class="qs-fill ${impactC}" style="width:${iw}"></div></div>
+      <span class="qs-tag ${impactC}">${impact}</span>
+    </div>
+  </div>`;
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function formatDomainLabel(tag) {
+  if (tag == null || tag === '') return '';
+  return String(tag).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function domainBadgeClass(tag) {
+  const t = String(tag || 'GENERAL').toUpperCase();
+  if (t.includes('OPTION')) return 'domain-pill-report pill-domain-green';
+  if (t.includes('HOME') || t.includes('REAL') || t.includes('ESTATE') || t.includes('MORTGAGE') || t.includes('REIT')) return 'domain-pill-report pill-domain-blue';
+  if (t.includes('STOCK') || t.includes('EQUITY') || t.includes('SIGNAL')) return 'domain-pill-report pill-domain-violet';
+  if (t.includes('MACRO') || t.includes('SECTOR') || t.includes('THEMATIC')) return 'domain-pill-report pill-domain-amber';
+  return 'domain-pill-report pill-domain-slate';
+}
+
+function submitClarificationFollowUp() {
+  const inp = document.getElementById('atlasClarifReply');
+  const reply = (inp && inp.value || '').trim();
+  const base = (window.__atlasRenderContext && window.__atlasRenderContext.query) || document.getElementById('queryInput').value || '';
+  if (!reply) return;
+  const compound = base.trim() + ' | User clarification: ' + reply;
+  document.getElementById('queryInput').value = compound;
+  window.__atlasSkipOmegaOnce = true;
+  runQuery();
+}
+
+/** Turn API probability into 0–100% label */
+function formatScenarioProb(p) {
+  if (p == null || p === '') return '—';
+  const n = Number(p);
+  if (Number.isNaN(n)) return escapeHtml(String(p));
+  if (n >= 0 && n <= 1) return Math.round(n * 100) + '%';
+  if (n > 1 && n <= 100) return Math.round(n) + '%';
+  return escapeHtml(String(p));
+}
+
+/** Unwrap nested objects and map camelCase keys the model sometimes returns */
+function normalizeReport(raw) {
+  let r = raw;
+  if (r == null) return {};
+  if (typeof r === 'string') {
+    try { r = JSON.parse(r); } catch (_) { return { headline: 'Invalid response', executive_brief: r }; }
+  }
+  if (Array.isArray(r)) {
+    r = r[0] && typeof r[0] === 'object' ? r[0] : { _raw_array: r };
+  }
+  if (typeof r !== 'object') return { executive_brief: String(r) };
+
+  const nests = ['report', 'data', 'response', 'output', 'result', 'analysis', 'payload'];
+  let x = { ...r };
+  for (const k of nests) {
+    const inner = x[k];
+    if (inner && typeof inner === 'object' && !Array.isArray(inner)) {
+      const has = inner.headline || inner.executive_brief || inner.executiveBrief || inner.domain || inner.Domain;
+      if (has) x = { ...x, ...inner };
+    }
+  }
+
+  const camels = [
+    ['executiveBrief', 'executive_brief'],
+    ['primaryRecommendation', 'primary_recommendation'],
+    ['domainLabel', 'domain_label'],
+    ['numbersThatMatter', 'numbers_that_matter'],
+    ['actionPlan', 'action_plan'],
+    ['hiddenAngles', 'hidden_angles'],
+    ['risksAndTripwires', 'risks_and_tripwires'],
+    ['followUpQuestions', 'follow_up_questions'],
+    ['situationAnalysis', 'situation_analysis'],
+    ['keyInsight', 'key_insight'],
+    ['namedResources', 'named_resources'],
+    ['lastUpdated', 'last_updated'],
+  ];
+  for (const [a, b] of camels) {
+    if (x[a] !== undefined && x[b] === undefined) x[b] = x[a];
+  }
+
+  if (!x.headline && x.title) x.headline = x.title;
+  if (!x.executive_brief && x.summary) x.executive_brief = x.summary;
+  if (!x.executive_brief && x.overview) x.executive_brief = x.overview;
+
+  const clarParts = [];
+  if (Array.isArray(x.clarification_questions)) clarParts.push(...x.clarification_questions);
+  if (Array.isArray(x._clarifying_questions)) clarParts.push(...x._clarifying_questions);
+  if (clarParts.length) {
+    const seen = new Set();
+    x.clarification_questions = clarParts.map(String).map(s => s.trim()).filter(s => s && !seen.has(s) && seen.add(s));
+  }
+
+  const hasAnalystBody = !!(x.headline || x.executive_brief || x.summary || x.executive_summary
+    || x.bull_thesis || (Array.isArray(x.scenarios) && x.scenarios.length)
+    || (Array.isArray(x.action_plan) && x.action_plan.length));
+  if (!hasAnalystBody && Array.isArray(x._clarifying_questions) && x._clarifying_questions.length) {
+    x.headline = 'A few details would sharpen this analysis';
+    x.executive_brief = x._clarifying_questions.map((q, i) => `${i + 1}. ${q}`).join('\n\n');
+  }
+
+  if (!x.executive_brief && x.key_insight) x.executive_brief = x.key_insight;
+  if (!x.headline && x.primary_recommendation) x.headline = 'Recommendation';
+
+  const dom = (x._meta && x._meta.domain) || x.domain;
+  if (!x.domain_label && dom) {
+    x.domain_label = String(dom).replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+  if (!x.domain_tag && dom) {
+    x.domain_tag = String(dom).toUpperCase().replace(/\s+/g, '_').replace(/-/g, '_');
+  }
+
+  return x;
+}
+
+function saveReportToHistory(query, rawResult, reportId) {
+  try {
+    const copy = JSON.parse(JSON.stringify(rawResult));
+    const id = reportId != null ? String(reportId) : String(Date.now());
+    const domain_tag = copy.domain_tag
+      || (copy._parsed_query && (copy._parsed_query.domain_tag || copy._parsed_query.query_type))
+      || null;
+    let list = JSON.parse(localStorage.getItem(ATLAS_REPORT_HISTORY_KEY) || '[]');
+    list = list.filter(x => String(x.id) !== id);
+    list.unshift({
+      id,
+      ts: new Date().toISOString(),
+      query,
+      title: null,
+      domain_tag,
+      folder_name: null,
+      session_id: getActiveSessionId(),
+      result: copy,
+    });
+    if (list.length > ATLAS_REPORT_HISTORY_MAX) list = list.slice(0, ATLAS_REPORT_HISTORY_MAX);
+    localStorage.setItem(ATLAS_REPORT_HISTORY_KEY, JSON.stringify(list));
+    renderReportHistory();
+  } catch (e) { console.warn('saveReportToHistory', e); }
+}
+
+function getCollapsedFolderKeys() {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(ATLAS_FOLDER_FOLD_KEY) || '[]'));
+  } catch (_) {
+    return new Set();
+  }
+}
+
+function toggleFolderSection(folderKey) {
+  const s = [...getCollapsedFolderKeys()];
+  const i = s.indexOf(folderKey);
+  if (i >= 0) s.splice(i, 1);
+  else s.push(folderKey);
+  localStorage.setItem(ATLAS_FOLDER_FOLD_KEY, JSON.stringify(s));
+  renderReportHistory();
+}
+
+function folderSectionLabel(key) {
+  if (key === '__inbox__') return 'Inbox';
+  return key;
+}
+
+function renderOneReportItem(item) {
+  const idStr = String(item.id);
+  const idJs = JSON.stringify(idStr);
+  const title = (item.title && item.title.trim()) || item.query || '';
+  const q = title.length > 40 ? title.slice(0, 40) + '…' : title;
+  const t = new Date(item.ts).toLocaleString();
+  const tag = item.domain_tag
+    || (item.result && item.result.domain_tag)
+    || (item.result && item.result._parsed_query && (item.result._parsed_query.domain_tag || item.result._parsed_query.query_type));
+  const pill = tag ? `<span class="${domainBadgeClass(tag)}">${escapeHtml(formatDomainLabel(tag))}</span>` : '';
+  const opts = ['<option value="">' + escapeHtml('— Move to folder —') + '</option>']
+    .concat((atlasFolderList || []).map(f => `<option value="${escapeHtml(f)}">${escapeHtml(f)}</option>`));
+  return `<div class="sidebar-report-wrap">
+    <button type="button" class="sidebar-report-item" onclick="open_saved_report(${idJs})">
+      <div class="sidebar-report-item-top">${pill}</div>
+      <div>${escapeHtml(q)}</div>
+      <div class="sidebar-report-meta">${escapeHtml(t)}</div>
+    </button>
+    <div class="sidebar-report-actions">
+      <button type="button" class="sr-action-btn" title="Rename" aria-label="Rename" onclick="event.stopPropagation(); renameHistoryReport(${idJs})">✎</button>
+      <button type="button" class="sr-action-btn danger" title="Delete" aria-label="Delete" onclick="event.stopPropagation(); deleteHistoryReport(${idJs})">🗑</button>
+    </div>
+    <select class="sr-folder-move" data-report-id="${escapeHtml(idStr)}" onchange="onReportFolderChange(this)">${opts.join('')}</select>
+  </div>`;
+}
+
+function buildReportHistoryHtml(list) {
+  if (!list.length) {
+    return '<div style="font-size:12px;color:var(--muted);padding:4px 8px;">No saved reports yet</div>';
+  }
+  const collapsed = getCollapsedFolderKeys();
+  const byFolder = new Map();
+  for (const item of list) {
+    const key = (item.folder_name && String(item.folder_name).trim()) || '__inbox__';
+    if (!byFolder.has(key)) byFolder.set(key, []);
+    byFolder.get(key).push(item);
+  }
+  const order = [...byFolder.keys()].sort((a, b) => {
+    if (a === '__inbox__') return -1;
+    if (b === '__inbox__') return 1;
+    return a.localeCompare(b, undefined, { sensitivity: 'base' });
+  });
+  const parts = [];
+  for (const key of order) {
+    const items = byFolder.get(key).slice().sort((a, b) => new Date(b.ts) - new Date(a.ts));
+    const label = folderSectionLabel(key);
+    const chev = collapsed.has(key) ? '▸' : '▾';
+    parts.push(`<div class="folder-block">`);
+    parts.push(`<div class="folder-header" onclick='toggleFolderSection(${JSON.stringify(key)})'><span>${escapeHtml(label)}</span><span class="folder-chevron">${chev} ${items.length}</span></div>`);
+    if (!collapsed.has(key)) {
+      parts.push(items.map(renderOneReportItem).join(''));
+    }
+    parts.push('</div>');
+  }
+  return parts.join('');
+}
+
+async function refreshFolderOptions() {
+  try {
+    const r = await fetch(apiBase() + '/folders', {
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) return;
+    const d = await r.json();
+    atlasFolderList = Array.isArray(d.folders) ? d.folders : [];
+  } catch (_) {}
+}
+
+async function syncHistoryFromServer() {
+  try {
+    let url = apiBase() + '/history/reports';
+    const sid = getActiveSessionId();
+    if (sid) url += '?session_id=' + encodeURIComponent(sid);
+    const r = await fetch(url, {
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) {
+      renderReportHistory();
+      return;
+    }
+    const data = await r.json();
+    const serverList = data.reports || [];
+    if (serverList.length > 0) {
+      localStorage.setItem(
+        ATLAS_REPORT_HISTORY_KEY,
+        JSON.stringify(serverList.slice(0, ATLAS_REPORT_HISTORY_MAX)),
+      );
+    }
+    await refreshFolderOptions();
+  } catch (e) {
+    console.warn('syncHistoryFromServer', e);
+  }
+  renderReportHistory();
+}
+
+async function renameHistoryReport(id) {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(ATLAS_REPORT_HISTORY_KEY) || '[]'); } catch (_) {}
+  const item = list.find(x => String(x.id) === String(id));
+  const cur = (item && (item.title || item.query)) || '';
+  const t = prompt('Report title', cur);
+  if (t == null) return;
+  const title = t.trim();
+  try {
+    const r = await fetch(apiBase() + '/history/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ title: title || null }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) {
+      await syncHistoryFromServer();
+      return;
+    }
+  } catch (_) {}
+  if (item) {
+    item.title = title || null;
+    localStorage.setItem(ATLAS_REPORT_HISTORY_KEY, JSON.stringify(list));
+    renderReportHistory();
+  }
+}
+
+async function deleteHistoryReport(id) {
+  if (!confirm('Delete this report from history?')) return;
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(ATLAS_REPORT_HISTORY_KEY) || '[]'); } catch (_) {}
+  try {
+    const r = await fetch(apiBase() + '/history/' + encodeURIComponent(id), {
+      method: 'DELETE',
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) {
+      await syncHistoryFromServer();
+      return;
+    }
+  } catch (_) {}
+  list = list.filter(x => String(x.id) !== String(id));
+  localStorage.setItem(ATLAS_REPORT_HISTORY_KEY, JSON.stringify(list));
+  renderReportHistory();
+}
+
+async function onReportFolderChange(sel) {
+  const id = sel.getAttribute('data-report-id');
+  const v = sel.value;
+  sel.selectedIndex = 0;
+  if (!id || v === '') return;
+  try {
+    const r = await fetch(apiBase() + '/history/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ folder_name: v }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) await syncHistoryFromServer();
+  } catch (_) {}
+}
+
+async function promptNewProjectFolder() {
+  const name = (prompt('New folder name') || '').trim();
+  if (!name) return;
+  try {
+    const r = await fetch(apiBase() + '/folders', {
+      method: 'POST',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ name }),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (r.ok) await refreshFolderOptions();
+    renderReportHistory();
+  } catch (e) {
+    console.warn('promptNewProjectFolder', e);
+    atlasFolderList = atlasFolderList || [];
+    if (!atlasFolderList.includes(name)) atlasFolderList.push(name);
+    renderReportHistory();
+  }
+}
+
+function renderReportHistory() {
+  const el = document.getElementById('sidebarReports');
+  const mainEl = document.getElementById('mainRecentReports');
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(ATLAS_REPORT_HISTORY_KEY) || '[]'); } catch (_) {}
+  const html = buildReportHistoryHtml(list);
+  if (el) el.innerHTML = html;
+  if (mainEl) mainEl.innerHTML = html;
+}
+
+function open_saved_report(id) {
+  let list = [];
+  try { list = JSON.parse(localStorage.getItem(ATLAS_REPORT_HISTORY_KEY) || '[]'); } catch (_) {}
+  const item = list.find(x => String(x.id) === String(id));
+  if (!item) return;
+  showTab('research');
+  document.getElementById('defaultState').style.display = 'none';
+  renderResult(item.result, item.query);
+}
+
+async function clearReportHistory() {
+  if (!confirm('Remove all saved query reports?')) return;
+  try {
+    await fetch(apiBase() + '/history', {
+      method: 'DELETE',
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(15000),
+    });
+  } catch (_) {}
+  localStorage.removeItem(ATLAS_REPORT_HISTORY_KEY);
+  renderReportHistory();
+}
+
+// ── State ────────────────────────────────────────────────────────────────────
+let atlasFolderList = [];
+let positions = normalizePositionsState(localStorage.getItem('atlas_positions') || '{"stocks":[],"options":[]}');
+let watchlist = { tickers: [] };
+let activeType = 'stock';
+let activeTab = 'research';
+window.__atlasSkipOmegaOnce = false;
+
+function initAtlasTheme() {
+  try {
+    const t = localStorage.getItem('atlas_theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+  } catch (_) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+  atlasThemeRefreshLabel();
+}
+
+function atlasThemeRefreshLabel() {
+  const el = document.getElementById('atlasThemeLabel');
+  if (!el) return;
+  const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+  el.textContent = dark ? 'Dark' : 'Light';
+}
+
+function atlasToggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  try {
+    localStorage.setItem('atlas_theme', next);
+  } catch (_) {}
+  atlasThemeRefreshLabel();
+}
+
+function toggleAtlasUserFlyout(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('atlasUserFlyout');
+  const tr = document.getElementById('atlasFooterTrigger');
+  if (!m || !tr) return;
+  const open = m.classList.toggle('open');
+  tr.setAttribute('aria-expanded',open ? 'true' : 'false');
+}
+
+function atlasUserFlyoutClose() {
+  document.getElementById('atlasUserFlyout')?.classList.remove('open');
+  document.getElementById('atlasFooterTrigger')?.setAttribute('aria-expanded', 'false');
+}
+
+function filterAtlasChatSessions() {
+  const inp = document.getElementById('sidebarChatSearch');
+  const q = ((inp && inp.value) || '').trim().toLowerCase();
+  document.querySelectorAll('#sidebarSessions .session-row').forEach(row => {
+    const hay = (row.getAttribute('data-session-search') || '').toLowerCase();
+    row.style.display = !q || hay.includes(q) ? '' : 'none';
+  });
+}
+
+function atlasSetComposerMode(mode) {
+  const s = document.getElementById('atlasComposerMode');
+  if (!s) return;
+  s.value = mode === 'deep' ? 'deep' : 'chat';
+}
+
+function setComposerOnly(q) {
+  const ta = document.getElementById('queryInput');
+  if (ta) {
+    ta.value = q;
+    ta.focus();
+    autoResizeComposer();
+  }
+  showTab('research');
+}
+
+function autoResizeComposer() {
+  const ta = document.getElementById('queryInput');
+  if (!ta || ta.tagName !== 'TEXTAREA') return;
+  ta.style.height = 'auto';
+  ta.style.height = Math.min(160, Math.max(44, ta.scrollHeight)) + 'px';
+}
+
+function isAtlasDeepComposerMode() {
+  const s = document.getElementById('atlasComposerMode');
+  return !!(s && s.value === 'deep');
+}
+
+document.addEventListener('click', function (e) {
+  if (e.target && e.target.closest && e.target.closest('.sidebar-footer')) return;
+  atlasUserFlyoutClose();
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  initAtlasTheme();
+  const qi = document.getElementById('queryInput');
+  if (qi) qi.addEventListener('input', autoResizeComposer);
+  initAtlasSupabaseClient();
+  (async () => {
+    await refreshRegimeNav();
+    const synced = await syncPositionsFromServer();
+    if (!synced) {
+      renderSidebar();
+      renderTrades();
+    }
+    await maybeMigrateLegacyWatchlist();
+    await syncWatchlistFromServer();
+    await refreshFolderOptions();
+    await loadSessionsSidebar();
+    await syncHistoryFromServer();
+  })();
+});
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+function showTab(tab) {
+  activeTab = tab;
+  ['research','portfolio','watchlist'].forEach(t => {
+    document.getElementById('tab-'+t).style.display = t === tab ? 'block' : 'none';
+  });
+  document.querySelectorAll('.sidebar-item[data-tab]').forEach(el => {
+    el.classList.toggle('active', el.getAttribute('data-tab') === tab);
+  });
+}
+
+// ── Search ───────────────────────────────────────────────────────────────────
+function setQuery(q) {
+  document.getElementById('queryInput').value = q;
+  showTab('research');
+  runQuery();
+}
+
+const loadingMessagesDeep = [
+  ['Loop 1 of 10:', 'Scraping market data from 10 sources...'],
+  ['Loop 2 of 10:', 'Cross-referencing and fact-checking...'],
+  ['Loop 3 of 10:', 'Gathering volume profile, congress & satellite context...'],
+  ['Loop 4 of 10:', 'Loading portfolio & regime memory (Python)...'],
+  ['Loop 5 of 10:', 'Personalizing to your positions and risk profile...'],
+  ['Loop 6 of 10:', 'Running batched AI — thesis, macro, scenarios, stress test...'],
+  ['Loop 7 of 10:', 'Python audit — cleaning trade plan & stops...'],
+  ['Loop 8 of 10:', 'Building execution rules & price alerts...'],
+  ['Loop 9 of 10:', 'Computing scenario probabilities & EV...'],
+  ['Loop 10 of 10:', 'Finalizing report & compiling narrative...'],
+];
+const loadingMessagesChat = [
+  ['', 'Thinking…'],
+  ['', 'Finishing up…'],
+];
+
+async function fetchPackQuery(q) {
+  const body = { query: q };
+  const sid = getActiveSessionId();
+  if (sid) body.session_id = sid;
+  const resp = await fetch(apiBase() + '/query', {
+    method: 'POST',
+    headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(ATLAS_QUERY_FETCH_MS),
+  });
+  const pack = await resp.json();
+  if (!resp.ok) {
+    const msg = pack.message || pack.detail || pack.error || ('HTTP ' + resp.status);
+    const hint = resp.status === 401 ? ' Sign in via the Account menu in the sidebar (Supabase).' : '';
+    throw new Error((typeof msg === 'string' ? msg : JSON.stringify(msg)) + hint);
+  }
+  const fr = (pack.final_report && typeof pack.final_report === 'object') ? { ...pack.final_report } : {};
+  const cqs = Array.isArray(pack.clarification_questions) ? pack.clarification_questions
+    : (Array.isArray(fr.clarification_questions) ? fr.clarification_questions : []);
+  const dt = (pack.parsed_query && (pack.parsed_query.domain_tag || pack.parsed_query.query_type)) || fr.domain_tag;
+  return {
+    ...fr,
+    clarification_questions: cqs.filter(Boolean),
+    _timing: pack.timing,
+    _parsed_query: pack.parsed_query,
+    domain_tag: dt,
+    _report_id: pack._report_id,
+  };
+}
+
+async function runQuery() {
+  const qi = document.getElementById('queryInput');
+  const q = (qi && qi.value || '').trim();
+  if (!q) return;
+
+  document.getElementById('defaultState').style.display = 'none';
+  const hero = document.getElementById('chatHero');
+  if (hero) hero.classList.add('hide-hero');
+  document.getElementById('resultWrap').className = 'result-wrap';
+  document.getElementById('loadingState').style.display = 'block';
+  document.getElementById('searchBtn').disabled = true;
+
+  const deep = isAtlasDeepComposerMode();
+  const fill = document.getElementById('loadingBarFill');
+  if (fill) fill.classList.toggle('loading-quick', !deep);
+
+  const msgs = deep ? loadingMessagesDeep : loadingMessagesChat;
+  let msgIdx = 0;
+  const tick = deep ? 5500 : 2200;
+  const msgInterval = setInterval(() => {
+    if (msgIdx < msgs.length) {
+      const [label, text] = msgs[msgIdx];
+      const labEl = document.getElementById('loadingLabel');
+      if (labEl) {
+        labEl.innerHTML = label
+          ? `<span>${label}</span> ${text}`
+          : `<span style="color:var(--muted)">${text}</span>`;
+      }
+      msgIdx++;
+    }
+  }, tick);
+
+  try {
+    let result;
+    const base = apiBase();
+    if (window.__atlasSkipOmegaOnce) {
+      window.__atlasSkipOmegaOnce = false;
+      try {
+        result = await fetchPackQuery(q);
+      } catch (e0) {
+        console.warn('/query only (clarification follow-up) failed:', e0);
+        throw e0;
+      }
+    } else if (!deep) {
+      result = await fetchPackQuery(q);
+    } else {
+      try {
+        const ob = { query: q };
+        const sid0 = getActiveSessionId();
+        if (sid0) ob.session_id = sid0;
+        const resp = await fetch(base + '/omega', {
+          method: 'POST',
+          headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+          body: JSON.stringify(ob),
+          signal: AbortSignal.timeout(ATLAS_QUERY_FETCH_MS),
+        });
+        const omegaData = await resp.json();
+        if (!resp.ok) {
+          const msg = omegaData.message || omegaData.detail || omegaData.error || ('HTTP ' + resp.status);
+          const hint = resp.status === 401 ? ' Sign in via the Account menu in the sidebar (Supabase).' : '';
+          throw new Error((typeof msg === 'string' ? msg : JSON.stringify(msg)) + hint);
+        }
+        const oq = Array.isArray(omegaData.clarification_questions) ? omegaData.clarification_questions.slice() : [];
+        const oq2 = Array.isArray(omegaData._clarifying_questions) ? omegaData._clarifying_questions : [];
+        const mergedCq = [...oq, ...oq2].map(String).map(s => s.trim()).filter(Boolean);
+        const seenOm = new Set();
+        const cqsOmega = mergedCq.filter(s => (seenOm.has(s) ? false : seenOm.add(s)));
+        result = { ...omegaData, clarification_questions: cqsOmega };
+      } catch (e1) {
+        try {
+          result = await fetchPackQuery(q);
+        } catch (e2) {
+          console.warn('API unreachable, mock result:', e1, e2);
+          result = getMockResult(q);
+        }
+      }
+    }
+    clearInterval(msgInterval);
+    const rid = result._report_id != null ? String(result._report_id) : null;
+    saveReportToHistory(q, result, rid);
+    renderResult(result, q);
+    setTimeout(() => { syncHistoryFromServer(); }, 700);
+  } catch (e) {
+    clearInterval(msgInterval);
+    renderError(e.message);
+  } finally {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('searchBtn').disabled = false;
+    if (fill) fill.classList.remove('loading-quick');
+  }
+}
+
+function renderResult(raw, query) {
+  const wrap = document.getElementById('resultWrap');
+  wrap.className = 'result-wrap visible';
+
+  let r = normalizeReport(raw);
+
+  if (r && !r.headline && (r.overall_rating || r.executive_summary)) {
+    r = normalizeReport({
+      ...r,
+      headline: r.overall_rating
+        ? (r.overall_rating + ' — ' + (r.ticker || 'Analysis'))
+        : 'Research complete',
+      executive_brief: r.executive_summary || r.executive_brief || '',
+      urgency: r.urgency || 'normal',
+      primary_recommendation: r.primary_recommendation || (
+        r.trade_plan && r.trade_plan.action ? ('Action: ' + r.trade_plan.action) : ''
+      ),
+      scenarios: r.scenarios || [],
+      numbers_that_matter: r.numbers_that_matter || {
+        'Confidence': String(r.confidence ?? '—'),
+        'Ticker': r.ticker || '—',
+      },
+      risks_and_tripwires: r.risks_and_tripwires || r.key_risks || [],
+    });
+  }
+
+  if (r.error && typeof r.error === 'string' && !r.executive_brief && !r.headline) {
+    r.headline = 'Could not complete analysis';
+    r.executive_brief = r.error;
+    r.urgency = 'urgent';
+  }
+
+  let brief = r.executive_brief || r.situation_analysis || '';
+  if (!brief && r.key_insight) brief = r.key_insight;
+  const briefPreWrap = /\n/.test(String(brief));
+
+  let headline = r.headline || '';
+  if (!headline && brief) headline = 'Analysis';
+  if (!headline) headline = 'Analysis complete';
+
+  const metaLine = r._meta
+    ? `⏱ ${escapeHtml(String(r._meta.total_time_s ?? r._api_time_s ?? '—'))}s`
+    : (r._api_time_s != null ? `⏱ ${escapeHtml(String(r._api_time_s))}s` : '');
+
+  const quickStrip = buildQuickStatsStrip(r);
+
+  const urgencyColor = r.urgency === 'critical' ? 'red' : r.urgency === 'urgent' ? 'amber' : 'blue';
+  const scenarios = Array.isArray(r.scenarios) ? r.scenarios : [];
+  const actionPlan = Array.isArray(r.action_plan) ? r.action_plan : [];
+  const hiddenAngles = Array.isArray(r.hidden_angles) ? r.hidden_angles : [];
+  const numbers = r.numbers_that_matter && typeof r.numbers_that_matter === 'object' ? r.numbers_that_matter : {};
+  const namedRes = Array.isArray(r.named_resources) ? r.named_resources : [];
+  const risks = Array.isArray(r.risks_and_tripwires) ? r.risks_and_tripwires : [];
+  const followUps = Array.isArray(r.follow_up_questions) ? r.follow_up_questions : [];
+
+  const clarParts = [];
+  if (Array.isArray(r.clarification_questions) && r.clarification_questions.length) clarParts.push(...r.clarification_questions);
+  if (raw && Array.isArray(raw.clarification_questions)) clarParts.push(...raw.clarification_questions);
+  if (raw && Array.isArray(raw._clarifying_questions)) clarParts.push(...raw._clarifying_questions);
+  const seenC = new Set();
+  const clarifRaw = clarParts.map(String).map(s => s.trim()).filter(s => s && !seenC.has(s) && seenC.add(s));
+
+  const domainTag = r.domain_tag
+    || (r._parsed_query && (r._parsed_query.domain_tag || r._parsed_query.query_type))
+    || (raw && raw.domain_tag)
+    || null;
+  const domainTagPill = domainTag
+    ? `<span class="${domainBadgeClass(domainTag)}">${escapeHtml(formatDomainLabel(domainTag))}</span>`
+    : '';
+
+  const clarifBlock = clarifRaw.length ? `
+    <div class="card full" style="border:1px solid rgba(245,158,11,0.45);background:rgba(245,158,11,0.07);margin-bottom:16px;">
+      <div class="card-header"><div class="card-title">Clarifications needed</div>
+        <div class="card-sub">Add detail for a sharper rerun — your current analysis continues below unchanged.</div></div>
+      <ul style="padding-left:18px;font-size:14px;color:var(--slate);margin:0;">
+        ${clarifRaw.map(cq => `<li style="margin:8px 0;">${escapeHtml(String(cq))}</li>`).join('')}
+      </ul>
+      <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap;align-items:stretch;">
+        <input type="text" id="atlasClarifReply" placeholder="Type your answer…" autocomplete="off"
+          style="flex:1;min-width:200px;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--ink);font-size:13px;font-family:'DM Sans',sans-serif;" />
+        <button type="button" class="nav-btn primary" onclick="submitClarificationFollowUp()">Submit reply</button>
+      </div>
+    </div>` : '';
+
+  const sitBlock = (r.situation_analysis && String(r.situation_analysis) !== String(brief))
+    ? `<div class="card full"><div class="card-header"><div class="card-title">Situation analysis</div></div>
+        <div class="result-brief" style="white-space:pre-wrap;">${escapeHtml(r.situation_analysis)}</div></div>`
+    : '';
+
+  const namedBlock = namedRes.length ? `
+    <div class="card full">
+      <div class="card-header"><div class="card-title">Places & resources</div><div class="card-sub">From your data sources</div></div>
+      ${namedRes.map(nr => `
+        <div style="padding:12px 0;border-bottom:1px solid var(--border);font-size:13px;">
+          <div style="font-weight:700;">${escapeHtml(nr.name || '—')}</div>
+          <div style="color:var(--muted);">${escapeHtml(nr.type || '')}${nr.contact ? ' · ' + escapeHtml(nr.contact) : ''}</div>
+          ${nr.why ? `<div style="margin-top:6px;">${escapeHtml(nr.why)}</div>` : ''}
+        </div>
+      `).join('')}
+    </div>` : '';
+
+  const followBlock = followUps.length ? `
+    <div class="card full">
+      <div class="card-header"><div class="card-title">Follow-up questions</div></div>
+      <ul style="padding-left:18px;font-size:14px;color:var(--slate);">
+        ${followUps.map(fq => `<li style="margin:6px 0;">${escapeHtml(fq)}</li>`).join('')}
+      </ul>
+    </div>` : '';
+
+  const thinContent = !String(brief).trim() && !scenarios.length && !actionPlan.length
+    && !Object.keys(numbers).length && !namedRes.length && !risks.length && !hiddenAngles.length;
+  const rawJson = escapeHtml(JSON.stringify(raw, null, 2));
+  const rawFallback = `<div class="card full">
+        <div class="card-header"><div class="card-title">Full API response</div><div class="card-sub">${thinContent ? 'Nothing mapped into cards — JSON below' : 'Technical detail'}</div></div>
+        <details ${thinContent ? 'open' : ''}><summary style="cursor:pointer;font-size:13px;margin-bottom:8px;">${thinContent ? 'Response JSON (open)' : 'Raw JSON'}</summary>
+        <pre class="report-raw-pre">${rawJson}</pre></details>
+      </div>`;
+
+  const tick = r._meta && r._meta.user_context && Array.isArray(r._meta.user_context.tickers) && r._meta.user_context.tickers.length
+    ? String(r._meta.user_context.tickers[0]).replace(/[^A-Za-z0-9]/g, '')
+    : '';
+
+  wrap.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+      <span class="pill pill-${urgencyColor}">${escapeHtml((r.urgency || 'analysis').toUpperCase())}</span>
+      ${domainTagPill}
+      <span style="font-size:12px;color:var(--muted);">${escapeHtml(r.domain_label || r.domain || 'Financial Analysis')}</span>
+      ${metaLine ? `<span style="font-size:12px;color:var(--muted);margin-left:auto;">${metaLine}</span>` : ''}
+    </div>
+
+    ${quickStrip}
+
+    ${clarifBlock}
+
+    <div class="result-grid">
+      <div class="card full">
+        <div class="result-headline">${escapeHtml(headline)}</div>
+        <div class="result-brief" style="${briefPreWrap ? 'white-space:pre-wrap;' : ''}">${escapeHtml(brief)}</div>
+        ${r.primary_recommendation ? `
+          <div class="insight-box ${urgencyColor === 'red' ? 'danger' : urgencyColor === 'amber' ? 'warn' : ''}">
+            <strong>Recommendation:</strong> ${escapeHtml(r.primary_recommendation)}
+          </div>
+        ` : ''}
+        ${r.key_insight && String(r.key_insight) !== String(brief) ? `
+          <div class="insight-box"><strong>Key insight:</strong> ${escapeHtml(r.key_insight)}</div>
+        ` : ''}
+      </div>
+
+      ${sitBlock}
+
+      ${Object.keys(numbers).length ? `
+        <div class="card">
+          <div class="card-header"><div class="card-title">Numbers that matter</div></div>
+          <div class="stats-row" style="flex-direction:column;gap:8px;">
+            ${Object.entries(numbers).map(([k, v]) => `
+              <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">
+                <span style="color:var(--muted);">${escapeHtml(k)}</span>
+                <span style="font-weight:600;">${escapeHtml(typeof v === 'object' ? JSON.stringify(v) : v)}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      ` : ''}
+
+      ${scenarios.length ? `
+        <div class="card">
+          <div class="card-header"><div class="card-title">Scenarios & probabilities</div></div>
+          ${scenarios.map(s => {
+            const prob = formatScenarioProb(s.probability);
+            const lb = (s.label || '—').toLowerCase();
+            const sc = lb.includes('bull') || lb.includes('best') ? 'bull' : lb.includes('bear') || lb.includes('worst') ? 'bear' : 'base';
+            const out = [s.outcome, s.trigger ? '(' + s.trigger + ')' : ''].filter(Boolean).join(' ');
+            return `
+            <div class="scenario-row">
+              <div class="sc-prob">${prob}</div>
+              <div class="sc-label ${sc}">${escapeHtml(s.label || '—')}</div>
+              <div class="sc-body">${escapeHtml(out)}${s.your_action ? '<br><strong>→ ' + escapeHtml(s.your_action) + '</strong>' : ''}</div>
+            </div>
+          `;
+          }).join('')}
+        </div>
+      ` : ''}
+
+      ${actionPlan.length ? `
+        <div class="card full">
+          <div class="card-header"><div class="card-title">Action plan</div></div>
+          ${actionPlan.map((step, i) => `
+            <div class="action-plan-item">
+              <div class="step-num">${i + 1}</div>
+              <div class="step-content">
+                <div class="step-when">${escapeHtml(step.timeframe || step.when || '')}</div>
+                <div class="step-action">${escapeHtml(step.action || '')}</div>
+                <div class="step-how">${escapeHtml(step.how || step.why || '')}${step.financial_impact ? ' · ' + escapeHtml(step.financial_impact) : ''}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${hiddenAngles.length ? `
+        <div class="card full">
+          <div class="card-header"><div class="card-title">Hidden angles</div><div class="card-sub">Things most people miss</div></div>
+          ${hiddenAngles.map(h => `<div class="insight-box" style="margin-bottom:8px;">${escapeHtml(h)}</div>`).join('')}
+        </div>
+      ` : ''}
+
+      ${risks.length ? `
+        <div class="card full">
+          <div class="card-header"><div class="card-title">Risks & tripwires</div></div>
+          ${risks.map(risk => `
+            <div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;">
+              <span class="pill ${risk.severity === 'high' ? 'pill-red' : risk.severity === 'medium' ? 'pill-amber' : 'pill-blue'}">${escapeHtml(risk.severity || '—')}</span>
+              <div>
+                <div style="font-weight:600;margin-bottom:2px;">${escapeHtml(risk.risk || '')}</div>
+                <div style="color:var(--muted);">${escapeHtml([risk.tripwire, risk.response].filter(Boolean).join(' · '))}</div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      ` : ''}
+
+      ${namedBlock}
+      ${followBlock}
+      ${rawFallback}
+    </div>
+
+    ${tick ? `
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button class="nav-btn ghost" onclick="addWLFromResult('${tick}')">
+          + Add ${escapeHtml(tick)} to watchlist
+        </button>
+        <button class="nav-btn primary" onclick="openAddTradeFor('${tick}')">
+          + Add ${escapeHtml(tick)} as a trade
+        </button>
+      </div>
+    ` : ''}
+  `;
+  window.__atlasRenderContext = { query: query || '' };
+}
+
+function renderError(msg) {
+  document.getElementById('resultWrap').className = 'result-wrap visible';
+  document.getElementById('resultWrap').innerHTML = `
+    <div class="card">
+      <div class="insight-box danger">
+        <strong>Error:</strong> ${msg}<br>
+        <span style="font-size:12px;color:var(--muted);">Make sure the ATLAS API server is running: <code>python api_server.py</code></span>
+      </div>
+    </div>
+  `;
+}
+
+function getMockResult(query) {
+  return {
+    headline: "Analysis ready — API server not connected",
+    executive_brief: "This is a preview of how results would appear. Start the ATLAS API server with 'python api_server.py' to get real analysis.",
+    urgency: "informational",
+    domain: "GENERAL_FINANCE",
+    domain_label: "General Finance",
+    primary_recommendation: "Connect your backend: run 'uvicorn api_server:app --port 8000' from your ATLAS directory.",
+    scenarios: [
+      {label: "API connected", probability: 1.0, outcome: "Full institutional-grade analysis for: "+query, your_action: "Run the API server"},
+    ],
+    hidden_angles: ["The search bar accepts natural language — try asking about your car loan, your options position, or any finance topic."],
+    action_plan: [
+      {step: 1, action: "Start the API server", when: "Now", how: "Open terminal → cd 'trading platform overview' → python api_server.py"},
+      {step: 2, action: "Run your query", when: "After server starts", how: "Type any finance question and click Analyze"},
+    ],
+  };
+}
+
+// ── Trades ───────────────────────────────────────────────────────────────────
+function renderTrades() {
+  const grid = document.getElementById('tradesGrid');
+  const all = [...positions.stocks, ...positions.options];
+  if (!all.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">📊</div><h3>No trades yet</h3><p>Add a stock or options position to track P&L.</p></div>`;
+    return;
+  }
+  grid.innerHTML = all.map(p => {
+    const isOption = !!p.strike;
+    const ticker = p.ticker;
+    const cost = isOption ? (p.avg_premium * (p.contracts||1) * 100) : (p.avg_buy_price * (p.shares||1));
+    const u = unrealizedPnlParts(p);
+    const pnlVal = u
+      ? `$${u.pnl.toFixed(0)}`
+      : '—';
+    const pnlPct = u
+      ? `${u.pct >= 0 ? '+' : ''}${u.pct.toFixed(1)}%`
+      : 'tracking';
+    const pnlClass = u ? (u.pnl >= 0 ? 'pos' : 'neg') : 'neg';
+    return `
+      <div class="trade-card" onclick="setQuery('Give me a full analysis of ${ticker} — I hold ${isOption ? `a $${p.strike} ${p.option_type} expiring ${p.expiry}` : `${p.shares} shares`}')">
+        <div class="tc-top">
+          <div>
+            <div class="tc-ticker">${ticker}</div>
+            <div class="tc-name">${isOption ? p.option_type.toUpperCase()+' · $'+p.strike+' · '+p.expiry : (p.shares||1)+' shares'}</div>
+          </div>
+          <div class="tc-pnl">
+            <div class="tc-pnl-val ${pnlClass}">${u ? pnlVal : '−'}</div>
+            <div class="tc-pnl-pct ${pnlClass}">${pnlPct}</div>
+          </div>
+        </div>
+        <div class="tc-stats">
+          <div><div class="tc-stat-label">${isOption ? 'Premium paid' : 'Avg price'}</div><div class="tc-stat-val">$${isOption ? p.avg_premium : p.avg_buy_price}</div></div>
+          <div><div class="tc-stat-label">Total cost</div><div class="tc-stat-val">$${cost?.toFixed(2)||'—'}</div></div>
+          ${isOption ? `<div><div class="tc-stat-label">Expiry</div><div class="tc-stat-val">${p.expiry}</div></div>` : ''}
+        </div>
+        <div class="tc-actions">
+          <button class="tc-btn research" onclick="event.stopPropagation();setQuery('Full analysis on my ${ticker} ${isOption?p.option_type+' $'+p.strike:'position'}')">Research</button>
+          <button class="tc-btn remove" onclick="event.stopPropagation();removePosition('${ticker}','${p.strike != null ? String(p.strike) : ''}','${isOption ? p.option_type : ''}')">Remove</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSidebar() {
+  const el = document.getElementById('sidebarPositions');
+  const all = [...positions.stocks, ...positions.options];
+  const openPaper = (positions.paper_trades || []).filter(t => ['OPEN', 'PENDING'].includes(String(t.state || '')));
+  if (!all.length && !openPaper.length) {
+    el.innerHTML = `<div style="font-size:12px;color:var(--muted);padding:4px 8px;">No positions yet</div>`;
+    return;
+  }
+  const rows = [];
+  for (const p of all) {
+    const isOption = !!p.strike;
+    const u = unrealizedPnlParts(p);
+    let detail;
+    if (u) {
+      const cls = u.pnl >= 0 ? 'pos' : 'neg';
+      const sign = u.pnl >= 0 ? '+' : '';
+      detail = (isOption
+        ? ((p.contracts || 1) + ' ctr @ $' + p.avg_premium)
+        : ((p.shares || 1) + ' sh @ $' + p.avg_buy_price))
+        + ' · <span class="sp-pnl ' + cls + '">' + sign + '$' + u.pnl.toFixed(0) + ' (' + sign + u.pct.toFixed(1) + '%)</span>';
+    } else if (isOption) {
+      detail = (p.contracts || 1) + ' ctr @ $' + (p.avg_premium != null ? p.avg_premium : '—') + (p.expiry ? ' · exp ' + p.expiry : '') + ' · tracking';
+    } else {
+      detail = (p.shares || 1) + ' shares @ $' + p.avg_buy_price + ' · tracking';
+    }
+    rows.push(`
+    <div class="sidebar-position" onclick="setQuery('Analyze ${p.ticker} — I hold ${p.strike ? 'a $'+p.strike+' '+p.option_type : p.shares+' shares'}')">
+      <div class="sp-ticker">${p.ticker} ${p.strike ? (p.option_type || '').toUpperCase() + ' $' + p.strike : ''}</div>
+      <div class="sp-detail">${detail}</div>
+    </div>`);
+  }
+  for (const t of openPaper) {
+    const tk = t.ticker || '—';
+    const st = String(t.state || '').toUpperCase();
+    rows.push(`
+    <div class="sidebar-position" onclick="setQuery('Status of my ${escapeHtml(tk)} paper trade')">
+      <div class="sp-ticker">${escapeHtml(tk)} <span style="font-size:10px;font-weight:600;opacity:0.75">PAPER</span></div>
+      <div class="sp-detail">${escapeHtml(st)}${t.side != null && t.side !== '' ? ' · ' + escapeHtml(String(t.side)) : ''}</div>
+    </div>`);
+  }
+  el.innerHTML = rows.join('');
+}
+
+async function removePosition(ticker, strike, optionType) {
+  strike = strike ? String(strike) : '';
+  optionType = optionType ? String(optionType) : '';
+  if (strike) {
+    positions.options = positions.options.filter(o => !(o.ticker === ticker && String(o.strike) === strike && (!optionType || o.option_type === optionType)));
+  } else {
+    positions.stocks = positions.stocks.filter(s => s.ticker !== ticker);
+    positions.options = positions.options.filter(o => o.ticker !== ticker);
+  }
+  try {
+    localStorage.setItem('atlas_positions', JSON.stringify({ stocks: positions.stocks, options: positions.options }));
+  } catch (_) {}
+  renderTrades(); renderSidebar();
+  try {
+    let url = apiBase() + '/positions/' + encodeURIComponent(ticker);
+    if (strike) {
+      url += '?strike=' + encodeURIComponent(strike);
+      if (optionType) url += '&option_type=' + encodeURIComponent(optionType);
+    }
+    const r = await fetch(url, {
+      method: 'DELETE',
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) await syncPositionsFromServer();
+  } catch (e) {
+    console.warn('removePosition API', e);
+    await syncPositionsFromServer();
+  }
+}
+
+// ── Watchlist ─────────────────────────────────────────────────────────────────
+function renderWatchlist() {
+  const grid = document.getElementById('watchlistGrid');
+  const tickers = Array.isArray(watchlist.tickers) ? watchlist.tickers : [];
+  if (!tickers.length) {
+    grid.innerHTML = `<div class="empty"><div class="empty-icon">👁</div><h3>Nothing on watch</h3><p>Add tickers to monitor.</p></div>`;
+    return;
+  }
+  grid.innerHTML = tickers.map(t => `
+    <div class="wl-card">
+      <div class="wl-ticker">${t}</div>
+      <div class="wl-price" id="price-${t}">Loading...</div>
+      <div class="wl-actions">
+        <button class="wl-btn research" onclick="setQuery('Full analysis on ${t}')">Research</button>
+        <button class="wl-btn remove" onclick="removeFromWatchlist('${t}')">Remove</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addToWatchlist() {
+  const ticker = document.getElementById('wlInput').value.trim().toUpperCase();
+  if (!ticker) return;
+  try {
+    const r = await fetch(apiBase() + '/watchlist', {
+      method: 'POST',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ ticker: ticker }),
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!r.ok) console.warn('POST /watchlist', r.status, await r.text());
+    await syncWatchlistFromServer();
+  } catch (e) { console.warn('addToWatchlist', e); }
+  document.getElementById('wlInput').value = '';
+}
+
+async function addWLFromResult(ticker) {
+  const t = String(ticker || '').toUpperCase().trim();
+  if (!t) return;
+  try {
+    const r = await fetch(apiBase() + '/watchlist', {
+      method: 'POST',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify({ ticker: t }),
+      signal: AbortSignal.timeout(12000),
+    });
+    if (!r.ok) console.warn('POST /watchlist', r.status, await r.text());
+    await syncWatchlistFromServer();
+  } catch (e) { console.warn('addWLFromResult', e); }
+}
+
+async function removeFromWatchlist(ticker) {
+  try {
+    const r = await fetch(apiBase() + '/watchlist/' + encodeURIComponent(ticker), {
+      method: 'DELETE',
+      headers: await atlasApiAuthHeaders({}),
+      signal: AbortSignal.timeout(10000),
+    });
+    if (!r.ok) console.warn('DELETE /watchlist', r.status, await r.text());
+    await syncWatchlistFromServer();
+  } catch (e) {
+    console.warn('removeFromWatchlist', e);
+    await syncWatchlistFromServer();
+  }
+}
+
+// ── Add Trade Modal ───────────────────────────────────────────────────────────
+function openAddTrade() { document.getElementById('addTradeModal').classList.add('open'); }
+function openAddTradeFor(ticker) {
+  openAddTrade();
+  document.getElementById('mt-ticker').value = ticker;
+}
+function closeAddTrade() { document.getElementById('addTradeModal').classList.remove('open'); }
+
+function setType(type) {
+  activeType = type;
+  ['stock','call','put'].forEach(t => {
+    document.getElementById('type-'+t).classList.toggle('active', t === type);
+  });
+  document.getElementById('stock-fields').style.display = type === 'stock' ? 'block' : 'none';
+  document.getElementById('options-fields').style.display = type !== 'stock' ? 'block' : 'none';
+}
+
+async function saveTrade() {
+  const ticker = document.getElementById('mt-ticker').value.trim().toUpperCase();
+  if (!ticker) return alert('Please enter a ticker symbol');
+
+  let syncPayload;
+  if (activeType === 'stock') {
+    const qty = parseFloat(document.getElementById('mt-qty').value) || 1;
+    const price = parseFloat(document.getElementById('mt-price').value) || 0;
+    positions.stocks = positions.stocks.filter(s => s.ticker !== ticker);
+    positions.stocks.push({ ticker, shares: qty, avg_buy_price: price, current_price: null, last_updated: new Date().toISOString() });
+    syncPayload = { ticker, type: 'stock', qty, avg_price: price };
+  } else {
+    const strike = parseFloat(document.getElementById('mt-strike').value) || 0;
+    const expiry = document.getElementById('mt-expiry').value || '';
+    const premium = parseFloat(document.getElementById('mt-premium').value) || 0;
+    const contracts = parseInt(document.getElementById('mt-contracts').value) || 1;
+    positions.options = positions.options.filter(o => !(o.ticker === ticker && String(o.strike) === String(strike) && o.option_type === activeType));
+    positions.options.push({
+      ticker, option_type: activeType, strike, expiry, avg_premium: premium, contracts,
+      current_price: null, last_updated: new Date().toISOString(),
+    });
+    syncPayload = { ticker, type: activeType, qty: contracts, strike, expiry, premium };
+  }
+
+  try {
+    localStorage.setItem('atlas_positions', JSON.stringify({ stocks: positions.stocks, options: positions.options }));
+  } catch (_) {}
+
+  try {
+    const r = await fetch(apiBase() + '/positions', {
+      method: 'POST',
+      headers: await atlasApiAuthHeaders({ 'Content-Type': 'application/json' }),
+      body: JSON.stringify(syncPayload),
+      signal: AbortSignal.timeout(15000),
+    });
+    if (!r.ok) console.warn('POST /positions', r.status, await r.text());
+  } catch (e) { console.warn('saveTrade API', e); }
+
+  renderTrades(); renderSidebar();
+  closeAddTrade();
+
+  // Auto-research after adding
+  setTimeout(() => {
+    if (activeType !== 'stock') {
+      setQuery(`Analyze my ${ticker} $${document.getElementById('mt-strike')?.value} ${activeType} expiring ${document.getElementById('mt-expiry')?.value}`);
+    } else {
+      setQuery(`Full analysis on ${ticker}`);
+    }
+  }, 300);
+}
+
+// Close modal on overlay click
+document.getElementById('addTradeModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeAddTrade();
+});
+</script>
+</body>
+</html>

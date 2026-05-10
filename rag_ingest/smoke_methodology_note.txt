@@ -1,0 +1,5 @@
+ATLAS Phase 3A smoke document - factor investing and risk.
+
+Multi-factor equity models combine value, momentum, quality, and low volatility signals.
+Investors often tilt toward factors when macro regime uncertainty is elevated.
+This note exists only to validate Chroma ingestion and query_finance_knowledge; it is not investment advice.

@@ -1,0 +1,52 @@
+node_modules/
+dist/
+.DS_Store
+.env
+.env.*
+!.env.example
+
+# Local IDE/agent settings
+.claude/
+.cursor/
+
+# Python/runtime cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local generated/cache data
+data_cache/
+congress_cache/
+delta_snapshots/
+deep_reports/
+reports/
+codex_backups/
+atlas_memory_data/
+atlas_rag/
+atlas_vault/00-Inbox/
+atlas_vault/01-Raw/
+atlas_vault/03-Outputs/
+atlas_vault/04-Projects/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Local/generated trading state
+paper_trades.json
+positions_cache.json
+watchlist.json
+research_history.json
+weekly_insight.json
+atlas_alerts.json
+atlas_tracking_state.json
+atlas_pending_deep.json
+dashboard_state.json
+
+# Generated exports and large local artifacts
+*.pdf
+*.docx
+full_codebase.txt
+test_result_soun.json

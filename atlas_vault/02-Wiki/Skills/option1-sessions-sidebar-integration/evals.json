@@ -1,0 +1,20 @@
+{
+  "skill": "option1-sessions-sidebar-integration",
+  "assertions": [
+    {
+      "id": "SK-01",
+      "description": "api_server.py contains the route decorator @app.post(\"/sessions\") (sessions API present)",
+      "type": "binary"
+    },
+    {
+      "id": "SK-02",
+      "description": "index_1778227564596.html contains the substring session_id (query/history payload wired in UI)",
+      "type": "binary"
+    },
+    {
+      "id": "SK-03",
+      "description": "python -m py_compile api_server.py exits with code 0 from repo root",
+      "type": "binary"
+    }
+  ]
+}

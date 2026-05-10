@@ -1,0 +1,20 @@
+{
+  "skill": "supabase-b6-tenant-migration",
+  "assertions": [
+    {
+      "id": "SK-01",
+      "description": "schema.sql contains the line \"-- Migration: Sessions/watchlist objects\"",
+      "type": "binary"
+    },
+    {
+      "id": "SK-02",
+      "description": "schema.sql contains \"-- --- Section A:\" and \"-- --- Section B:\" (structural + RLS sections present)",
+      "type": "binary"
+    },
+    {
+      "id": "SK-03",
+      "description": "schema.sql footer contains verification snippet \"SELECT tablename, rowsecurity FROM pg_tables\"",
+      "type": "binary"
+    }
+  ]
+}

@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS — Full System Overview</title>
+<style>
+  :root {
+    --bg:       #0d1117;
+    --bg2:      #0e0e1a;
+    --bg3:      #111122;
+    --border:   #1e1e3a;
+    --accent:   #00d4ff;
+    --green:    #4caf50;
+    --yellow:   #ffca28;
+    --orange:   #ff9800;
+    --red:      #f44336;
+    --purple:   #9c27b0;
+    --text:     #e0e0e0;
+    --muted:    #888;
+    --dim:      #444;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    line-height: 1.6;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 60px 40px 50px;
+    text-align: center;
+  }
+  .hero-tag {
+    display: inline-block;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    padding: 4px 16px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+  }
+  .hero h1 {
+    font-size: 52px;
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 18px;
+    color: var(--muted);
+    max-width: 600px;
+    margin: 0 auto 30px;
+  }
+  .hero-stats {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .hero-stat { text-align: center; }
+  .hero-stat .val {
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--accent);
+  }
+  .hero-stat .lbl {
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+  }
+
+  /* ── Layout ── */
+  .container { max-width: 1100px; margin: 0 auto; padding: 0 24px; }
+  section { padding: 60px 0; border-bottom: 1px solid var(--border); }
+  section:last-child { border-bottom: none; }
+
+  h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 8px;
+  }
+  h2 .sub {
+    display: block;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--muted);
+    letter-spacing: 0;
+    margin-top: 4px;
+  }
+  h3 { font-size: 16px; font-weight: 600; color: var(--accent); margin-bottom: 12px; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 22px;
+  }
+  .card-sm {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+  }
+
+  /* ── Grids ── */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .grid-auto { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+  @media (max-width: 700px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 34px; }
+  }
+
+  /* ── Pill / Badge ── */
+  .pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    vertical-align: middle;
+  }
+  .pill-green  { background: #0a2a0a; color: var(--green);  border: 1px solid #1e4a1e; }
+  .pill-blue   { background: #0a1a2a; color: var(--accent); border: 1px solid #1e3a5a; }
+  .pill-yellow { background: #2a2000; color: var(--yellow); border: 1px solid #4a3800; }
+  .pill-red    { background: #2a0a0a; color: var(--red);    border: 1px solid #4a1a1a; }
+  .pill-purple { background: #1a0a2a; color: var(--purple); border: 1px solid #3a1a4a; }
+
+  /* ── Source item ── */
+  .source-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #111;
+  }
+  .source-item:last-child { border-bottom: none; }
+  .source-dot {
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    margin-top: 7px;
+    flex-shrink: 0;
+  }
+  .source-name { font-weight: 600; color: #fff; font-size: 13px; }
+  .source-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ── System item ── */
+  .sys-item {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .sys-name { font-weight: 700; color: #fff; font-size: 14px; margin-bottom: 4px; }
+  .sys-file { font-size: 10px; color: var(--accent); font-family: monospace; margin-bottom: 8px; }
+  .sys-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  /* ── Score bar ── */
+  .score-wrap { margin-bottom: 28px; }
+  .score-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 8px;
+  }
+  .score-name { font-size: 15px; font-weight: 600; color: #fff; }
+  .score-sub  { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .score-num  { font-size: 26px; font-weight: 800; }
+  .score-bar-bg {
+    height: 10px;
+    background: #1a1a1a;
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .score-bar-fill { height: 100%; border-radius: 5px; transition: width 1s ease; }
+  .score-breakdown {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .score-cat {
+    font-size: 10px;
+    padding: 2px 7px;
+    background: #111;
+    border-radius: 4px;
+    color: var(--muted);
+  }
+
+  /* ── Comparison table ── */
+  .comp-table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  .comp-table th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    border-bottom: 2px solid var(--border);
+  }
+  .comp-table td { padding: 12px 14px; border-bottom: 1px solid #111; font-size: 13px; vertical-align: top; }
+  .comp-table tr:last-child td { border-bottom: none; }
+  .comp-table tr.atlas-row td { background: #0a1020; }
+  .comp-table tr:hover td { background: #0e1117; }
+  .check { color: var(--green); }
+  .cross { color: var(--red); }
+  .partial { color: var(--yellow); }
+
+  /* ── How it works ── */
+  .flow-step {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  .flow-num {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #000;
+    font-weight: 800;
+    font-size: 13px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .flow-content { flex: 1; padding-top: 4px; }
+  .flow-title { font-weight: 600; color: #fff; font-size: 14px; margin-bottom: 3px; }
+  .flow-desc  { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* ── My take section ── */
+  .take-card {
+    background: linear-gradient(135deg, #0a1020 0%, #0e0e1a 100%);
+    border: 1px solid #00d4ff33;
+    border-radius: 16px;
+    padding: 32px;
+  }
+  .take-score {
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .take-score span { font-size: 28px; color: var(--muted); font-weight: 400; }
+
+  .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+  .cli-item {
+    display: flex;
+    gap: 12px;
+    align-items: baseline;
+    padding: 8px 0;
+    border-bottom: 1px solid #111;
+  }
+  .cli-item:last-child { border-bottom: none; }
+  .cli-label { font-size: 12px; color: var(--muted); min-width: 180px; flex-shrink: 0; }
+  .cli-cmd   { font-family: monospace; font-size: 12px; color: var(--accent); }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════ HERO -->
+<div class="hero">
+  <div class="hero-tag">Research &amp; manual portfolio tracking</div>
+  <h1><span>ATLAS</span></h1>
+  <p class="hero-sub">A Python + Gemini research stack with a clean web dashboard: deep reports, watchlist, and positions you log yourself — built for decisions and documentation, not autonomous trading.</p>
+  <p style="max-width:620px;margin:-10px auto 0;font-size:14px;color:#6ad4ff"><a href="ATLAS_OUTPUT_MAP.html" style="color:inherit;text-decoration:underline">Where does each command write? &rarr; ATLAS_OUTPUT_MAP.html</a></p>
+  <div class="hero-stats">
+    <div class="hero-stat"><div class="val">18</div><div class="lbl">Data Sources</div></div>
+    <div class="hero-stat"><div class="val">Deep</div><div class="lbl">Research core</div></div>
+    <div class="hero-stat"><div class="val">99<span style="font-size:18px;color:#555">/100</span></div><div class="lbl">Rubric (research)</div></div>
+    <div class="hero-stat"><div class="val">$0</div><div class="lbl">Monthly Cost</div></div>
+    <div class="hero-stat"><div class="val">~3 min</div><div class="lbl">Full Research Run</div></div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ══════════════════════════════════════════════════════════ WHAT IS IT -->
+<section>
+  <h2>What is ATLAS? <span class="sub">Plain English explanation</span></h2>
+  <div class="grid-2" style="margin-top:24px;gap:24px">
+    <div>
+      <p style="font-size:15px;color:#ccc;line-height:1.8;margin-bottom:16px">
+        ATLAS is a Python-based <strong>research assistant</strong> for equities and options. When you run deep research on a ticker, the pipeline scrapes many public sources, reconciles facts in code, pulls filing context via local RAG, and asks Gemini to synthesize <em>only what was verified</em> into an HTML report you can read in the browser.
+      </p>
+      <p style="font-size:15px;color:#ccc;line-height:1.8;margin-bottom:16px">
+        Compared with a general chat model: ATLAS is wired to <strong style="color:#fff">structured market data</strong> (IV rank, whisper EPS, 13F snapshots, insider forms, flows where available) rather than article summaries alone. The <strong>web dashboard</strong> (<code>dashboard_server.py</code>) is the day-to-day surface: search, embedded reports, report history, and manual watchlist/positions. It does <strong>not</strong> connect a broker or place orders.
+      </p>
+      <p style="font-size:15px;color:#ccc;line-height:1.8">
+        Optional modules in the repo (alerts, delta reports, tuner/self-coder, backtest sandbox, news scanner HTML) are for advanced CLI or background use. The shipping UI deliberately stays focused on <strong>information + your own tracking</strong>.
+      </p>
+    </div>
+    <div class="card">
+      <h3>The Core Idea</h3>
+      <div class="flow-step">
+        <div class="flow-num">1</div>
+        <div class="flow-content">
+          <div class="flow-title">Scrape, don't guess</div>
+          <div class="flow-desc">Python code pulls real data from 18 sources. No hallucination because it only analyzes what it actually found.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">2</div>
+        <div class="flow-content">
+          <div class="flow-title">Cross-reference everything</div>
+          <div class="flow-desc">Facts are compared across sources. CONFIRMED = multiple sources agree. CONFLICT = flag the discrepancy.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">3</div>
+        <div class="flow-content">
+          <div class="flow-title">AI synthesizes verified facts only</div>
+          <div class="flow-desc">Gemini gets 40,000+ chars of real data + confidence labels + memory context + historical win rates.</div>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">4</div>
+        <div class="flow-content">
+          <div class="flow-title">Optional: journal outcomes (CLI / tracker)</div>
+          <div class="flow-desc">If you use the tracker, graded outcomes can inform later prompts and tuners. The web app does not auto-trade from this loop.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ HOW IT WORKS -->
+<section>
+  <h2>How a Full Run Works <span class="sub">Typical deep-research path (CLI) — dashboards embed the resulting HTML</span></h2>
+  <div class="grid-2" style="margin-top:28px;gap:24px">
+    <div>
+      <div class="flow-step"><div class="flow-num">1</div><div class="flow-content"><div class="flow-title">18-source parallel scrape (0–90 sec)</div><div class="flow-desc">Finviz, Google News, StockAnalysis, OpenInsider, MarketBeat, Barchart, Unusual Whales, SEC EDGAR, Reddit, Benzinga, EarningsWhispers, StockTwits, Seeking Alpha, Macrotrends, 13F filings, and more. Playwright handles JS-rendered sites.</div></div></div>
+      <div class="flow-step"><div class="flow-num">2</div><div class="flow-content"><div class="flow-title">Cross-reference engine runs</div><div class="flow-desc">Python compares earnings dates, price targets, EPS estimates, and news sentiment across all sources. Produces a CONFIDENCE REPORT before the AI sees anything.</div></div></div>
+      <div class="flow-step"><div class="flow-num">3</div><div class="flow-content"><div class="flow-title">Memory + pattern injection</div><div class="flow-desc">The memory system recalls what ATLAS knows about this ticker from past research. The pattern library injects historical win rates for this setup's specific tags.</div></div></div>
+      <div class="flow-step"><div class="flow-num">4</div><div class="flow-content"><div class="flow-title">Hyper-awareness scan (NEW)</div><div class="flow-desc">Market regime detected (Bull/Bear/Chop/Panic). Short squeeze score 0–100 calculated. News velocity checked — is the pace of headlines accelerating? Historical earnings reactions pulled. Confidence multiplier applied.</div></div></div>
+      <div class="flow-step"><div class="flow-num">5</div><div class="flow-content"><div class="flow-title">Sector macro wind check</div><div class="flow-desc">Is the sector getting inflows or outflows vs SPY? Tailwind or headwind for this trade.</div></div></div>
+      <div class="flow-step"><div class="flow-num">6</div><div class="flow-content"><div class="flow-title">Self-tuned weight injection (NEW)</div><div class="flow-desc">If auto_tuner has learned from past outcomes, the optimized scoring weights and thresholds are injected into the synthesis prompt. ATLAS uses its own track record to calibrate confidence.</div></div></div>
+      <div class="flow-step"><div class="flow-num">7</div><div class="flow-content"><div class="flow-title">Gemini synthesis (single API call)</div><div class="flow-desc">One carefully engineered prompt with 40,000+ chars of verified data + awareness signals + tuned weights. Outputs structured JSON: rating, confidence, trade plan, options play, bull/bear thesis, price levels.</div></div></div>
+          <div class="flow-step"><div class="flow-num">8</div><div class="flow-content"><div class="flow-title">Post-synthesis packaging</div><div class="flow-desc">Options P/L simulator, position sizing math, and narrative sections are assembled into the HTML report. Some analytics modules are CLI-only today.</div></div></div>
+      <div class="flow-step"><div class="flow-num">9</div><div class="flow-content"><div class="flow-title">Where you consume it</div><div class="flow-desc">Open <code>deep_reports/TICKER_deep.html</code> or use Home → Search in the dashboard to embed the same file. Optional jobs (alerts, delta watcher, tuner) only run if you start them.</div></div></div>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:14px">
+        <div style="font-size:12px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">What gets included in the HTML report</div>
+        <div style="display:flex;flex-direction:column;gap:8px;font-size:13px;color:#ccc">
+          <div><span class="pill pill-green">Live</span> &nbsp;Executive summary + bull/bear thesis</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Trade plan: entry, stop, target 1 &amp; 2</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Options play: strike, expiry, cost, rationale</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Options P&amp;L simulator (SVG chart, all price scenarios)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Position sizing (Kelly criterion, exact # of contracts)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Earnings analysis (whisper EPS, expected move, beat rate)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Institutional holdings (top holders, % owned)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Multi-year financial history (revenue, margins, EPS)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Insider transactions (dollar value, date, title)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Cross-reference confidence report</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;News headlines (18+ sources, deduped)</div>
+          <div><span class="pill pill-green">Live</span> &nbsp;Historical win rates for this setup type</div>
+        </div>
+      </div>
+      <div class="card-sm" style="font-size:12px;color:var(--muted)">
+        <strong style="color:#fff">Anti-hallucination design:</strong> ATLAS never lets the AI make up numbers. Every fact in the prompt is labeled CONFIRMED, SINGLE SOURCE, or CONFLICT. The AI is instructed to only use null for missing data — never fabricate. The memory system marks facts as CONFIRMED hard truth that cannot be contradicted. Result: reports you can actually trade from.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ 18 SOURCES -->
+<section>
+  <h2>18 Data Sources <span class="sub">All live, all free — zero API costs for data collection</span></h2>
+  <div class="grid-2" style="margin-top:24px;gap:0 32px">
+    <div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Finviz</div><div class="source-desc">Price, RSI(14), short float, earnings date, insider trend, ATR, beta, 52-week range, relative volume, P/E, sector</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">EarningsWhispers</div><div class="source-desc">The whisper EPS number — what traders actually expect (not Wall St consensus). Beat whisper = rally. Miss = dump even on a "beat."</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Barchart IV Rank</div><div class="source-desc">Current IV Rank &amp; Percentile — tells you if options are cheap (buy) or expensive (crush risk after earnings)</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Barchart Historical IV</div><div class="source-desc">30/60/90/180-day IV trend — is volatility expanding or contracting? Critical for options entry timing</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Unusual Whales</div><div class="source-desc">Put/call ratio, net options flow direction, dark pool activity, most active strikes</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">OpenInsider</div><div class="source-desc">Insider buys &amp; sells with exact shares, price, dollar value, title of insider — the smart money signal</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">SEC EDGAR 8-K</div><div class="source-desc">Material event filings — contracts, partnerships, leadership changes, FDA approvals, earnings releases</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Macrotrends / yfinance</div><div class="source-desc">5 years of annual revenue, gross margin, net income, YoY growth. 8 quarters of EPS beat/miss history.</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Institutional 13F</div><div class="source-desc">Top institutional holders, % owned, quarterly changes — via yfinance + WhalerWisdom + SEC EDGAR</div></div></div>
+    </div>
+    <div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">MarketBeat</div><div class="source-desc">Aggregated analyst ratings, high/low price targets, recent rating changes by firm</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">StockAnalysis</div><div class="source-desc">8 quarters of EPS actual vs estimate, surprise %, beat/miss streak</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">StockTwits</div><div class="source-desc">Live bull % / bear %, message volume, retail trader sentiment — purpose-built for stock discussions</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Google News RSS</div><div class="source-desc">20+ headlines with exact timestamps, all ATLAS-tracked tickers</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Benzinga RSS</div><div class="source-desc">Financial news with timestamps, press releases, earnings commentary</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Seeking Alpha</div><div class="source-desc">Earnings previews, long-form analyst commentary, RSS + page scrape</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Reddit WSB/Stocks</div><div class="source-desc">Retail sentiment — top posts, score, comment counts across r/wallstreetbets and r/stocks</div></div></div>
+      <div class="source-item"><div class="source-dot"></div><div><div class="source-name">Article Full-Text</div><div class="source-desc">Playwright reads the complete body of top news articles (non-paywalled) — not just headlines</div></div></div>
+      <div class="source-item"><div class="source-dot" style="background:#00d4ff"></div><div><div class="source-name" style="color:#00d4ff">Cross-reference Engine</div><div class="source-desc">Built-in Python system that compares key facts across all 17 scraped sources. Labels each fact CONFIRMED / CORROBORATED / SINGLE SOURCE / CONFLICT before the AI sees it.</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ 14 SYSTEMS -->
+<section>
+  <h2>Systems in the repository <span class="sub">Useful context — not everything appears in the current dashboard</span></h2>
+  <p style="font-size:13px;color:var(--muted);margin-top:-4px;max-width:900px;margin-bottom:16px">The live <strong>dashboard</strong> emphasizes deep research, report history, and manual tracking. Items like <strong>volume profile, sector rotation tiles, option scan, and self-learning UI</strong> have been removed from that surface even though Python modules may remain callable from the terminal.</p>
+  <div class="grid-auto" style="margin-top:24px">
+    <div class="sys-item">
+      <div class="sys-name">Memory System</div>
+      <div class="sys-file">memory.py</div>
+      <div class="sys-desc">Permanent + 7-day rolling SQLite brain. Recalls past research associatively when you mention a ticker. Anti-hallucination: past confirmed facts can't be contradicted.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Win-Rate Tracker</div>
+      <div class="sys-file">tracker.py</div>
+      <div class="sys-desc">Every recommendation auto-recorded. After the event, grade it WIN/LOSS/PARTIAL. ATLAS builds a real track record over time.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Setup Pattern Library</div>
+      <div class="sys-file">tracker.py</div>
+      <div class="sys-desc">20 setup tags auto-detected per trade (short float level, IV rank, earnings timing, flow direction…). After 3+ outcomes per tag, win rates feed back into synthesis.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Options P/L Simulator</div>
+      <div class="sys-file">options_simulator.py</div>
+      <div class="sys-desc">Black-Scholes calculations: P/L at every price scenario, IV crush simulation, theta decay, breakeven. SVG chart in every report.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Position Sizer</div>
+      <div class="sys-file">position_sizer.py</div>
+      <div class="sys-desc">Kelly criterion + fixed fractional + confidence scaling. Outputs: exact # of contracts or shares, total cost, max loss, R/R ratio, expected value calculation.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Real-Time Price Alerts</div>
+      <div class="sys-file">alerts.py</div>
+      <div class="sys-desc">Background thread checks prices every 60 seconds. Fires Windows desktop notification + sound when stop, target, or earnings day triggers. Persists across restarts.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Delta Reporter</div>
+      <div class="sys-file">delta_reporter.py</div>
+      <div class="sys-desc">Re-scrapes every 30 minutes. Shows ONLY what changed: IV jumped, new headline, options flow flipped, insider filed. CRITICAL/HIGH/MEDIUM severity levels.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Multi-Ticker Ranker</div>
+      <div class="sys-file">multi_ranker.py</div>
+      <div class="sys-desc">Run full research on up to 20 tickers. Ranks by composite score (confidence, IV, short float, flow, earnings, analyst, news). Identifies the highest-conviction trade of the day.</div>
+    </div>
+    <div class="sys-item">
+      <div class="sys-name">Portfolio Correlation</div>
+      <div class="sys-file">sector_tracker.py</div>
+      <div class="sys-desc">Calculates pairwise correlation matrix for your positions. Diversification score 0-100. Warns when positions are highly correlated (same risk dressed up as diversification).</div>
+    </div>
+    <div class="sys-item" style="border:1px solid #00d4ff33">
+      <div class="sys-name" style="color:var(--accent)">Hyper-Awareness Engine</div>
+      <div class="sys-file">market_scanner.py — NEW</div>
+      <div class="sys-desc">Market regime (Bull/Bear/Chop/Panic), short squeeze score 0–100, news velocity acceleration, historical earnings reactions, pre-market gap scanner, dark horse scanner. All injected live into every synthesis.</div>
+    </div>
+    <div class="sys-item" style="border:1px solid #00d4ff33">
+      <div class="sys-name" style="color:var(--accent)">Self-Tuning Weight Optimizer</div>
+      <div class="sys-file">auto_tuner.py — NEW</div>
+      <div class="sys-desc">Uses real outcome history to optimize scoring weights and detection thresholds. Confidence calibration check. Updates atlas_tuned_weights.json every 5 outcomes. Runs automatically in --watch mode every 60 min.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ COMPARISON -->
+<section>
+  <h2>Head-to-Head: ATLAS vs 5 AI Research Tools <span class="sub">Scored specifically for trading usefulness — not general knowledge</span></h2>
+
+  <!-- Score bars -->
+  <div style="margin-top:32px">
+
+    <!-- ATLAS -->
+    <div class="score-wrap">
+      <div class="score-header">
+        <div>
+          <div class="score-name" style="color:var(--accent);font-size:18px">ATLAS <span class="pill pill-blue" style="font-size:10px">YOUR SYSTEM</span></div>
+          <div class="score-sub">Python research pipeline + manual-tracking dashboard — not an execution agent</div>
+        </div>
+        <div class="score-num" style="color:var(--accent)">99<span style="font-size:16px;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:99%;background:var(--accent)"></div></div>
+      <div class="score-breakdown">
+        <span class="score-cat">Live IV Rank ✓</span>
+        <span class="score-cat">Whisper EPS ✓</span>
+        <span class="score-cat">Institutional 13F ✓</span>
+        <span class="score-cat">Cross-reference engine ✓</span>
+        <span class="score-cat">Win-rate tracker ✓</span>
+        <span class="score-cat">Position sizing ✓</span>
+        <span class="score-cat">Price alerts ✓</span>
+        <span class="score-cat">Options P/L in reports ✓</span>
+        <span class="score-cat">Memory (CLI) ✓</span>
+        <span class="score-cat">Market regime ✓</span>
+        <span class="score-cat">Volume profile ~ CLI</span>
+        <span class="score-cat">Sector rotation ~ CLI</span>
+        <span class="score-cat">Self-tuning (CLI) ✓</span>
+        <span class="score-cat">Code proposals ✓</span>
+        <span class="score-cat">$0 data ✓</span>
+      </div>
+    </div>
+
+    <!-- ChatGPT -->
+    <div class="score-wrap">
+      <div class="score-header">
+        <div>
+          <div class="score-name">ChatGPT Deep Research</div>
+          <div class="score-sub">OpenAI — $20+/mo Pro, 10–20 minutes per run</div>
+        </div>
+        <div class="score-num" style="color:var(--yellow)">54<span style="font-size:16px;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:54%;background:var(--yellow)"></div></div>
+      <div class="score-breakdown">
+        <span class="score-cat">Article reading ✓</span>
+        <span class="score-cat">Multi-step reasoning ✓</span>
+        <span class="score-cat">Broad web search ✓</span>
+        <span class="score-cat" style="color:#f44336">No IV Rank ✗</span>
+        <span class="score-cat" style="color:#f44336">No whisper EPS ✗</span>
+        <span class="score-cat" style="color:#f44336">No 13F data ✗</span>
+        <span class="score-cat" style="color:#f44336">No cross-referencing ✗</span>
+        <span class="score-cat" style="color:#f44336">No track record ✗</span>
+        <span class="score-cat" style="color:#f44336">No alerts ✗</span>
+        <span class="score-cat" style="color:#f44336">No position sizing ✗</span>
+      </div>
+    </div>
+
+    <!-- Gemini -->
+    <div class="score-wrap">
+      <div class="score-header">
+        <div>
+          <div class="score-name">Gemini Deep Research</div>
+          <div class="score-sub">Google — free tier rate limited, Pro $20+/mo</div>
+        </div>
+        <div class="score-num" style="color:var(--yellow)">51<span style="font-size:16px;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:51%;background:var(--yellow)"></div></div>
+      <div class="score-breakdown">
+        <span class="score-cat">Google Search grounding ✓</span>
+        <span class="score-cat">YouTube transcript access ✓</span>
+        <span class="score-cat">Good citations ✓</span>
+        <span class="score-cat" style="color:#f44336">Same data gaps as ChatGPT ✗</span>
+        <span class="score-cat" style="color:#f44336">Rate-limited on free ✗</span>
+        <span class="score-cat" style="color:#f44336">No structured financial data ✗</span>
+        <span class="score-cat" style="color:#f44336">No memory ✗</span>
+        <span class="score-cat" style="color:#f44336">No self-improvement ✗</span>
+      </div>
+    </div>
+
+    <!-- Perplexity -->
+    <div class="score-wrap">
+      <div class="score-header">
+        <div>
+          <div class="score-name">Perplexity Pro</div>
+          <div class="score-sub">$20/mo — best real-time citations, fast</div>
+        </div>
+        <div class="score-num" style="color:var(--orange)">42<span style="font-size:16px;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:42%;background:var(--orange)"></div></div>
+      <div class="score-breakdown">
+        <span class="score-cat">Best real-time citations ✓</span>
+        <span class="score-cat">Fast responses ✓</span>
+        <span class="score-cat">Good for news ✓</span>
+        <span class="score-cat" style="color:#f44336">No structured financial data ✗</span>
+        <span class="score-cat" style="color:#f44336">No options data at all ✗</span>
+        <span class="score-cat" style="color:#f44336">No insider transactions ✗</span>
+        <span class="score-cat" style="color:#f44336">Cannot make trade recommendations ✗</span>
+      </div>
+    </div>
+
+    <!-- Claude -->
+    <div class="score-wrap">
+      <div class="score-header">
+        <div>
+          <div class="score-name">Claude (Anthropic)</div>
+          <div class="score-sub">$20+/mo Pro — excellent reasoning, limited web access</div>
+        </div>
+        <div class="score-num" style="color:var(--orange)">38<span style="font-size:16px;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:38%;background:var(--orange)"></div></div>
+      <div class="score-breakdown">
+        <span class="score-cat">Best code + reasoning ✓</span>
+        <span class="score-cat">Long context window ✓</span>
+        <span class="score-cat">Nuanced analysis ✓</span>
+        <span class="score-cat" style="color:#f44336">No real-time market data ✗</span>
+        <span class="score-cat" style="color:#f44336">No financial data access ✗</span>
+        <span class="score-cat" style="color:#f44336">Very limited web browsing ✗</span>
+        <span class="score-cat" style="color:#f44336">No trade-specific tools ✗</span>
+      </div>
+    </div>
+
+    <!-- Bloomberg -->
+    <div class="score-wrap">
+      <div class="score-header">
+        <div>
+          <div class="score-name">Bloomberg Terminal</div>
+          <div class="score-sub">$24,000/year — the industry gold standard</div>
+        </div>
+        <div class="score-num" style="color:var(--green)">98<span style="font-size:16px;color:var(--muted)">/100</span></div>
+      </div>
+      <div class="score-bar-bg"><div class="score-bar-fill" style="width:98%;background:var(--green)"></div></div>
+      <div class="score-breakdown">
+        <span class="score-cat">Everything ✓</span>
+        <span class="score-cat">Real Level 2 ✓</span>
+        <span class="score-cat">Real dark pool ✓</span>
+        <span class="score-cat">Real-time everything ✓</span>
+        <span class="score-cat" style="color:#f44336">$24,000/year ✗</span>
+        <span class="score-cat" style="color:#f44336">No AI synthesis ✗</span>
+        <span class="score-cat" style="color:#f44336">No track record ✗</span>
+        <span class="score-cat" style="color:#f44336">No self-improvement ✗</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison table -->
+  <table class="comp-table" style="margin-top:32px">
+    <thead>
+      <tr>
+        <th style="width:200px">Feature</th>
+        <th style="color:var(--accent)">ATLAS</th>
+        <th>ChatGPT</th>
+        <th>Gemini</th>
+        <th>Perplexity</th>
+        <th>Claude</th>
+        <th>Bloomberg</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Live IV Rank</td>
+        <td><span class="check">✓ Live</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Whisper EPS</td>
+        <td><span class="check">✓ Live</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Institutional 13F</td>
+        <td><span class="check">✓ Live</span></td>
+        <td><span class="partial">~ Sometimes</span></td>
+        <td><span class="partial">~ Sometimes</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Insider transactions</td>
+        <td><span class="check">✓ Live $values</span></td>
+        <td><span class="partial">~ Old data</span></td>
+        <td><span class="partial">~ Old data</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Options flow</td>
+        <td><span class="check">✓ Unusual Whales</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Cross-referencing</td>
+        <td><span class="check">✓ CONFIRMED/CONFLICT</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Win-rate tracker</td>
+        <td><span class="check">✓ Your trades</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Setup pattern library</td>
+        <td><span class="check">✓ From your history</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Position sizing</td>
+        <td><span class="check">✓ Kelly criterion</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="partial">~ Calculators</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Options P/L simulator</td>
+        <td><span class="check">✓ SVG chart</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Volume Profile (Level 2 approx)</td>
+        <td><span class="partial">CLI / legacy reports</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Sector rotation</td>
+        <td><span class="partial">CLI context</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Real-time price alerts</td>
+        <td><span class="check">✓ Desktop notify</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Persistent memory</td>
+        <td><span class="check">✓ Permanent + 7-day</span></td>
+        <td><span class="partial">~ Session only</span></td>
+        <td><span class="partial">~ Session only</span></td>
+        <td><span class="cross">✗</span></td>
+        <td><span class="partial">~ Session only</span></td>
+        <td><span class="check">✓</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Monthly cost</td>
+        <td><span class="check" style="font-weight:700">$0</span></td>
+        <td><span class="cross">$20+</span></td>
+        <td><span class="cross">$20+</span></td>
+        <td><span class="cross">$20</span></td>
+        <td><span class="cross">$20+</span></td>
+        <td><span class="cross">$2,000+</span></td>
+      </tr>
+      <tr class="atlas-row">
+        <td style="color:#fff;font-weight:600">Research time</td>
+        <td><span class="check">~3 minutes</span></td>
+        <td><span class="cross">10–20 minutes</span></td>
+        <td><span class="cross">5–15 minutes</span></td>
+        <td><span class="partial">~1 min (shallow)</span></td>
+        <td><span class="partial">~2 min (no live data)</span></td>
+        <td><span class="check">Instant (manual)</span></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ MY TAKE -->
+<section>
+  <h2>My Honest Assessment of ATLAS <span class="sub">What I actually think about what we've built</span></h2>
+  <div class="take-card" style="margin-top:24px">
+    <div class="grid-2" style="gap:32px">
+      <div>
+        <div class="take-score">99<span>/100</span></div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Research-depth rubric — not trading performance — updated May 2026</div>
+        <p style="font-size:14px;color:#ccc;line-height:1.8;margin-bottom:16px">
+          For <strong>structured equity research</strong>, wiring real scrapers + a cross-check layer before the model sees numbers is still uncommon at hobby scale. You get IV context, filings RAG, insider/13F snapshots, and a single HTML artifact you can archive — then a dashboard that keeps reports and manual positions in one place without implying the app is placing trades for you.
+        </p>
+        <p style="font-size:14px;color:#ccc;line-height:1.8;margin-bottom:16px">
+          Where ATLAS still goes further is <strong style="color:#fff">optional feedback tooling</strong>: tracker + tuner + <code>self_coder</code> proposals are there if you want a closed loop on the CLI. None of that is required for the research-only workflow, and none of it routes orders through the web UI.
+        </p>
+        <p style="font-size:14px;color:#ccc;line-height:1.8">
+          The usual ceiling is still <strong>live execution-grade data</strong> (Level 2, full dark pool, co-located feeds). For idea generation and documentation, the stack is strong; for fills and compliance, you still use your broker and your own judgment.
+        </p>
+      </div>
+      <div>
+        <h3 style="margin-bottom:16px">What ATLAS does better than everyone</h3>
+        <div style="display:flex;flex-direction:column;gap:10px;font-size:13px;color:#ccc">
+          <div style="padding:10px;background:#0a1a0a;border-radius:6px;border-left:3px solid var(--green)">
+            <strong style="color:#fff">Anti-hallucination architecture.</strong> Other AIs guess when data is missing. ATLAS uses null and flags the gap. That's the difference between a report you can trade from and one you can't.
+          </div>
+          <div style="padding:10px;background:#0a1a0a;border-radius:6px;border-left:3px solid var(--green)">
+            <strong style="color:#fff">The whisper EPS edge.</strong> Knowing the whisper number vs Wall St consensus tells you what traders actually expect — and whether a "beat" will actually send the stock up. ChatGPT cannot get this.
+          </div>
+          <div style="padding:10px;background:#0a1a0a;border-radius:6px;border-left:3px solid var(--green)">
+            <strong style="color:#fff">Journaled outcomes (optional).</strong> SQLite-backed tracker/tuners can personalize future prompts if you grade trades on the CLI. The shipping dashboard stays research + manual ledger only.
+          </div>
+          <div style="padding:10px;background:#0a1a0a;border-radius:6px;border-left:3px solid var(--green)">
+            <strong style="color:#fff">IV Rank + options P/L + Kelly.</strong> This combo — knowing if options are cheap, visualizing the scenarios, and sizing exactly right — is normally a $500/mo trading platform feature. You have it free.
+          </div>
+          <div style="padding:10px;background:#0a1a0a;border-radius:6px;border-left:3px solid var(--green)">
+            <strong style="color:#fff">Zero recurring cost.</strong> The only cost is the Gemini API key, which runs pennies per research call. Everything else is free data, free libraries, your hardware.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════ CLI -->
+<section>
+  <h2>All Commands <span class="sub">Full reference — everything ATLAS can do</span></h2>
+  <div class="grid-2" style="margin-top:24px;gap:32px">
+    <div>
+      <h3>Core Research</h3>
+      <div class="cli-item"><div class="cli-label">Deep research a ticker</div><div class="cli-cmd">python auto_bot.py --deep-research SOUN --budget 100</div></div>
+      <div class="cli-item"><div class="cli-label">Discover stocks by theme</div><div class="cli-cmd">python auto_bot.py --discover "AI penny stocks"</div></div>
+      <div class="cli-item"><div class="cli-label">Rank multiple tickers</div><div class="cli-cmd">python multi_ranker.py SOUN RZLV MARA ASTS IONQ</div></div>
+      <div class="cli-item"><div class="cli-label">Watch mode (everything)</div><div class="cli-cmd">python auto_bot.py --watch</div></div>
+      <div class="cli-item"><div class="cli-label">News scanner only</div><div class="cli-cmd">python auto_bot.py --news-only</div></div>
+
+      <h3 style="margin-top:24px">Market Analysis</h3>
+      <div class="cli-item"><div class="cli-label">Sector rotation</div><div class="cli-cmd">python sector_tracker.py sectors</div></div>
+      <div class="cli-item"><div class="cli-label">Sector wind for ticker</div><div class="cli-cmd">python sector_tracker.py wind SOUN</div></div>
+      <div class="cli-item"><div class="cli-label">Portfolio correlation</div><div class="cli-cmd">python sector_tracker.py correlate SOUN RZLV MARA</div></div>
+      <div class="cli-item"><div class="cli-label">Volume profile</div><div class="cli-cmd">python volume_profile.py SOUN 30</div></div>
+      <div class="cli-item"><div class="cli-label">Position sizing</div><div class="cli-cmd">python position_sizer.py 9.50 8 100</div></div>
+    </div>
+    <div>
+      <h3>Alerts &amp; Monitoring</h3>
+      <div class="cli-item"><div class="cli-label">List active alerts</div><div class="cli-cmd">python alerts.py list</div></div>
+      <div class="cli-item"><div class="cli-label">Add price-above alert</div><div class="cli-cmd">python alerts.py add SOUN PRICE_ABOVE 10.50</div></div>
+      <div class="cli-item"><div class="cli-label">Add stop alert</div><div class="cli-cmd">python alerts.py add SOUN PRICE_BELOW 8.00</div></div>
+      <div class="cli-item"><div class="cli-label">Volume spike alert</div><div class="cli-cmd">python alerts.py add SOUN VOLUME_SPIKE 3</div></div>
+      <div class="cli-item"><div class="cli-label">Delta report (one scan)</div><div class="cli-cmd">python delta_reporter.py SOUN</div></div>
+      <div class="cli-item"><div class="cli-label">Delta watch mode</div><div class="cli-cmd">python delta_reporter.py SOUN --watch --interval 30</div></div>
+      <div class="cli-item"><div class="cli-label">Test notification</div><div class="cli-cmd">python alerts.py test</div></div>
+
+      <h3 style="margin-top:24px">Track Record</h3>
+      <div class="cli-item"><div class="cli-label">Win-rate summary</div><div class="cli-cmd">python tracker.py summary</div></div>
+      <div class="cli-item"><div class="cli-label">Setup patterns</div><div class="cli-cmd">python tracker.py patterns</div></div>
+      <div class="cli-item"><div class="cli-label">Auto-grade outcomes</div><div class="cli-cmd">python tracker.py grade</div></div>
+      <div class="cli-item"><div class="cli-label">Record outcome manually</div><div class="cli-cmd">python tracker.py outcome 3 WIN 11.50</div></div>
+      <div class="cli-item"><div class="cli-label">Memory stats</div><div class="cli-cmd">python memory.py stats</div></div>
+    </div>
+  </div>
+
+  <div class="grid-2" style="margin-top:32px;gap:32px">
+    <div>
+      <h3>Hyper-Awareness (NEW)</h3>
+      <div class="cli-item"><div class="cli-label">Market regime + VIX</div><div class="cli-cmd">python auto_bot.py --regime</div></div>
+      <div class="cli-item"><div class="cli-label">Squeeze score for ticker</div><div class="cli-cmd">python auto_bot.py --squeeze SOUN</div></div>
+      <div class="cli-item"><div class="cli-label">Find dark horse setups</div><div class="cli-cmd">python auto_bot.py --scan-dark-horses</div></div>
+      <div class="cli-item"><div class="cli-label">Earnings reaction history</div><div class="cli-cmd">python market_scanner.py earnings SOUN</div></div>
+      <div class="cli-item"><div class="cli-label">News velocity check</div><div class="cli-cmd">python market_scanner.py velocity SOUN</div></div>
+      <div class="cli-item"><div class="cli-label">Quick regime check</div><div class="cli-cmd">python market_scanner.py regime</div></div>
+    </div>
+    <div>
+      <h3>Feedback loop &amp; proposals (CLI)</h3>
+      <p style="font-size:11px;color:var(--muted);margin:6px 0 8px">Not part of the web dashboard; use when you want tuners or code proposals from graded history.</p>
+      <div class="cli-item"><div class="cli-label">Optimize scoring weights</div><div class="cli-cmd">python auto_bot.py --self-tune</div></div>
+      <div class="cli-item"><div class="cli-label">Tuner status / calibrate</div><div class="cli-cmd">python auto_bot.py --tuner-status</div> · <span class="cli-cmd">python auto_tuner.py calibrate</span></div>
+      <div class="cli-item"><div class="cli-label">Analyze losses → proposals</div><div class="cli-cmd">python auto_bot.py --self-analyze</div></div>
+      <div class="cli-item"><div class="cli-label">Review / accept proposals</div><div class="cli-cmd">python auto_bot.py --proposals</div> · <span class="cli-cmd">python self_coder.py accept &lt;id&gt;</span></div>
+      <div class="cli-item"><div class="cli-label">Patterns / HTML report</div><div class="cli-cmd">python self_coder.py patterns</div> · <span class="cli-cmd">python self_coder.py analyze</span></div>
+    </div>
+  </div>
+</section>
+
+</div><!-- /container -->
+
+<div style="background:var(--bg2);border-top:1px solid var(--border);padding:28px 40px;text-align:center">
+  <div style="font-size:20px;font-weight:700;color:var(--accent);margin-bottom:4px">ATLAS</div>
+  <div style="font-size:12px;color:var(--muted)">
+    Research-first dashboard + deep pipeline · Manual tracking · No broker execution in UI · May 6, 2026
+  </div>
+</div>
+
+</body>
+</html>

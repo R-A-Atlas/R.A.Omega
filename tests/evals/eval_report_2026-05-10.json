@@ -1,0 +1,123 @@
+{
+  "timestamp_utc": "2026-05-10T03:53:15Z",
+  "date": "2026-05-10",
+  "atlas_version": "Phase2",
+  "server": "http://127.0.0.1:8000",
+  "queries": [
+    {
+      "query": "Analyze NVDA \u2014 current setup and trade plan",
+      "label": "Query 1 (NVDA)",
+      "score": 0,
+      "max_score": 7,
+      "error": "HTTP 429: {\"parsed_query\":{},\"final_report\":{\"error\":\"rate_limit\",\"executive_summary\":\"API Rate Limit Exceeded - Please wait 60 seconds\"},\"tldr\":\"API Rate Limit Exceeded - Please wait 60 seconds\",\"trader_memo\":",
+      "response_time_s": 124.41,
+      "assertions": {
+        "tldr_populated": false,
+        "overall_rating_valid": false,
+        "execution_rules_count_5": false,
+        "scenarios_count_3": false,
+        "scenarios_probability_sum": false,
+        "failure_modes_count_3": false,
+        "api_time_under_300s": false
+      },
+      "failed_assertions": [
+        "tldr_populated",
+        "overall_rating_valid",
+        "execution_rules_count_5",
+        "scenarios_count_3",
+        "scenarios_probability_sum",
+        "failure_modes_count_3",
+        "api_time_under_300s"
+      ],
+      "intent_route": null
+    },
+    {
+      "query": "What is the options play for AAPL next earnings?",
+      "label": "Query 2 (AAPL)",
+      "score": 0,
+      "max_score": 7,
+      "error": "HTTP 429: {\"parsed_query\":{},\"final_report\":{\"error\":\"rate_limit\",\"executive_summary\":\"API Rate Limit Exceeded - Please wait 60 seconds\"},\"tldr\":\"API Rate Limit Exceeded - Please wait 60 seconds\",\"trader_memo\":",
+      "response_time_s": 122.12,
+      "assertions": {
+        "tldr_populated": false,
+        "overall_rating_valid": false,
+        "execution_rules_count_5": false,
+        "scenarios_count_3": false,
+        "scenarios_probability_sum": false,
+        "failure_modes_count_3": false,
+        "api_time_under_300s": false
+      },
+      "failed_assertions": [
+        "tldr_populated",
+        "overall_rating_valid",
+        "execution_rules_count_5",
+        "scenarios_count_3",
+        "scenarios_probability_sum",
+        "failure_modes_count_3",
+        "api_time_under_300s"
+      ],
+      "intent_route": null
+    },
+    {
+      "query": "Should I buy or rent in Miami right now?",
+      "label": "Query 3 (Miami)",
+      "score": 0,
+      "max_score": 7,
+      "error": "HTTP 429: {\"parsed_query\":{},\"final_report\":{\"error\":\"rate_limit\",\"executive_summary\":\"API Rate Limit Exceeded - Please wait 60 seconds\"},\"tldr\":\"API Rate Limit Exceeded - Please wait 60 seconds\",\"trader_memo\":",
+      "response_time_s": 35.38,
+      "assertions": {
+        "tldr_populated": false,
+        "overall_rating_valid": false,
+        "execution_rules_count_5": false,
+        "scenarios_count_3": false,
+        "scenarios_probability_sum": false,
+        "failure_modes_count_3": false,
+        "api_time_under_300s": false
+      },
+      "failed_assertions": [
+        "tldr_populated",
+        "overall_rating_valid",
+        "execution_rules_count_5",
+        "scenarios_count_3",
+        "scenarios_probability_sum",
+        "failure_modes_count_3",
+        "api_time_under_300s"
+      ],
+      "intent_route": null
+    },
+    {
+      "query": "What are the top crypto movers today?",
+      "label": "Query 4 (Crypto)",
+      "score": 0,
+      "max_score": 7,
+      "error": "HTTP 429: {\"parsed_query\":{},\"final_report\":{\"error\":\"rate_limit\",\"executive_summary\":\"API Rate Limit Exceeded - Please wait 60 seconds\"},\"tldr\":\"API Rate Limit Exceeded - Please wait 60 seconds\",\"trader_memo\":",
+      "response_time_s": 89.13,
+      "assertions": {
+        "tldr_populated": false,
+        "overall_rating_valid": false,
+        "execution_rules_count_5": false,
+        "scenarios_count_3": false,
+        "scenarios_probability_sum": false,
+        "failure_modes_count_3": false,
+        "api_time_under_300s": false
+      },
+      "failed_assertions": [
+        "tldr_populated",
+        "overall_rating_valid",
+        "execution_rules_count_5",
+        "scenarios_count_3",
+        "scenarios_probability_sum",
+        "failure_modes_count_3",
+        "api_time_under_300s"
+      ],
+      "intent_route": null
+    }
+  ],
+  "total_score": 0,
+  "max_total_score": 28,
+  "overall_pct": 0.0,
+  "status": "RED",
+  "e1_escalation": true,
+  "regressions": [],
+  "previous_report": null
+}

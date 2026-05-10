@@ -1,0 +1,1506 @@
+#!/usr/bin/env python3
+"""
+atlas_omega.py — ATLAS Omega Universal Financial Intelligence Agent
+======================================================================
+Code fetches structured data in parallel; one Gemini call synthesizes JSON.
+"""
+from __future__ import annotations
+
+import json
+import logging
+import os
+import re
+import time
+import asyncio
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+# ── Module-level executor (reused across requests, not re-created per call) ──
+_IO_EXECUTOR: ThreadPoolExecutor = ThreadPoolExecutor(
+    max_workers=8, thread_name_prefix="atlas_cache_io"
+)
+from dataclasses import dataclass, field
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Optional
+from urllib.parse import quote
+
+import requests
+from dotenv import load_dotenv
+
+from gemini_limiter import GEMINI_HTTP_TIMEOUT_MS, wait_for_slot
+
+from atlas_options_parse import extract_options_values_from_text
+
+load_dotenv()
+log = logging.getLogger(__name__)
+
+
+def _omega_json_loads(raw: str) -> Any:
+    """Gemini JSON mode may include illegal control chars — strip before json.loads."""
+    s = (raw or "").strip()
+    if s.startswith("```"):
+        s = re.sub(r"^```[a-z]*\s*", "", s)
+        s = re.sub(r"\s*```\s*$", "", s).strip()
+    try:
+        return json.loads(s)
+    except json.JSONDecodeError:
+        cleaned = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f]", "", s)
+        if cleaned != s:
+            return json.loads(cleaned)
+        raise
+
+
+# ETFs / index proxies: market + news only; SEC filings omitted to save latency
+_OMEGA_ETF_SYMBOLS: frozenset[str] = frozenset(
+    {
+        "SPY", "QQQ", "IWM", "VTI", "VOO", "IJH", "VB", "SMH", "SOXX", "BOTZ",
+        "XLK", "XLE", "XLF", "GLD", "TLT", "HYG", "ARKK", "DIA", "IBB", "XBI",
+    }
+)
+
+# Broad / thematic research: user wants ideas, allocation, or “where to put $X” —
+# fetch a *pack* of symbols so the model can compare names using real numbers.
+_DISCOVERY_RE = re.compile(
+    r"\b("
+    r"best\s+stock|best\s+stocks|stock\s+pick|stock\s+idea|stocks\s+to|stocks?\s+for|"
+    r"where\s+to\s+invest|invest\s+my|invest\s+\$|put\s+\$|allocate|portfolio|thematic|screen|discover|"
+    r"what\s+should\s+i\s+buy|recommend.*stock|growth\s+stock|dividend|"
+    r"how\s+to\s+invest|small\s+account|retail\s+invest"
+    r")\b",
+    re.I,
+)
+
+
+def _is_discovery_or_allocation_query(q: str) -> bool:
+    ql = q.strip().lower()
+    if _DISCOVERY_RE.search(ql):
+        return True
+    if re.search(r"\$[\d,]+", ql) and re.search(
+        r"\b(invest|investing|buy|allocate|put|deploy|grow)\b", ql
+    ):
+        return True
+    if re.search(r"\$[\d,]+", ql) and "stock" in ql:
+        return True
+    return False
+
+
+def _parse_budget_from_query(q: str) -> float:
+    m = re.search(r"\$[\d,]+(?:\.\d{2})?", q)
+    if m:
+        try:
+            return float(m.group(0).replace("$", "").replace(",", ""))
+        except ValueError:
+            pass
+    return 1000.0
+
+
+def _thematic_symbols_for_query(query: str) -> list[str]:
+    """
+    Ordered watchlist: benchmarks + theme names (yfinance).
+    For discovery/allocation: try stock_universe progressive scan (Finviz + filters);
+    on failure, use curated fallbacks.
+    """
+    ql = query.lower()
+    out: list[str] = []
+
+    def add(sym: str) -> None:
+        s = sym.upper().strip()
+        if s and s not in out:
+            out.append(s)
+
+    if _is_discovery_or_allocation_query(query):
+        try:
+            import stock_universe as su
+
+            budget = _parse_budget_from_query(query)
+            params = su.omega_discovery_to_scan_params(query, dollar_amount=budget)
+            scan = su.run_progressive_scan(
+                theme=params["theme"],
+                budget=params.get("budget", budget),
+                price_min=params["price_min"],
+                price_max=params["price_max"],
+                universe_size=params["universe_size"],
+                pass3_candidates=params["pass3_candidates"],
+                top_n=params["top_n"],
+                skip_deep_rank=True,
+                verbose=False,
+            )
+            if scan.get("error"):
+                raise RuntimeError(scan["error"])
+            candidates = (
+                scan.get("pass3_candidates")
+                or scan.get("pass3_top")
+                or scan.get("final_recommendations")
+                or []
+            )
+            for c in candidates[:12]:
+                if isinstance(c, dict) and c.get("ticker"):
+                    add(str(c["ticker"]))
+            if out:
+                for s in ("SPY", "QQQ", "IWM"):
+                    add(s)
+                log.info(
+                    "[omega] stock_universe → %d symbols (theme=%s)",
+                    len(out),
+                    params.get("theme"),
+                )
+                return out[:15]
+        except Exception as e:
+            log.warning("[omega] stock_universe scan failed, using fallback: %s", e)
+
+    for s in ("SPY", "QQQ", "IWM"):
+        add(s)
+
+    if any(k in ql for k in ("ai", "artificial intelligence", "machine learning", "llm")):
+        for s in ("SMH", "BOTZ", "NVDA", "AMD", "PLTR", "MSFT", "GOOGL", "SOUN", "IONQ"):
+            add(s)
+    if "semi" in ql or "chip" in ql:
+        for s in ("SMH", "SOXX", "NVDA", "AMD", "AVGO"):
+            add(s)
+    if "energy" in ql or "oil" in ql:
+        for s in ("XLE", "XOM", "CVX"):
+            add(s)
+    if "small" in ql or "mid cap" in ql or "mid-cap" in ql:
+        for s in ("IWM", "VB", "IJH"):
+            add(s)
+    if "bio" in ql or "biotech" in ql:
+        for s in ("IBB", "XBI", "MRNA", "BNTX"):
+            add(s)
+    if "bank" in ql or "financial" in ql:
+        for s in ("XLF", "JPM"):
+            add(s)
+    if "squeeze" in ql or "short" in ql:
+        for s in ("GME", "AMC", "MARA", "RIOT", "SOUN"):
+            add(s)
+    if "penny" in ql or "cheap" in ql:
+        for s in ("SOUN", "GFAI", "BBAI", "MULN", "NKLA"):
+            add(s)
+    if len(out) <= 3:
+        for s in ("VTI", "XLK"):
+            add(s)
+
+    return out[:12]
+
+
+def _fetch_market_regime_light() -> dict:
+    try:
+        import market_scanner as ms
+
+        return ms.get_market_regime()
+    except Exception as e:
+        return {"error": str(e), "regime": "UNKNOWN"}
+
+
+DC_INTENT_CRYPTO = "CRYPTO_MARKET_SCAN"
+DC_INTENT_EQUITIES = "EQUITIES_MARKET_SCAN"
+DC_INTENT_OPTIONS_FLOW = "OPTIONS_FLOW_MARKET_SCAN"
+DC_INTENT_INSIDER = "INSIDER_TRADES_MARKET_SCAN"
+DC_INTENT_BOND_YIELDS = "TREASURY_YIELD_MARKET_SCAN"
+DC_INTENT_CPI = "CPI_INFLATION_MARKET_SCAN"
+DC_INTENT_FED_WATCH = "FED_WATCH_MARKET_SCAN"
+DC_INTENT_WATCHES = "WATCH_MARKET_SCAN"
+DC_INTENT_DARK_POOL = "DARK_POOL_MARKET_SCAN"
+DC_INTENT_SECTOR_ROTATION = "SECTOR_ROTATION_MARKET_SCAN"
+DC_INTENT_GLOBAL_LIQUIDITY = "GLOBAL_LIQUIDITY_MARKET_SCAN"
+
+DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
+    {
+        DC_INTENT_CRYPTO,
+        DC_INTENT_EQUITIES,
+        DC_INTENT_OPTIONS_FLOW,
+        DC_INTENT_INSIDER,
+        DC_INTENT_BOND_YIELDS,
+        DC_INTENT_CPI,
+        DC_INTENT_FED_WATCH,
+        DC_INTENT_WATCHES,
+        DC_INTENT_DARK_POOL,
+        DC_INTENT_SECTOR_ROTATION,
+        DC_INTENT_GLOBAL_LIQUIDITY,
+    }
+)
+
+
+def _data_cache_root() -> Path:
+    env = (os.environ.get("ATLAS_DATA_CACHE_DIR") or "").strip()
+    if env:
+        return Path(env)
+    return Path(__file__).resolve().parent / "data_cache"
+
+
+def _compact_crypto_cache(obj: dict, n: int = 25) -> dict:
+    coins = obj.get("coins") if isinstance(obj.get("coins"), list) else []
+    keys = (
+        "symbol",
+        "name",
+        "price_usd",
+        "price_change_24h_pct",
+        "volume_24h_usd",
+        "market_cap_usd",
+        "sector_category",
+        "trending",
+        "trending_rank",
+    )
+    top: list[dict[str, Any]] = []
+    for c in coins[:n]:
+        if not isinstance(c, dict):
+            continue
+        top.append({k: c.get(k) for k in keys})
+    return {
+        "snapshot": "crypto_top50",
+        "generated_at": obj.get("generated_at"),
+        "merge_policy": obj.get("merge_policy"),
+        "coin_count": obj.get("coin_count"),
+        "top_coins": top,
+    }
+
+
+def _compact_equities_cache(obj: dict, per: int = 10) -> dict:
+    keys = (
+        "rank",
+        "ticker",
+        "name",
+        "exchange",
+        "price",
+        "change",
+        "change_pct",
+        "volume",
+        "avg_volume_3m",
+        "market_cap",
+        "signal",
+    )
+
+    def slice_list(key: str) -> list[dict[str, Any]]:
+        block = obj.get(key)
+        if not isinstance(block, list):
+            return []
+        out: list[dict[str, Any]] = []
+        for row in block[:per]:
+            if not isinstance(row, dict):
+                continue
+            out.append({k: row.get(k) for k in keys})
+        return out
+
+    ma_src = obj.get("most_active")
+    if not isinstance(ma_src, list):
+        ma_src = obj.get("most_actives")
+    most_active: list[dict[str, Any]] = []
+    if isinstance(ma_src, list):
+        for row in ma_src[:per]:
+            if not isinstance(row, dict):
+                continue
+            most_active.append({k: row.get(k) for k in keys})
+
+    return {
+        "snapshot": "equities_screener",
+        "generated_at": obj.get("generated_at"),
+        "source": obj.get("source"),
+        "record_count": obj.get("record_count"),
+        "gainers": slice_list("gainers"),
+        "losers": slice_list("losers"),
+        "active": most_active,
+    }
+
+
+def _compact_watches_cache(obj: dict, n: int = 12) -> dict[str, Any]:
+    models_in = obj.get("models") if isinstance(obj.get("models"), list) else []
+    keys = (
+        "brand",
+        "model",
+        "reference",
+        "avg_price",
+        "retail_price",
+        "premium_over_retail_pct",
+        "trend",
+        "listings_count",
+    )
+    models: list[dict[str, Any]] = []
+    for row in models_in[:n]:
+        if isinstance(row, dict):
+            models.append({k: row.get(k) for k in keys})
+    return {
+        "snapshot": "luxury_watch_market",
+        "generated_at": obj.get("generated_at"),
+        "record_count": obj.get("record_count"),
+        "models": models,
+    }
+
+
+def _compact_options_flow(obj: dict, n: int = 20) -> dict[str, Any]:
+    rows_in = obj.get("unusual_activity") if isinstance(obj.get("unusual_activity"), list) else []
+    keys = ("ticker", "expiry", "strike", "type", "volume", "open_interest", "volume_oi_ratio", "signal")
+    clipped: list[dict[str, Any]] = []
+    for r in rows_in[:n]:
+        if isinstance(r, dict):
+            clipped.append({k: r.get(k) for k in keys})
+    snap: dict[str, Any] = {
+        "snapshot": "options_flow",
+        "generated_at": obj.get("generated_at"),
+        "source": obj.get("source"),
+        "record_count": obj.get("record_count"),
+        "unusual_activity": clipped,
+    }
+    wm = obj.get("_meta") if isinstance(obj.get("_meta"), dict) else None
+    if wm:
+        snap["_meta"] = wm
+    return snap
+
+
+def _compact_insider_trades(obj: dict, n: int = 25) -> dict[str, Any]:
+    rows_in = obj.get("filings") if isinstance(obj.get("filings"), list) else []
+    keys = (
+        "ticker",
+        "company_name",
+        "insider_name",
+        "role",
+        "transaction_type",
+        "shares",
+        "price",
+        "date",
+        "signal",
+    )
+    clipped: list[dict[str, Any]] = []
+    for r in rows_in[:n]:
+        if isinstance(r, dict):
+            clipped.append({k: r.get(k) for k in keys})
+    out: dict[str, Any] = {
+        "snapshot": "sec_form4_filings",
+        "generated_at": obj.get("generated_at"),
+        "source": obj.get("source"),
+        "record_count": len(clipped),
+        "filings": clipped,
+    }
+    wm = obj.get("_meta") if isinstance(obj.get("_meta"), dict) else None
+    if wm:
+        out["_meta"] = wm
+    return out
+
+
+def _compact_bond_yields(obj: dict, n: int = 14) -> dict[str, Any]:
+    ys = obj.get("yields") if isinstance(obj.get("yields"), list) else []
+    rows: list[dict[str, Any]] = []
+    for r in ys[:n]:
+        if isinstance(r, dict):
+            rows.append({"maturity": r.get("maturity"), "rate": r.get("rate"), "date": r.get("date")})
+    snap: dict[str, Any] = {
+        "snapshot": "treasury_yield_curve",
+        "generated_at": obj.get("generated_at"),
+        "record_date": obj.get("record_date"),
+        "curve_signal": obj.get("curve_signal"),
+        "spread_2y_10y": obj.get("spread_2y_10y"),
+        "record_count": obj.get("record_count"),
+        "yields": rows,
+        "source": obj.get("source"),
+    }
+    wm = obj.get("_meta") if isinstance(obj.get("_meta"), dict) else None
+    if wm:
+        snap["_meta"] = wm
+    return snap
+
+
+def _compact_cpi(obj: dict) -> dict[str, Any]:
+    cats = obj.get("categories") if isinstance(obj.get("categories"), list) else []
+    clipped: list[dict[str, Any]] = []
+    for c in cats[:8]:
+        if isinstance(c, dict):
+            clipped.append(
+                {
+                    "name": c.get("name"),
+                    "yoy_change_pct": c.get("yoy_change_pct"),
+                    "contribution": c.get("contribution"),
+                }
+            )
+    return {
+        "snapshot": "bls_cpi",
+        "generated_at": obj.get("generated_at"),
+        "period": obj.get("period"),
+        "cpi_index": obj.get("cpi_index"),
+        "mom_change_pct": obj.get("mom_change_pct"),
+        "yoy_change_pct": obj.get("yoy_change_pct"),
+        "core_cpi_yoy_pct": obj.get("core_cpi_yoy_pct"),
+        "inflation_signal": obj.get("inflation_signal"),
+        "record_count": obj.get("record_count"),
+        "categories": clipped,
+        "source": obj.get("source"),
+    }
+
+
+def _compact_fed_watch(obj: dict) -> dict[str, Any]:
+    probs = obj.get("probabilities") if isinstance(obj.get("probabilities"), list) else []
+    rows: list[dict[str, Any]] = []
+    for p in probs[:8]:
+        if isinstance(p, dict):
+            rows.append({"action": p.get("action"), "probability_pct": p.get("probability_pct")})
+    snap: dict[str, Any] = {
+        "snapshot": "fed_watch_probabilities",
+        "generated_at": obj.get("generated_at"),
+        "current_rate": obj.get("current_rate"),
+        "next_meeting_date": obj.get("next_meeting_date"),
+        "dominant_action": obj.get("dominant_action"),
+        "dominant_probability_pct": obj.get("dominant_probability_pct"),
+        "probabilities": rows,
+        "source": obj.get("source"),
+    }
+    wm = obj.get("_meta") if isinstance(obj.get("_meta"), dict) else None
+    if wm:
+        snap["_meta"] = wm
+    return snap
+
+
+def _read_data_cache_json(filename: str) -> tuple[Optional[dict[str, Any]], dict[str, Any]]:
+    """
+    Read a single JSON cache file with bulletproof error handling.
+
+    Never raises — always returns (None, meta_with_error) on any failure so the
+    caller receives a graceful warning string instead of a server crash.
+
+    Failure modes handled:
+      * File missing            -> error="missing_file:<path>"
+      * File unreadable (perms) -> error="read_error:<OSError>"
+      * Invalid UTF-8           -> error="encoding_error:<details>"
+      * Truncated / bad JSON    -> error="json_parse_error:<details>"
+      * JSON is not a dict      -> error="invalid_json_shape"
+      * Any other exception     -> error="unexpected_error:<details>"
+    """
+    meta: dict[str, Any] = {"file": filename, "loaded": False, "error": None}
+    path = _data_cache_root() / filename
+    if not path.is_file():
+        meta["error"] = f"missing_file:{path}"
+        return None, meta
+    try:
+        raw_text: str = path.read_text(encoding="utf-8")
+    except OSError as e:
+        meta["error"] = f"read_error:{e}"
+        return None, meta
+    except UnicodeDecodeError as e:
+        meta["error"] = f"encoding_error:{e}"
+        return None, meta
+    try:
+        raw_obj: Any = json.loads(raw_text)
+    except json.JSONDecodeError as e:
+        meta["error"] = f"json_parse_error:{e}"
+        return None, meta
+    except Exception as e:
+        meta["error"] = f"unexpected_parse_error:{e}"
+        return None, meta
+    if not isinstance(raw_obj, dict):
+        meta["error"] = "invalid_json_shape"
+        return None, meta
+    meta["loaded"] = True
+    return raw_obj, meta
+
+
+def _graceful_cache_warning(filename: str, error: str) -> str:
+    """
+    Return a human-readable warning string to inject into the LLM context when
+    a cache file is unavailable. The LLM sees this instead of the server crashing.
+    """
+    return (
+        f"[DATA_CACHE_WARNING] {filename} could not be loaded ({error}). "
+        "This data is temporarily unavailable — proceed with analysis using other available data."
+    )
+
+
+def _load_cache_files_parallel(
+    filenames: list[str],
+) -> dict[str, tuple[Optional[dict[str, Any]], dict[str, Any]]]:
+    """
+    Load multiple cache JSON files in parallel using the module-level thread pool.
+    Returns {filename: (raw_obj_or_None, meta_dict)}.
+
+    Uses the shared _IO_EXECUTOR (not a per-call ThreadPoolExecutor) to avoid
+    thread-spawn overhead on every request. Timeout of 5s prevents indefinite hangs.
+    """
+    results: dict[str, tuple[Optional[dict[str, Any]], dict[str, Any]]] = {}
+    futures = {
+        _IO_EXECUTOR.submit(_read_data_cache_json, fname): fname
+        for fname in filenames
+    }
+    for future in as_completed(futures, timeout=5):
+        fname = futures[future]
+        try:
+            results[fname] = future.result()
+        except Exception as exc:
+            results[fname] = (None, {"file": fname, "loaded": False, "error": str(exc)})
+    return results
+
+
+def load_equities_payload() -> tuple[Optional[dict[str, Any]], dict[str, Any]]:
+    """Read and compact data_cache/equities_latest.json for Omega prompt context."""
+    raw, meta = _read_data_cache_json("equities_latest.json")
+    if raw is None:
+        return None, meta
+    compact = _compact_equities_cache(raw)
+    meta["asset_rows"] = _ik_row_count(compact)
+    return compact, meta
+
+
+def load_options_flow_payload() -> tuple[Optional[dict[str, Any]], dict[str, Any]]:
+    """Read and compact data_cache/options_flow_latest.json for Omega prompt context."""
+    raw, meta = _read_data_cache_json("options_flow_latest.json")
+    if raw is None:
+        return None, meta
+    compact = _compact_options_flow(raw)
+    meta["asset_rows"] = _ik_row_count(compact)
+    return compact, meta
+
+
+def load_insider_payload() -> tuple[Optional[dict[str, Any]], dict[str, Any]]:
+    """Read and compact data_cache/insider_trades_latest.json for Omega prompt context."""
+    raw, meta = _read_data_cache_json("insider_trades_latest.json")
+    if raw is None:
+        return None, meta
+    compact = _compact_insider_trades(raw)
+    meta["asset_rows"] = _ik_row_count(compact)
+    return compact, meta
+
+
+def _rows_matching_tickers(rows: Any, tickers: set[str]) -> list[dict[str, Any]]:
+    if not tickers or not isinstance(rows, list):
+        return []
+    out: list[dict[str, Any]] = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        ticker = str(row.get("ticker") or row.get("symbol") or "").upper().strip()
+        if ticker in tickers:
+            out.append(row)
+    return out
+
+
+def _extract_ticker_set(ctx: "UserContext", query: str) -> set[str]:
+    tickers: set[str] = {str(t).upper().strip() for t in (getattr(ctx, "tickers", []) or []) if str(t).strip()}
+    for m in re.finditer(r"\b[A-Z]{1,5}\b", query or ""):
+        sym = m.group(0).upper()
+        if sym not in _OMEGA_ETF_SYMBOLS and sym not in {"CEO", "CFO", "SEC", "IRS", "USA", "USD"}:
+            tickers.add(sym)
+    return tickers
+
+
+def build_market_intelligence_context(
+    query: str,
+    ctx: "UserContext",
+    *,
+    include_full: bool = False,
+) -> dict[str, Any]:
+    """
+    Load D2/D3/D4 snapshots for Omega.
+
+    For market-wide cache routes, include compact full snapshots. For specific ticker
+    prompts, include only matching options/insider/equities rows so the prompt stays small.
+    """
+    tickers = _extract_ticker_set(ctx, query)
+    payload: dict[str, Any] = {
+        "snapshot": "d2_d3_d4_market_intelligence",
+        "tickers_checked": sorted(tickers),
+        "sources": {},
+        "ticker_slices": {},
+    }
+
+    equities, eq_meta = load_equities_payload()
+    options, opt_meta = load_options_flow_payload()
+    insiders, ins_meta = load_insider_payload()
+    payload["sources"] = {
+        "equities": eq_meta,
+        "options_flow": opt_meta,
+        "insider_trades": ins_meta,
+    }
+
+    if include_full:
+        payload["equities"] = equities or {"status": "No equities cache data available."}
+        payload["options_flow"] = options or {"status": "No options flow cache data available."}
+        payload["insider_trades"] = insiders or {"status": "No insider trades cache data available."}
+
+    if tickers:
+        eq_rows: list[dict[str, Any]] = []
+        if isinstance(equities, dict):
+            for key in ("gainers", "losers", "active", "most_active"):
+                eq_rows.extend(_rows_matching_tickers(equities.get(key), tickers))
+        opt_rows = _rows_matching_tickers(options.get("unusual_activity") if isinstance(options, dict) else [], tickers)
+        ins_rows = _rows_matching_tickers(insiders.get("filings") if isinstance(insiders, dict) else [], tickers)
+        payload["ticker_slices"] = {
+            "equities": eq_rows,
+            "options_flow": opt_rows,
+            "insider_trades": ins_rows,
+        }
+
+    return payload
+
+
+def _ik_row_count(compact: dict[str, Any]) -> int:
+    for k in (
+        "top_coins",
+        "gainers",
+        "active",
+        "most_active",
+        "models",
+        "unusual_activity",
+        "filings",
+        "yields",
+        "categories",
+        "probabilities",
+    ):
+        block = compact.get(k)
+        if isinstance(block, list):
+            return len(block)
+    return int(compact.get("record_count") or 0)
+
+
+def _compact_dark_pool(obj: dict) -> dict:
+    """Compact dark_pool_latest.json for Omega context."""
+    signals = obj.get("signals") or []
+    return {
+        "snapshot": "dark_pool_activity",
+        "week_of": obj.get("week_of"),
+        "source": obj.get("source"),
+        "record_count": obj.get("record_count", 0),
+        "signals": signals[:20],  # top 20 for context window
+    }
+
+
+def _compact_sector_rotation(obj: dict) -> dict:
+    """Compact sector_rotation_latest.json for Omega context."""
+    return {
+        "snapshot": "sector_rotation",
+        "source": obj.get("source"),
+        "leading_sectors": obj.get("leading_sectors", []),
+        "lagging_sectors": obj.get("lagging_sectors", []),
+        "record_count": obj.get("record_count", 0),
+        "sectors": obj.get("sectors", []),
+    }
+
+
+def _compact_global_liquidity(obj: dict) -> dict:
+    """Compact global_liquidity_latest.json for Omega context."""
+    return {
+        "snapshot": "global_m2_liquidity",
+        "period": obj.get("period"),
+        "m2_trillions_usd": obj.get("m2_trillions_usd"),
+        "yoy_change_pct": obj.get("yoy_change_pct"),
+        "liquidity_regime": obj.get("liquidity_regime"),
+        "source": obj.get("source"),
+    }
+
+
+
+def _load_internal_knowledge_payload(
+    intent: str,
+) -> tuple[Optional[dict[str, Any]], dict[str, Any]]:
+    meta: dict[str, Any] = {"intent": intent, "file": "", "loaded": False, "error": None}
+    root = _data_cache_root()
+    intent_files: dict[str, str] = {
+        DC_INTENT_CRYPTO: "crypto_top50_latest.json",
+        DC_INTENT_EQUITIES: "equities_latest.json",
+        DC_INTENT_OPTIONS_FLOW: "options_flow_latest.json",
+        DC_INTENT_INSIDER: "insider_trades_latest.json",
+        DC_INTENT_BOND_YIELDS: "bond_yields_latest.json",
+        DC_INTENT_CPI: "cpi_latest.json",
+        DC_INTENT_FED_WATCH: "fed_watch_latest.json",
+        DC_INTENT_WATCHES: "watches_latest.json",
+        DC_INTENT_DARK_POOL: "dark_pool_latest.json",
+        DC_INTENT_SECTOR_ROTATION: "sector_rotation_latest.json",
+        DC_INTENT_GLOBAL_LIQUIDITY: "global_liquidity_latest.json",
+    }
+    fname = intent_files.get(intent)
+    if not fname:
+        meta["error"] = "unknown_data_cache_intent"
+        return None, meta
+    meta["file"] = fname
+    path = root / fname
+    if not path.is_file():
+        meta["error"] = f"missing_file:{path}"
+        return None, meta
+    try:
+        raw_obj: Any = json.loads(path.read_text(encoding="utf-8"))
+    except Exception as e:
+        meta["error"] = str(e)
+        return None, meta
+    if not isinstance(raw_obj, dict):
+        meta["error"] = "invalid_json_shape"
+        return None, meta
+    if intent == DC_INTENT_EQUITIES:
+        compact, loader_meta = load_equities_payload()
+        meta.update({k: v for k, v in loader_meta.items() if k in ("loaded", "error", "asset_rows")})
+        return compact, meta
+    if intent == DC_INTENT_OPTIONS_FLOW:
+        compact, loader_meta = load_options_flow_payload()
+        meta.update({k: v for k, v in loader_meta.items() if k in ("loaded", "error", "asset_rows")})
+        return compact, meta
+    if intent == DC_INTENT_INSIDER:
+        compact, loader_meta = load_insider_payload()
+        meta.update({k: v for k, v in loader_meta.items() if k in ("loaded", "error", "asset_rows")})
+        return compact, meta
+
+    if intent == DC_INTENT_CRYPTO:
+        compact = _compact_crypto_cache(raw_obj)
+    elif intent == DC_INTENT_BOND_YIELDS:
+        compact = _compact_bond_yields(raw_obj)
+    elif intent == DC_INTENT_CPI:
+        compact = _compact_cpi(raw_obj)
+    elif intent == DC_INTENT_FED_WATCH:
+        compact = _compact_fed_watch(raw_obj)
+    elif intent == DC_INTENT_WATCHES:
+        compact = _compact_watches_cache(raw_obj)
+    elif intent == DC_INTENT_DARK_POOL:
+        compact = _compact_dark_pool(raw_obj)
+    elif intent == DC_INTENT_SECTOR_ROTATION:
+        compact = _compact_sector_rotation(raw_obj)
+    elif intent == DC_INTENT_GLOBAL_LIQUIDITY:
+        compact = _compact_global_liquidity(raw_obj)
+    else:
+        meta["error"] = "unknown_data_cache_intent"
+        return None, meta
+    meta["loaded"] = True
+    meta["asset_rows"] = _ik_row_count(compact)
+    return compact, meta
+
+
+DOMAINS = {
+    "STOCK_RESEARCH":  "Stock analysis, options, earnings",
+    "CRYPTO_ANALYSIS": "Cryptocurrency, DeFi",
+    "MACRO_RESEARCH":  "Macro, Fed, sector rotation",
+    "HOME_BUYING":     "Mortgage, home purchase",
+    "CAR_BUYING":      "Auto loans, dealers",
+    "DEBT_PAYOFF":     "Debt strategies",
+    "SAVINGS_PLAN":    "Savings, HYSA",
+    "FUTURES_TRADING": "Futures, commodities",
+    "TAX_PLANNING":    "Tax planning",
+    "RETIREMENT":      "401k, IRA, retirement",
+    "CREDIT_REPAIR":   "Credit score",
+    "GENERAL_FINANCE": "General finance",
+}
+
+
+@dataclass
+class UserContext:
+    credit_score: Optional[int] = None
+    annual_income: Optional[float] = None
+    monthly_income: Optional[float] = None
+    down_payment: Optional[float] = None
+    monthly_budget: Optional[float] = None
+    location: Optional[str] = None
+    existing_debt: Optional[float] = None
+    savings: Optional[float] = None
+    timeline: Optional[str] = None
+    risk_tolerance: Optional[str] = None
+    tickers: list = field(default_factory=list)
+    options_position: dict = field(default_factory=dict)
+
+
+class IntentClassifier:
+    _TICKER_RE = re.compile(r"\b([A-Z]{1,5})\b")
+    _CREDIT_RE = re.compile(
+        r"credit\s*(?:score|rating)?\s*(?:of|is|around|~)?\s*(\d{3})", re.I
+    )
+    _INCOME_RE = re.compile(
+        r"\$?([\d,]+)k?\s*(?:a year|per year|annually|salary|income)", re.I
+    )
+    _DOWN_RE = re.compile(
+        r"\$?([\d,]+)k?\s*(?:down|down payment|upfront|to put)", re.I
+    )
+    _BUDGET_RE = re.compile(
+        r"\$?([\d,]+)k?\s*(?:per month|monthly|/mo|a month)", re.I
+    )
+    _DEBT_RE = re.compile(
+        r"\$?([\d,]+)k?\s*(?:in debt|owed|balance|credit card)", re.I
+    )
+    _ZIP_RE = re.compile(r"\b(\d{5})\b")
+    _STRIKE_RE = re.compile(
+        r"\$?(\d{1,4}(?:\.\d{1,2})?)\s*(?:call|put|strike)\b", re.I
+    )
+    _EXPIRY_RE = re.compile(
+        r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:,?\s*\d{4})?"
+        r"|\d{1,2}/\d{1,2}(?:/\d{2,4})?|\d{4}-\d{2}-\d{2}",
+        re.I,
+    )
+    _STOP = {
+        "A", "I", "MY", "ME", "IN", "ON", "AT", "TO", "OR", "AND", "FOR", "THE", "THIS",
+        "WITH", "FROM", "INTO", "WILL", "HAVE", "HAS", "ARE", "WAS", "IS", "IT", "DO", "HOW",
+        "WHO", "WHY", "WHAT", "WHEN", "WHERE", "ANY", "ALL", "BY", "AN", "BE", "AS", "IF",
+        "NO", "SO", "US", "CAN", "GET", "NOW", "OWN", "AI", "ML", "GDP", "CPI", "FED", "SEC",
+        "FDA", "RSI", "IV", "DTE", "ATM", "OTM", "ITM", "Q1", "Q2", "Q3", "Q4", "EPS", "PE",
+    }
+    _KW = {
+        "HOME_BUYING": [
+            ("house", 3), ("mortgage", 3.5), ("buy a house", 4), ("refinanc", 3),
+        ],
+        "CAR_BUYING": [
+            ("car", 2.5), ("auto loan", 3.5), ("buy a car", 4), ("dealer", 2.5),
+        ],
+        "DEBT_PAYOFF": [
+            ("debt", 3), ("pay off", 3), ("credit card", 3), ("snowball", 3),
+        ],
+        "SAVINGS_PLAN": [("savings", 3), ("emergency fund", 3.5), ("hysa", 3.5)],
+        "CRYPTO_ANALYSIS": [("bitcoin", 3), ("crypto", 3.5), ("ethereum", 3)],
+        "MACRO_RESEARCH": [("macro", 3.5), ("inflation", 3), ("fed", 1.5)],
+        "FUTURES_TRADING": [("futures", 3.5), ("commodity", 3), ("cme", 3)],
+        "TAX_PLANNING": [("tax", 3), ("irs", 3), ("capital gains", 3.5)],
+        "RETIREMENT": [("401k", 3.5), ("roth", 3), ("retirement", 3.5)],
+        "CREDIT_REPAIR": [("credit repair", 4), ("fico", 3)],
+        "STOCK_RESEARCH": [
+            ("stock", 2), ("earnings", 2.5), ("options", 2.5), ("strike", 2.5),
+            ("invest", 2.5), ("investing", 2.5), ("portfolio", 3), ("allocate", 2.5),
+            ("etf", 2.5), ("thematic", 3), ("discover", 2), ("screen", 2),
+            ("dividend", 2), ("how to invest", 3),
+        ],
+    }
+
+    def classify(self, query: str) -> tuple[str, UserContext]:
+        q, ql = query.strip(), query.strip().lower()
+        ctx = UserContext()
+        m = self._CREDIT_RE.search(ql)
+        if m:
+            ctx.credit_score = int(m.group(1))
+        m = self._INCOME_RE.search(ql)
+        if m:
+            v = float(m.group(1).replace(",", ""))
+            ctx.annual_income = (
+                v * 1000 if "k" in ql[max(0, m.start() - 2) : m.end() + 2] else v
+            )
+        m = self._DOWN_RE.search(ql)
+        if m:
+            v = float(m.group(1).replace(",", ""))
+            ctx.down_payment = (
+                v * 1000 if "k" in ql[max(0, m.start() - 2) : m.end() + 2] else v
+            )
+        m = self._BUDGET_RE.search(ql)
+        if m:
+            v = float(m.group(1).replace(",", ""))
+            ctx.monthly_budget = (
+                v * 1000 if "k" in ql[max(0, m.start() - 2) : m.end() + 2] else v
+            )
+        m = self._DEBT_RE.search(ql)
+        if m:
+            v = float(m.group(1).replace(",", ""))
+            ctx.existing_debt = (
+                v * 1000 if "k" in ql[max(0, m.start() - 2) : m.end() + 2] else v
+            )
+        m = self._ZIP_RE.search(q)
+        if m:
+            ctx.location = m.group(1)
+        else:
+            lm = re.search(
+                r"in\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?(?:,\s*[A-Z]{2})?)", q
+            )
+            if lm:
+                ctx.location = lm.group(1)
+        ctx.tickers = list(
+            dict.fromkeys(
+                t
+                for t in self._TICKER_RE.findall(q)
+                if t not in self._STOP and len(t) >= 2
+            )
+        )
+        sm = self._STRIKE_RE.search(q)
+        em = self._EXPIRY_RE.search(q)
+        if sm or em:
+            ctx.options_position = {
+                "strike": float(sm.group(1)) if sm else None,
+                "expiry_raw": em.group(0) if em else None,
+                "option_type": (
+                    "call"
+                    if re.search(r"\bcall\b", ql)
+                    else ("put" if re.search(r"\bput\b", ql) else None)
+                ),
+            }
+            ext = extract_options_values_from_text(q)
+            if ext.get("avg_premium") is not None:
+                ctx.options_position["avg_premium"] = ext["avg_premium"]
+            if ext.get("current_mark") is not None:
+                ctx.options_position["current_mark"] = ext["current_mark"]
+            if ext.get("iv_pct") is not None:
+                ctx.options_position["iv_pct"] = ext["iv_pct"]
+        scores = {d: 0.0 for d in DOMAINS}
+        for domain, kws in self._KW.items():
+            for kw, w in kws:
+                if kw in ql:
+                    scores[domain] += w
+        if ctx.options_position.get("strike") or ctx.options_position.get("expiry_raw"):
+            scores["STOCK_RESEARCH"] += 3.0
+        if ctx.tickers and max(scores.values()) < 4:
+            scores["STOCK_RESEARCH"] += 2.5
+        best = max(scores, key=lambda k: scores[k])
+        if scores[best] < 1.0:
+            best = "GENERAL_FINANCE"
+        if best == "GENERAL_FINANCE" and re.search(r"\$[\d,]+", ql) and any(
+            w in ql for w in ("invest", "investing", "portfolio", "allocate", "stock", "etf")
+        ):
+            scores["STOCK_RESEARCH"] = scores.get("STOCK_RESEARCH", 0) + 4.0
+            best = max(scores, key=lambda k: scores[k])
+        return best, ctx
+
+
+class MarketWorker:
+    def fetch(self, ticker: str) -> dict:
+        try:
+            import yfinance as yf
+
+            tk = yf.Ticker(ticker)
+            info = tk.info or {}
+            hist = tk.history(period="60d")
+            return {
+                "ticker": ticker,
+                "price": info.get("regularMarketPrice") or info.get("currentPrice"),
+                "market_cap": info.get("marketCap"),
+                "short_float": info.get("shortPercentOfFloat"),
+                "sector": info.get("sector"),
+                "company": info.get("longName"),
+                "description": (info.get("longBusinessSummary") or "")[:600],
+                "rsi_14": self._rsi(hist["Close"].tolist()) if not hist.empty else None,
+            }
+        except Exception as e:
+            return {"ticker": ticker, "error": str(e)}
+
+    def _rsi(self, prices, period=14):
+        if len(prices) < period + 1:
+            return None
+        d = [prices[i + 1] - prices[i] for i in range(len(prices) - 1)]
+        g = [max(x, 0) for x in d[-period:]]
+        l = [abs(min(x, 0)) for x in d[-period:]]
+        ag, al = sum(g) / period, sum(l) / period
+        if al == 0:
+            return 100.0
+        return round(100 - (100 / (1 + ag / al)), 2)
+
+    def sec_filings(self, ticker: str) -> dict:
+        try:
+            resp = requests.get(
+                "https://www.sec.gov/files/company_tickers.json",
+                headers={"User-Agent": "ATLAS research@atlas.local"},
+                timeout=10,
+            )
+            cik = None
+            for e in resp.json().values():
+                if e.get("ticker", "").upper() == ticker.upper():
+                    cik = str(e["cik_str"]).zfill(10)
+                    break
+            if not cik:
+                return {}
+            resp2 = requests.get(
+                f"https://data.sec.gov/submissions/CIK{cik}.json",
+                headers={"User-Agent": "ATLAS research@atlas.local"},
+                timeout=10,
+            )
+            subs = resp2.json()
+            recent = subs.get("filings", {}).get("recent", {})
+            forms, dates, acc = recent.get("form", []), recent.get("filingDate", []), recent.get(
+                "accessionNumber", []
+            )
+            out: dict = {}
+            for form in ("10-K", "8-K"):
+                m = [(dates[i], acc[i]) for i, f in enumerate(forms) if f == form][:3]
+                out[form] = [{"date": d, "accession": a} for d, a in m]
+            return out
+        except Exception as e:
+            return {"error": str(e)}
+
+
+class MacroWorker:
+    def fetch(self) -> dict:
+        result: dict = {}
+        try:
+            import yfinance as yf
+
+            for sym, key in (
+                ("^TNX", "10y_treasury"),
+                ("^VIX", "vix"),
+                ("^GSPC", "sp500"),
+            ):
+                try:
+                    hist = yf.Ticker(sym).history(period="5d")
+                    if not hist.empty:
+                        result[key] = {
+                            "value": round(float(hist["Close"].iloc[-1]), 3),
+                        }
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        return result
+
+
+class ConsumerWorker:
+    AUTO_RATES = {
+        (720, 999): {"tier": "Super prime", "new": 5.61, "used": 7.43},
+        (660, 719): {"tier": "Prime", "new": 7.01, "used": 9.73},
+        (620, 659): {"tier": "Near prime", "new": 9.62, "used": 13.72},
+        (300, 619): {"tier": "Subprime+", "new": 12.0, "used": 15.0},
+    }
+
+    def auto_loan_rate(self, credit_score: int = 680) -> dict:
+        for (lo, hi), data in self.AUTO_RATES.items():
+            if lo <= credit_score <= hi:
+                return {**data, "credit_score": credit_score}
+        return {"tier": "Unknown", "new": None, "used": None}
+
+    def calc_payment(self, principal: float, annual_rate: float, months: int) -> dict:
+        if annual_rate == 0:
+            pmt = principal / months
+        else:
+            r = annual_rate / 100 / 12
+            pmt = principal * (r * (1 + r) ** months) / ((1 + r) ** months - 1)
+        return {
+            "monthly": round(pmt, 2),
+            "total": round(pmt * months, 2),
+            "total_interest": round(pmt * months - principal, 2),
+        }
+
+
+class LocationWorker:
+    def geocode(self, location: str):
+        try:
+            url = (
+                f"https://nominatim.openstreetmap.org/search?"
+                f"q={quote(location)}&format=json&limit=1"
+            )
+            data = requests.get(
+                url, headers={"User-Agent": "ATLAS-Omega/1.0"}, timeout=8
+            ).json()
+            if data:
+                return float(data[0]["lat"]), float(data[0]["lon"])
+        except Exception:
+            pass
+        return None
+
+    def find_near(
+        self,
+        location: str,
+        kind: str,
+        label: str,
+        radius_m: int = 20000,
+        limit: int = 8,
+    ):
+        coords = self.geocode(location)
+        if not coords:
+            return []
+        lat, lon = coords
+        if kind in ("dealer", "shop=car", "car"):
+            q = f"""[out:json][timeout:20];
+            (node["shop"="car"](around:{radius_m},{lat},{lon});
+             node["shop"="car_dealer"](around:{radius_m},{lat},{lon}););
+            out {limit};"""
+        else:
+            tag = kind.replace("amenity=", "", 1) if "amenity=" in kind else kind
+            q = (
+                f'[out:json][timeout:15];node["amenity"="{tag}"](around:{radius_m},'
+                f"{lat},{lon});out body {limit};"
+            )
+        try:
+            data = requests.post(
+                "https://overpass-api.de/api/interpreter",
+                data={"data": q},
+                timeout=22,
+            ).json()
+            rows = []
+            for el in data.get("elements", [])[:limit]:
+                tg = el.get("tags", {})
+                if tg.get("name"):
+                    rows.append(
+                        {
+                            "name": tg.get("name"),
+                            "address": f"{tg.get('addr:housenumber','')} {tg.get('addr:street','')}".strip(),
+                            "type": label,
+                        }
+                    )
+            return rows
+        except Exception:
+            return []
+
+
+class CryptoWorker:
+    _MAP = {
+        "BTC": "bitcoin",
+        "ETH": "ethereum",
+        "SOL": "solana",
+    }
+
+    def fetch(self, ticker: str) -> dict:
+        coin = self._MAP.get(ticker.upper(), ticker.lower())
+        try:
+            r = requests.get(
+                f"https://api.coingecko.com/api/v3/coins/{coin}",
+                params={"localization": "false", "market_data": "true"},
+                timeout=12,
+            )
+            d = r.json()
+            md = d.get("market_data", {})
+            return {
+                "name": d.get("name"),
+                "price_usd": md.get("current_price", {}).get("usd"),
+                "change_24h": md.get("price_change_percentage_24h"),
+            }
+        except Exception as e:
+            return {"coin": coin, "error": str(e)}
+
+
+class NewsWorker:
+    _FEEDS = (
+        ("reuters", "https://feeds.reuters.com/reuters/businessNews"),
+        ("marketwatch", "https://feeds.marketwatch.com/marketwatch/topstories/"),
+    )
+
+    def for_ticker(self, ticker: str, max_per=5):
+        try:
+            import feedparser
+        except ImportError:
+            return []
+        out = []
+        for name, url in self._FEEDS:
+            try:
+                feed = feedparser.parse(url)
+                for e in feed.entries[:15]:
+                    t, s = e.get("title", ""), e.get("summary", "")
+                    if ticker.upper() in (t + s).upper():
+                        out.append(
+                            {
+                                "source": name,
+                                "title": t,
+                                "summary": (s or "")[:280],
+                            }
+                        )
+                    if len(out) >= max_per:
+                        return out
+            except Exception:
+                continue
+        return out
+
+
+class CommandDispatcher:
+    def __init__(self):
+        self.market = MarketWorker()
+        self.macro = MacroWorker()
+        self.consumer = ConsumerWorker()
+        self.location = LocationWorker()
+        self.crypto = CryptoWorker()
+        self.news = NewsWorker()
+
+    def _resolve_stock_bundle(self, ctx: UserContext, query: str) -> tuple[list[str], bool]:
+        """
+        (symbols, multi_name_pack)
+        multi_name_pack=True → broader parallel fetch (thematic / allocation questions).
+        """
+        disc = _is_discovery_or_allocation_query(query)
+        if ctx.tickers and not disc:
+            return ctx.tickers[:4], False
+        if ctx.tickers and disc:
+            merged: list[str] = []
+            for t in ctx.tickers + _thematic_symbols_for_query(query):
+                u = t.upper().strip()
+                if u not in merged:
+                    merged.append(u)
+            return merged[:12], True
+        thematic = _thematic_symbols_for_query(query)
+        if not thematic:
+            thematic = ["SPY", "QQQ", "IWM"]
+        return thematic[:12], bool(disc or len(thematic) > 1)
+
+    def execute(
+        self,
+        domain: str,
+        ctx: UserContext,
+        query: str,
+        data_cache_intent: str | None = None,
+    ) -> dict:
+        bundle = {
+            "domain": domain,
+            "query": query,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "data": {},
+        }
+        tasks: dict[str, Any] = {}
+
+        if data_cache_intent in DATA_CACHE_MACRO_ONLY_INTENTS:
+            tasks["macro"] = self.macro.fetch
+            with ThreadPoolExecutor(max_workers=min(len(tasks), 20)) as ex:
+                fmap = {ex.submit(fn): k for k, fn in tasks.items()}
+                for fut in as_completed(fmap):
+                    k = fmap[fut]
+                    try:
+                        bundle["data"][k] = fut.result(timeout=60)
+                    except Exception as e:
+                        bundle["data"][k] = {"error": str(e)}
+            return bundle
+
+        if domain == "STOCK_RESEARCH":
+            symbols, multi = self._resolve_stock_bundle(ctx, query)
+            news_cap = 3 if multi else 5
+            sec_cap = 4 if multi else 3
+            sec_added = 0
+            for t in symbols:
+                tasks[f"market_{t}"] = lambda tk=t: self.market.fetch(tk)
+                tasks[f"news_{t}"] = lambda tk=t: self.news.for_ticker(
+                    tk, max_per=news_cap
+                )
+                if (
+                    t.upper() not in _OMEGA_ETF_SYMBOLS
+                    and sec_added < sec_cap
+                    and len(t) <= 5
+                ):
+                    tasks[f"sec_{t}"] = lambda tk=t: self.market.sec_filings(tk)
+                    sec_added += 1
+            tasks["macro"] = self.macro.fetch
+            if multi:
+                tasks["market_regime"] = _fetch_market_regime_light
+        elif domain == "CRYPTO_ANALYSIS":
+            for t in (ctx.tickers or ["BTC"])[:3]:
+                tasks[f"crypto_{t}"] = lambda tk=t: self.crypto.fetch(tk)
+            tasks["macro"] = self.macro.fetch
+        elif domain == "MACRO_RESEARCH":
+            tasks["macro"] = self.macro.fetch
+            tasks["news"] = lambda: self.news.for_ticker("SPY", max_per=3)
+            if _is_discovery_or_allocation_query(query):
+                for t in _thematic_symbols_for_query(query)[:8]:
+                    tasks[f"market_{t}"] = lambda tk=t: self.market.fetch(tk)
+                tasks["market_regime"] = _fetch_market_regime_light
+        elif domain == "HOME_BUYING":
+            tasks["macro"] = self.macro.fetch
+            if ctx.location:
+                tasks["banks"] = lambda: self.location.find_near(
+                    ctx.location, "bank", "bank"
+                )
+        elif domain == "CAR_BUYING":
+            cr = ctx.credit_score or 680
+            tasks["rates"] = lambda: self.consumer.auto_loan_rate(cr)
+            tasks["macro"] = self.macro.fetch
+            if ctx.location:
+                tasks["dealers"] = lambda: self.location.find_near(
+                    ctx.location, "shop=car", "dealer", 25000
+                )
+        elif domain == "FUTURES_TRADING":
+            ft = ctx.tickers or ["GC=F", "CL=F", "ES=F"]
+            for t in ft[:4]:
+                tasks[f"fut_{t}"] = lambda tk=t: self.market.fetch(tk)
+            tasks["macro"] = self.macro.fetch
+        else:
+            tasks["macro"] = self.macro.fetch
+            tasks["news"] = lambda: self.news.for_ticker("SPY", max_per=4)
+            if ctx.tickers:
+                tasks["m0"] = lambda: self.market.fetch(ctx.tickers[0])
+            if _is_discovery_or_allocation_query(query):
+                for t in _thematic_symbols_for_query(query)[:8]:
+                    tasks[f"market_{t}"] = lambda tk=t: self.market.fetch(tk)
+                tasks["market_regime"] = _fetch_market_regime_light
+
+        with ThreadPoolExecutor(max_workers=min(len(tasks), 20)) as ex:
+            fmap = {ex.submit(fn): k for k, fn in tasks.items()}
+            for fut in as_completed(fmap):
+                k = fmap[fut]
+                try:
+                    bundle["data"][k] = fut.result(timeout=60)
+                except Exception as e:
+                    bundle["data"][k] = {"error": str(e)}
+        return bundle
+
+
+class OmegaAgent:
+    def __init__(self):
+        self.classifier = IntentClassifier()
+        self.dispatcher = CommandDispatcher()
+        self._client = None
+
+    def _get_client(self):
+        if self._client:
+            return self._client
+        try:
+            import google.genai as genai
+            from google.genai.types import HttpOptions
+
+            key = os.environ.get("GOOGLE_API_KEY", "")
+            if key:
+                self._client = genai.Client(
+                    api_key=key,
+                    http_options=HttpOptions(timeout=GEMINI_HTTP_TIMEOUT_MS),
+                )
+        except ImportError:
+            pass
+        return self._client
+
+    def ask_clarifying(self, query: str) -> list[str]:
+        domain, ctx = self.classifier.classify(query)
+        qs: list[str] = []
+        if domain == "CAR_BUYING":
+            if not ctx.credit_score:
+                qs.append("Approximate credit score?")
+            if not ctx.location:
+                qs.append("City or zip for local dealers?")
+        elif domain == "HOME_BUYING" and not ctx.credit_score:
+            qs.append("Approximate credit score?")
+        elif domain == "STOCK_RESEARCH" and ctx.options_position:
+            if not ctx.options_position.get("expiry_raw"):
+                qs.append("Exact option expiration date?")
+            if not ctx.options_position.get("avg_premium"):
+                qs.append("Premium paid per share?")
+        return qs[:3]
+
+    def query(
+        self,
+        user_query: str,
+        follow_up_context: dict | None = None,
+        session_id: str | None = None,
+        data_cache_intent: str | None = None,
+    ) -> dict:
+        start = time.time()
+        domain, ctx = self.classifier.classify(user_query)
+        if follow_up_context:
+            for k, v in follow_up_context.items():
+                if hasattr(ctx, k):
+                    setattr(ctx, k, v)
+        t1 = time.time()
+        bundle = self.dispatcher.execute(
+            domain, ctx, user_query, data_cache_intent=data_cache_intent
+        )
+        dc_meta: dict[str, Any] = {}
+        if data_cache_intent:
+            ik, dc_meta = _load_internal_knowledge_payload(data_cache_intent)
+            if ik is not None:
+                bundle["data"]["internal_knowledge_snapshot"] = ik
+            else:
+                bundle["data"]["internal_knowledge_snapshot"] = {
+                    "_load_error": dc_meta.get("error"),
+                    "intent": data_cache_intent,
+                }
+        include_market_intel = data_cache_intent in {
+            DC_INTENT_EQUITIES,
+            DC_INTENT_OPTIONS_FLOW,
+            DC_INTENT_INSIDER,
+        }
+        ticker_market_intel = bool(_extract_ticker_set(ctx, user_query)) and domain == "STOCK_RESEARCH"
+        if include_market_intel or ticker_market_intel:
+            bundle["data"]["d2_d3_d4_market_intelligence"] = build_market_intelligence_context(
+                user_query,
+                ctx,
+                include_full=include_market_intel,
+            )
+        fetch_t = round(time.time() - t1, 2)
+        report = self._synthesize(user_query, domain, ctx, bundle)
+        ai_t = round(time.time() - t1 - fetch_t, 2)
+        report.setdefault("_meta", {})
+        report["_meta"].update(
+            {
+                "domain": domain,
+                "fetch_time_s": fetch_t,
+                "ai_time_s": max(ai_t, 0.01),
+                "total_time_s": round(time.time() - start, 2),
+                "sources_fetched": list(bundle["data"].keys()),
+                "user_context": {
+                    k: v for k, v in ctx.__dict__.items() if v not in (None, [], {})
+                },
+                "session_id": session_id,
+            }
+        )
+        if data_cache_intent:
+            report["_meta"]["data_cache"] = dc_meta
+        return report
+
+    def _synthesize(self, query: str, domain: str, ctx: UserContext, bundle: dict) -> dict:
+        client = self._get_client()
+        if not client:
+            return {"error": "No GOOGLE_API_KEY in .env", "query": query}
+        today = datetime.now(timezone.utc).strftime("%B %d, %Y")
+        ik = bundle.get("data", {}).get("internal_knowledge_snapshot")
+        worker_data = {
+            k: v for k, v in bundle.get("data", {}).items() if k != "internal_knowledge_snapshot"
+        }
+        data_str = json.dumps(worker_data, indent=2, default=str)
+        if len(data_str) > 24000:
+            data_str = data_str[:24000] + "\n...[truncated]"
+        ik_block = ""
+        if ik is not None:
+            ik_json = json.dumps(ik, indent=2, default=str)
+            if len(ik_json) > 12000:
+                ik_json = ik_json[:12000] + "\n...[truncated]"
+            ik_block = f"""
+=== INTERNAL KNOWLEDGE (AUTHORITATIVE SNAPSHOT DATA) ===
+{ik_json}
+
+INTERNAL KNOWLEDGE RULES (mandatory):
+- Base which symbols/assets you cite for this scan ONLY on INTERNAL KNOWLEDGE above. Do not hallucinate tickers or coin symbols not listed there.
+- Use only numeric facts (prices, % changes, volumes, market caps) that appear in INTERNAL KNOWLEDGE for those assets. If a field is missing, say unknown.
+- DATA (from code workers) below is supplementary (e.g. macro). If it conflicts with INTERNAL KNOWLEDGE on membership, ranking, or snapshot figures, INTERNAL KNOWLEDGE wins for the scan universe.
+"""
+
+        lens = DOMAINS.get(domain, "Thorough actionable financial analysis.")
+        multi_hint = ""
+        if sum(1 for k in worker_data if str(k).startswith("market_")) >= 3:
+            multi_hint = """
+MULTI-NAME PACK: DATA has several market_<TICKER> snapshots. You must:
+- Summarize current macro/regime using macro + market_regime + index levels.
+- Compare 3–6 liquid ideas using ONLY tickers present in DATA (stocks/ETFs). Rank them for the user’s stated goal (growth, AI theme, $ amount, horizon).
+- If the user gave a dollar amount, propose an example split across 2–4 NAMES from DATA (percentages or dollar stripes), plus a conservative ETF-only alternative.
+- Options: you may describe 1–2 *example* retail options structures (directional or covered) using underlying symbols from DATA — cite approximate premium only if you have price in DATA; otherwise say “check chain”.
+- Do NOT invent tickers, prices, or fundamentals not in DATA. If something is missing, say unknown and suggest what to verify next."""
+
+        num_rule = (
+            "Use only numbers present in INTERNAL KNOWLEDGE and/or DATA; otherwise say unknown."
+            if ik is not None
+            else "Use only numbers present in DATA; otherwise say unknown."
+        )
+        market_intel_rule = ""
+        if "d2_d3_d4_market_intelligence" in worker_data:
+            market_intel_rule = """
+D2/D3/D4 MARKET INTELLIGENCE RULES:
+- DATA.d2_d3_d4_market_intelligence contains equities movers, unusual options flow, and SEC Form 4 insider-trade snapshots.
+- For market-wide questions, summarize only rows present in those snapshots; if record_count is 0 or a slice is empty, say no cached rows are available.
+- For specific ticker questions, use ticker_slices first. If the ticker is absent from options_flow or insider_trades, explicitly say the cache has no matching row instead of inventing flow or filings.
+"""
+
+        prompt = f"""You are ATLAS Omega. Today: {today}.
+Query: "{query}"
+Domain: {domain} ({lens})
+User context:
+{json.dumps({k:v for k,v in ctx.__dict__.items() if v not in (None,[],{})}, default=str)}
+{multi_hint}
+{ik_block}
+{market_intel_rule}
+DATA (from code workers):
+{data_str}
+
+Return ONE JSON object, no markdown. Keys:
+domain, domain_label (friendly), headline, urgency (critical|urgent|normal|informational),
+executive_brief, situation_analysis, key_insight, primary_recommendation,
+scenarios: [{{label, probability, trigger, outcome, your_action}}],
+numbers_that_matter: {{}},
+action_plan: [{{step, timeframe, action, how, financial_impact}}],
+named_resources: [{{name, type, why, contact}}],
+hidden_angles: [],
+risks_and_tripwires: [{{risk, severity, tripwire, response}}],
+follow_up_questions: [],
+last_updated
+{num_rule}"""
+
+        try:
+            import google.genai.types as gtypes
+
+            model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+            wait_for_slot("atlas_omega")
+            resp = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=gtypes.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.15,
+                    max_output_tokens=16384,
+                ),
+            )
+            raw = (resp.text or "").strip()
+            if raw.startswith("```"):
+                raw = re.sub(r"^```[a-z]*\s*", "", raw)
+                raw = re.sub(r"\s*```\s*$", "", raw).strip()
+            return _omega_json_loads(raw)
+        except Exception as e:
+            log.error("[Omega] %s", e)
+            try:
+                wait_for_slot("atlas_omega_retry")
+                resp = client.models.generate_content(
+                    model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+                    contents=prompt + "\nReturn ONLY raw JSON.",
+                )
+                return _omega_json_loads((resp.text or "").strip())
+            except Exception as e2:
+                return {"error": str(e2), "query": query, "domain": domain}
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    agent = OmegaAgent()
+    r = agent.query("Should I worry about my SOUN position?")
+    print(json.dumps(r, indent=2, default=str))

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS — Product Snapshot &amp; Roadmap</title>
+<style>
+  :root {
+    --bg:#0d1117; --bg2:#0e1420; --border:#1e2a3a;
+    --accent:#00d4ff; --text:#e0e6f0; --muted:#7a8a9a;
+    --green:#4caf50; --lime:#00ff88; --yellow:#ffca28; --orange:#ff9800;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;line-height:1.6}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 72px}
+  h1{font-size:26px;font-weight:800;color:#fff;margin-bottom:6px}
+  h2{font-size:14px;font-weight:700;color:var(--accent);margin:28px 0 10px;text-transform:uppercase;letter-spacing:.5px}
+  .sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+  .callout{border-radius:8px;padding:14px 16px;font-size:13px;margin:16px 0;line-height:1.65}
+  .cg{background:#0a1e0a;border:1px solid #1e4a1e;color:#9dce9d}
+  .cb{background:#0a1a2a;border:1px solid #1e3a5a;color:#7ab8d4}
+  .cy{background:#1e1600;border:1px solid #4a3800;color:#c8a028}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  th{padding:8px 10px;background:var(--bg2);color:var(--accent);text-align:left;font-size:10px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+  td{padding:8px 10px;border-bottom:1px solid #111820;vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  code{background:#0a0e1a;padding:1px 5px;border-radius:3px;font-size:11px;color:#00d4ff;font-family:monospace}
+  .badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;margin-left:6px}
+  .b-on{background:#002a10;color:var(--lime);border:1px solid #006622}
+  .b-off{background:#111;color:#666;border:1px solid #333}
+  ul{margin:10px 0 0 1.2em;color:var(--muted);font-size:13px}
+  hr{border:none;border-top:1px solid var(--border);margin:26px 0}
+  a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ATLAS — Product snapshot</h1>
+<p class="sub">Aligned with the <strong>research + manual tracking</strong> web app (May 2026). Older roadmap items that assumed Alpaca paper trading, an “autonomous execution” layer, or dashboard widgets for sector rotation / option scan / volume profile are <strong>removed from the product surface</strong> — some code may remain for optional CLI use.</p>
+
+<div class="callout cg">
+<strong>Shipped in the web UI</strong> (<code>dashboard_server.py</code> + <code>dashboard.html</code>, port <strong>8765</strong>): Home search → deep research → embedded <code>deep_reports/TICKER_deep.html</code>; report history; watchlist; manual stocks/options with per-leg remove; manual portfolio totals; workspace reset (reports, caches, SQLite, RAG files); settings copy that states ATLAS is informational and does not trade for you.
+</div>
+
+<div class="callout cb">
+<strong>Backend / CLI still available</strong> (not promoted in the dashboard): multi-source scrape + <code>rag_engine.py</code> (Chroma), <code>deep_research.py</code>, optional <code>--watch</code> / <code>news_scanner</code> → <code>LIVE_REPORTS.html</code>, tracker/memory/auto_tuner/self_coder modules, <code>--backtest</code>, etc. Treat these as power-user or experimental unless you wire them back into the UI.
+</div>
+
+<hr>
+
+<h2>What left the roadmap (surface area)</h2>
+<table>
+  <tr><th>Item</th><th>Status</th><th>Notes</th></tr>
+  <tr><td>Alpaca paper trading in dashboard</td><td><span class="badge b-off">Removed</span></td><td>No broker connection; portfolio is manual-only in UI.</td></tr>
+  <tr><td>Option Scan, Volume Profile, Sector Rotation, Self-Learning panels</td><td><span class="badge b-off">Removed</span></td><td>Stripped from <code>dashboard.html</code> to keep focus on research + tracking.</td></tr>
+  <tr><td>“Autonomous trading agent” positioning</td><td><span class="badge b-off">Replaced</span></td><td>Docs should describe a research workstation, not live execution.</td></tr>
+  <tr><td>Phase 2C “paper state machine” as product milestone</td><td><span class="badge b-off">Deprioritized</span></td><td>Not part of the SaaS-style UI path; revisit only if you restore execution features.</td></tr>
+</table>
+
+<hr>
+
+<h2>Current priorities (practical)</h2>
+<ul>
+  <li>Harden deep research quality, report history, and embed reliability on Home.</li>
+  <li>Keep manual portfolio + watchlist UX obvious (add / remove / sold flows).</li>
+  <li>Clear disclaimers: information only, user decides, no order routing from the app.</li>
+  <li>Optional: revive specific CLI modules in the UI only if they match the research-first story.</li>
+</ul>
+
+<hr>
+
+<h2>Quick links</h2>
+<p style="font-size:13px;color:var(--muted)"><a href="ATLAS_OUTPUT_MAP.html">Where files are written</a> · <a href="ATLAS_OVERVIEW.html">Longer system overview</a> (being updated separately to match this snapshot) · <a href="http://localhost:8765">Dashboard (when server is running)</a></p>
+
+<div class="callout cy">
+<strong>Note:</strong> Prior “audit: 62/62, Alpaca $100k, all phases complete” language is <strong>obsolete</strong> for the current UI product. Use this page as the source of truth for what you ship to end users; keep historical capability lists in git history if you need them.
+</div>
+
+<p style="font-size:11px;color:var(--muted);text-align:center;margin-top:28px">ATLAS · documentation snapshot · May 6, 2026</p>
+
+</div>
+</body>
+</html>

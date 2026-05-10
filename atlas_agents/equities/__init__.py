@@ -1,0 +1,2 @@
+"""ATLAS Equities Scanner agent."""
+

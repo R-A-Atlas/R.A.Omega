@@ -1,0 +1,27 @@
+{
+  "skill_id": "atlas-crypto-deep-research",
+  "version": "1.0.0",
+  "description": "Binary checks after adding or modifying the crypto snapshot skill or scraper. Each item must be true for the run to pass.",
+  "binary_assertions": [
+    {
+      "id": "CDR-01",
+      "assertion": "python -m py_compile atlas_agents/crypto/crypto_scraper.py exits with code 0 from the ATLAS repo root.",
+      "verify": "Shell: run from workspace root containing atlas_agents/."
+    },
+    {
+      "id": "CDR-02",
+      "assertion": "The file atlas_vault/02-Wiki/Skills/crypto_deep_research/SKILL.md exists on disk.",
+      "verify": "Glob or filesystem stat."
+    },
+    {
+      "id": "CDR-03",
+      "assertion": "The file atlas_vault/02-Wiki/Skills/crypto_deep_research/evals.json exists on disk.",
+      "verify": "Glob or filesystem stat."
+    },
+    {
+      "id": "CDR-04",
+      "assertion": "After a successful run of python atlas_agents/crypto/crypto_scraper.py, data_cache/crypto_top50_latest.json exists and parses as JSON with top-level keys including generated_at, merge_policy, coin_count, and coins.",
+      "verify": "Shell: optionally run scraper with network available; jq or Python json.load validates shape."
+    }
+  ]
+}

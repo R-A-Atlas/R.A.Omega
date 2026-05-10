@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATLAS — Background intelligence (CLI)</title>
+<style>
+  :root {
+    --bg: #0d1117; --bg2: #0e1420; --bg3: #111826;
+    --border: #1e2a3a; --accent: #00d4ff;
+    --green: #4caf50; --yellow: #ffca28; --red: #f44336;
+    --text: #e0e6f0; --muted: #7a8a9a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; line-height: 1.6; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 20px 60px; }
+  h1 { font-size: 26px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+  h2 { font-size: 18px; font-weight: 700; color: var(--accent); margin: 32px 0 12px; }
+  h3 { font-size: 13px; font-weight: 600; color: #9ae; margin-bottom: 6px; }
+  .sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 28px 0; }
+
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 20px 0; }
+  .stat { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px; text-align: center; }
+  .stat .val { font-size: 22px; font-weight: 800; color: var(--accent); display: block; }
+  .stat .lbl { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
+
+  .module { background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; padding: 20px; margin-bottom: 20px; }
+  .mod-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .mod-name { font-family: monospace; font-size: 14px; color: var(--accent); font-weight: 700; }
+  .mod-label { font-size: 12px; color: var(--muted); }
+  .pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; text-transform: uppercase; }
+  .pill-green { background: #0a2a0a; color: var(--green); border: 1px solid #1e4a1e; }
+
+  .layer-row { display: flex; gap: 12px; padding: 9px 0; border-bottom: 1px solid #111a26; align-items: flex-start; }
+  .layer-row:last-child { border-bottom: none; }
+  .layer-name { font-size: 12px; font-weight: 600; color: #fff; min-width: 200px; flex-shrink: 0; }
+  .layer-desc { font-size: 12px; color: var(--muted); }
+
+  .flow-step { display: flex; gap: 12px; margin-bottom: 12px; }
+  .flow-num { width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #000; font-weight: 800; font-size: 11px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 3px; }
+  .flow-title { font-weight: 600; color: #fff; font-size: 13px; }
+  .flow-desc { font-size: 12px; color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin: 12px 0; }
+  th { background: #141c2e; color: var(--accent); padding: 9px 12px; text-align: left; font-size: 11px; text-transform: uppercase; }
+  td { padding: 9px 12px; border-bottom: 1px solid #111a26; color: #ccc; }
+  tr:last-child td { border-bottom: none; }
+  tr.atlas-row td { background: #0a1020; }
+
+  .warning-box { background: #1a1200; border: 1px solid #4a3200; border-radius: 8px; padding: 16px; font-size: 13px; color: #f0c060; margin: 20px 0; }
+  .warning-box strong { color: #ffca28; }
+
+  .cli-row { display: flex; gap: 10px; padding: 7px 0; border-bottom: 1px solid #111a26; align-items: baseline; }
+  .cli-row:last-child { border-bottom: none; }
+  .cli-lbl { font-size: 12px; color: var(--muted); min-width: 160px; flex-shrink: 0; }
+  .cmd { font-family: monospace; font-size: 11px; color: var(--accent); background: #060d1a; padding: 2px 6px; border-radius: 3px; }
+
+  .footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 20px; text-align: center; font-size: 11px; color: var(--muted); margin-top: 40px; }
+  @media(max-width:600px) { .stats { grid-template-columns: repeat(2,1fr); } h1 { font-size: 20px; } .layer-name { min-width: 140px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>ATLAS — Intelligence layers (CLI / pipeline)</h1>
+<p class="sub">Hyper-Awareness, self-tuning, and proposal-based self-coding remain in the <strong>Python repo</strong>. The <strong>web dashboard</strong> no longer surfaces “self-learning,” sector rotation, option scan, or volume profile tiles — use this page as a technical reference for modules you can still invoke from the terminal.</p>
+
+<div class="stats">
+  <div class="stat"><span class="val">3</span><span class="lbl">Core modules</span></div>
+  <div class="stat"><span class="val">7</span><span class="lbl">Awareness signals</span></div>
+  <div class="stat"><span class="val">—</span><span class="lbl">Dashboard promo</span></div>
+</div>
+
+<hr class="divider">
+
+<div class="warning-box" style="margin-top:0">
+<strong>Scope note:</strong> Everything below assumes you run the bot from the command line or background jobs. It does <strong>not</strong> describe menu items in <code>dashboard.html</code> today.
+</div>
+<div class="module">
+  <div class="mod-header">
+    <div>
+      <div class="mod-name">market_scanner.py</div>
+      <div class="mod-label">Hyper-Awareness Engine</div>
+    </div>
+    <span class="pill pill-green">LIVE</span>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Market Regime Detector</div>
+    <div class="layer-desc">Bull / Bear / Chop / Panic — adjusts confidence multiplier automatically (0.5x in panic, 1.15x in bull). Based on SPY, QQQ trend + VIX level.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Short Squeeze Score (0–100)</div>
+    <div class="layer-desc">Composite: short float (35 pts), days-to-cover (20 pts), relative volume (15 pts), vs 20-day MA (10 pts), IV rank (10 pts), 5-day momentum (10 pts). Score 80+ = squeeze imminent.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">News Velocity Tracker</div>
+    <div class="layer-desc">Detects if headlines are accelerating. 5 articles/hour vs 0.4/hour baseline = breaking news signal — often fires before the stock moves.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Earnings Reaction Database</div>
+    <div class="layer-desc">Actual % moves on last 8 earnings days: average move, beat rate, avg beat/miss reaction, best move, worst move. Tells you if this stock is a high mover on earnings.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Pre-Market Gap Scanner</div>
+    <div class="layer-desc">Scans watch list before open. Gaps >2% with volume ratio flagged as HIGH or MEDIUM urgency with trading signal.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Dark Horse Scanner</div>
+    <div class="layer-desc">Finds tickers matching your best win patterns — squeeze candidates you aren't watching yet. Scored by short float, days-to-cover, relative volume.</div>
+  </div>
+</div>
+
+<!-- MODULE 2 -->
+<div class="module">
+  <div class="mod-header">
+    <div>
+      <div class="mod-name">auto_tuner.py</div>
+      <div class="mod-label">Self-Tuning Weight Optimizer</div>
+    </div>
+    <span class="pill pill-green">LIVE</span>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Ranker Weight Optimizer</div>
+    <div class="layer-desc">Coordinate ascent on 7 scoring dimensions. Shifts weight toward signals that actually predicted wins. Saves to atlas_tuned_weights.json.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Threshold Tuner</div>
+    <div class="layer-desc">Finds optimal short float %, IV rank cutoffs from your outcome history. E.g., if SF > 30% won 79% but SF > 20% only won 52%, updates the threshold to 30.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Confidence Calibration Check</div>
+    <div class="layer-desc">Checks if conf=8/10 actually wins 80% of the time. If ATLAS is overconfident, flags it and applies a deflation multiplier. If underconfident, can size slightly bigger.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Auto-Trigger</div>
+    <div class="layer-desc">Runs every 5 graded outcomes. Also runs every 60 minutes in --watch mode. Zero manual steps needed.</div>
+  </div>
+</div>
+
+<!-- MODULE 3 -->
+<div class="module">
+  <div class="mod-header">
+    <div>
+      <div class="mod-name">self_coder.py</div>
+      <div class="mod-label">Self-Improvement Engine</div>
+    </div>
+    <span class="pill pill-green">LIVE</span>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Loss Pattern Analyzer</div>
+    <div class="layer-desc">Reviews all LOSS outcomes and finds systematic failures: IV crush on earnings options, squeeze with no catalyst, overconfident calls, ignored bearish signals.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Code Patch Generator</div>
+    <div class="layer-desc">Generates precise Python code fixes for each pattern — under 20 lines, targeting the specific file and function. 5 pre-built patch templates, Gemini-generated patches for new patterns.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Proposal Review System</div>
+    <div class="layer-desc">Saves proposals to proposed_updates/ for human review. You accept or reject. ATLAS tracks acceptance rate to improve future proposals.</div>
+  </div>
+  <div class="layer-row">
+    <div class="layer-name">Lessons Learned Report</div>
+    <div class="layer-desc">HTML report (ATLAS_SELF_LEARNING.html): pattern table, pending proposals with code, acceptance history. Auto-generated after each analysis run.</div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<h2>How ATLAS Learns From Its Own Mistakes</h2>
+<p style="font-size:12px;color:var(--muted);margin-bottom:16px">The feedback loop that turns every loss into a permanent improvement.</p>
+
+<div class="flow-step"><div class="flow-num">1</div><div><div class="flow-title">Trade Made</div><div class="flow-desc">ATLAS recommends a trade — deep research output with full rationale.</div></div></div>
+<div class="flow-step"><div class="flow-num">2</div><div><div class="flow-title">Outcome Graded</div><div class="flow-desc">You run: <span class="cmd">python tracker.py grade</span> — mark it WIN / LOSS / PARTIAL with exit price.</div></div></div>
+<div class="flow-step"><div class="flow-num">3</div><div><div class="flow-title">Pattern Detected</div><div class="flow-desc">self_coder analyzes: was this IV crush on earnings options? Squeeze with no catalyst? High-confidence call that lost?</div></div></div>
+<div class="flow-step"><div class="flow-num">4</div><div><div class="flow-title">Code Fix Proposed</div><div class="flow-desc">A precise Python patch (under 20 lines) is saved to proposed_updates/ — targets the exact file and function that caused the issue.</div></div></div>
+<div class="flow-step"><div class="flow-num">5</div><div><div class="flow-title">You Review and Accept</div><div class="flow-desc">Run <span class="cmd">python auto_bot.py --proposals</span> to see all pending proposals. Read the code, accept or reject.</div></div></div>
+<div class="flow-step"><div class="flow-num">6</div><div><div class="flow-title">Weights Auto-Tuned</div><div class="flow-desc">auto_tuner shifts scoring weights toward signals that actually predicted the outcome. Atlas recalibrates confidence.</div></div></div>
+<div class="flow-step"><div class="flow-num">7</div><div><div class="flow-title">ATLAS Smarter</div><div class="flow-desc">Next research call uses updated weights + tuned thresholds + fixed logic. The system is permanently better.</div></div></div>
+
+<hr class="divider">
+
+<div class="warning-box">
+  <strong>Why ATLAS proposes code but doesn't auto-apply it:</strong><br><br>
+  Financial code that autonomously modifies itself could have catastrophic, undetected bugs that cost you money. ATLAS generates precise, human-readable patches and saves them for you to apply after reading. The self-improvement loop is fully real — ATLAS gets genuinely smarter with every trade — but you stay in control of what actually goes into production. This is the same model used by top quant shops: machine-generated improvements, human final approval.
+</div>
+
+<hr class="divider">
+
+<h2>Hyper-Awareness — What Gets Injected Into Every Research Call</h2>
+<table>
+  <tr><th>Signal Layer</th><th>Example Value</th><th>What ATLAS Does With It</th></tr>
+  <tr class="atlas-row"><td>Market Regime</td><td>BULL</td><td>Multiplies all confidence scores by 1.15x. BEAR cuts to 0.65x. Panic cuts to 0.5x.</td></tr>
+  <tr class="atlas-row"><td>Short Squeeze Score</td><td>82/100</td><td>SF=38%, DTC=8d, RVOL=3.2x — "Squeeze imminent, watch closely" flagged in synthesis</td></tr>
+  <tr class="atlas-row"><td>News Velocity</td><td>HIGH</td><td>3 articles last hour vs 0.4/hr baseline — "news accelerating" alert added to prompt</td></tr>
+  <tr class="atlas-row"><td>Earnings History</td><td>+14% avg</td><td>Beat rate 75%, last beat: +22% — context for options sizing injected</td></tr>
+  <tr class="atlas-row"><td>Auto-Tuned Weights</td><td>short_float=18.5</td><td>Tuned from your outcome history — overrides default weights if available</td></tr>
+</table>
+
+<hr class="divider">
+
+<h2>New CLI Commands</h2>
+<h3>Hyper-Awareness</h3>
+<div class="cli-row"><div class="cli-lbl">Market regime + VIX</div><span class="cmd">python auto_bot.py --regime</span></div>
+<div class="cli-row"><div class="cli-lbl">Squeeze score for ticker</div><span class="cmd">python auto_bot.py --squeeze SOUN</span></div>
+<div class="cli-row"><div class="cli-lbl">Find dark horse setups</div><span class="cmd">python auto_bot.py --scan-dark-horses</span></div>
+<div class="cli-row"><div class="cli-lbl">Earnings reaction history</div><span class="cmd">python market_scanner.py earnings SOUN</span></div>
+<div class="cli-row"><div class="cli-lbl">News velocity check</div><span class="cmd">python market_scanner.py velocity SOUN</span></div>
+
+<h3 style="margin-top:20px">Self-Learning</h3>
+<div class="cli-row"><div class="cli-lbl">Optimize scoring weights</div><span class="cmd">python auto_bot.py --self-tune</span></div>
+<div class="cli-row"><div class="cli-lbl">See current weights</div><span class="cmd">python auto_bot.py --tuner-status</span></div>
+<div class="cli-row"><div class="cli-lbl">Calibration check</div><span class="cmd">python auto_tuner.py calibrate</span></div>
+<div class="cli-row"><div class="cli-lbl">Analyze losses, propose fixes</div><span class="cmd">python auto_bot.py --self-analyze</span></div>
+<div class="cli-row"><div class="cli-lbl">Review code proposals</div><span class="cmd">python auto_bot.py --proposals</span></div>
+<div class="cli-row"><div class="cli-lbl">Accept a proposal</div><span class="cmd">python self_coder.py accept &lt;id&gt;</span></div>
+<div class="cli-row"><div class="cli-lbl">List loss patterns</div><span class="cmd">python self_coder.py patterns</span></div>
+<div class="cli-row"><div class="cli-lbl">Self-learning HTML report</div><span class="cmd">python self_coder.py analyze</span></div>
+
+</div>
+<div class="footer">ATLAS · market_scanner.py · auto_tuner.py · self_coder.py · CLI reference · May 2026</div>
+</body>
+</html>
