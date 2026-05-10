@@ -98,6 +98,8 @@ Never commit `.env`, keys, local cache folders, database files, generated report
 
 ## Next Product Work
 
+See `ROADMAP.md` for the full implementation sequence.
+
 1. Consolidate the primary UI into a stable filename, such as `ra_omega_app.html`, after updating the tests and routes that still reference the current filename.
 2. Add a single app config layer for model/provider settings instead of spreading provider behavior across scripts.
 3. Complete voice input UX: recording state, transcript preview, send/cancel behavior, and graceful errors when `OPENAI_API_KEY` is missing.
