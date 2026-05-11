@@ -108,6 +108,7 @@ sys.path.insert(0, str(BASE_DIR))
 import atlas_db  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration import research_jobs  # noqa: E402
+from orchestration.web_sources import discover_sources, sources_prompt_block  # noqa: E402
 
 try:
     from gemini_limiter import is_rate_limit_error
@@ -116,12 +117,15 @@ except ImportError:
         return False
 
 try:
-    from query_router import GeminiQuotaExceededError
+    from query_router import GeminiQuotaExceededError, QueryCancelledError
 except ImportError:
     class GeminiQuotaExceededError(Exception):
         """Fallback if query_router not importable at startup."""
 
         user_message = "API Rate Limit Exceeded - Please wait 60 seconds"
+
+    class QueryCancelledError(Exception):
+        """Fallback if query_router not importable at startup."""
 
 RATE_LIMIT_UI_MESSAGE = "API Rate Limit Exceeded - Please wait 60 seconds"
 research_jobs.configure_store(BASE_DIR / "data_cache" / "research_jobs.json")
@@ -262,6 +266,20 @@ class ResearchPlanRequest(BaseModel):
     session_id: Optional[str] = None
     research_mode: str = Field(default="deep", pattern="^(normal|web|deep)$")
     web_search: bool = False
+
+
+class UserPreferencesRequest(BaseModel):
+    display_name: Optional[str] = Field(default=None, max_length=120)
+    default_research_mode: Optional[str] = Field(default=None, pattern="^(normal|web|deep)$")
+    answer_style: Optional[str] = Field(default=None, max_length=40)
+    risk_profile: Optional[str] = Field(default=None, max_length=40)
+    market_focus: Optional[str] = Field(default=None, max_length=80)
+    source_strictness: Optional[str] = Field(default=None, max_length=40)
+    memory_enabled: Optional[bool] = None
+    notifications_enabled: Optional[bool] = None
+    accent_color: Optional[str] = Field(default=None, max_length=40)
+    extra_json: Optional[dict[str, Any]] = None
+
 
 class PositionRequest(BaseModel):
     ticker: str
@@ -1092,6 +1110,53 @@ def dispatch_query_request(
             f"[User personalization: address the user as “{nick}” when natural in prose.]\n\n{q_store}"
         )
 
+    discovered_sources: list[dict[str, str]] = []
+    if mode in {"web", "deep"} or getattr(req, "web_search", False):
+        if job:
+            research_jobs.update_job(
+                job["job_id"],
+                user_id=user_id,
+                progress_pct=18,
+                current_stage="Source discovery",
+                current_message="Finding lightweight web source candidates before analysis.",
+                event={
+                    "type": "source_discovery",
+                    "label": "Source discovery",
+                    "detail": "Searching for current source candidates.",
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                },
+            )
+        try:
+            discovered_sources = discover_sources(q_store, max_results=8 if mode == "deep" else 5)
+        except Exception as e:
+            log.debug("[web_sources] discovery failed: %s", e)
+            discovered_sources = []
+        if discovered_sources:
+            block = sources_prompt_block(discovered_sources)
+            if block:
+                route_input = f"{block}\n\n{route_input}"
+            if job:
+                research_jobs.update_job(
+                    job["job_id"],
+                    user_id=user_id,
+                    progress_pct=22,
+                    current_stage="Sources found",
+                    current_message=f"Found {len(discovered_sources)} source candidates.",
+                    event={
+                        "type": "sources_found",
+                        "label": "Sources found",
+                        "detail": f"{len(discovered_sources)} source candidates collected.",
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                    },
+                    artifacts=[
+                        {
+                            "type": "web_sources",
+                            "label": "Source candidates",
+                            "items": discovered_sources,
+                        }
+                    ],
+                )
+
     request_hints: list[str] = []
     if mode == "deep":
         request_hints.append(
@@ -1135,12 +1200,76 @@ def dispatch_query_request(
                 fast, req, user_id, background_tasks, q_store, start
             )
 
+        if job:
+            latest_job = research_jobs.get_job(job["job_id"], user_id=user_id)
+            if latest_job and latest_job.get("cancel_requested"):
+                cancelled = research_jobs.cancel_job(job["job_id"], user_id=user_id) or latest_job
+                body = _ensure_query_ui_envelope(
+                    {
+                        "parsed_query": {},
+                        "final_report": {
+                            "executive_summary": "Research was cancelled before the 10-loop engine started.",
+                        },
+                        "tldr": "Research was cancelled before the 10-loop engine started.",
+                        "_route_decision": route_decision.to_dict(),
+                        "_research_activity": research_jobs.activity_from_job(cancelled),
+                    },
+                    q_store,
+                )
+                return _finalize_query_response(body, req, user_id, background_tasks, q_store, start)
+
+        def progress_callback(event: dict[str, Any]) -> None:
+            if not job:
+                return
+            stage = str(event.get("stage") or "Research")
+            message = str(event.get("message") or "")
+            loop = event.get("loop")
+            research_jobs.update_job(
+                job["job_id"],
+                user_id=user_id,
+                progress_pct=int(event.get("progress_pct") or 0),
+                current_stage=stage,
+                current_message=message,
+                event={
+                    "type": "pipeline_stage",
+                    "label": stage,
+                    "detail": message,
+                    "loop": loop,
+                    "ts": event.get("ts") or datetime.now(timezone.utc).isoformat(),
+                },
+            )
+
+        def cancel_check() -> bool:
+            if not job:
+                return False
+            latest = research_jobs.get_job(job["job_id"], user_id=user_id)
+            return bool(latest and latest.get("cancel_requested"))
+
         raw = router.route(
             route_input,
             user_id=user_id,
             session_id=req.session_id,
             crypto_snapshot=req.crypto_snapshot,
+            progress_callback=progress_callback if job else None,
+            cancel_check=cancel_check if job else None,
         )
+        if job:
+            latest_job = research_jobs.get_job(job["job_id"], user_id=user_id)
+            if latest_job and latest_job.get("cancel_requested"):
+                cancelled = research_jobs.cancel_job(job["job_id"], user_id=user_id) or latest_job
+                body = _ensure_query_ui_envelope(
+                    {
+                        "parsed_query": {},
+                        "final_report": {
+                            "executive_summary": "Research was cancelled. The completed draft was discarded.",
+                        },
+                        "tldr": "Research was cancelled. The completed draft was discarded.",
+                        "_route_decision": route_decision.to_dict(),
+                        "_research_activity": research_jobs.activity_from_job(cancelled),
+                    },
+                    q_store,
+                )
+                return _finalize_query_response(body, req, user_id, background_tasks, q_store, start)
         shaped = _ensure_query_ui_envelope(raw, q_store)
         shaped["_request_controls"] = {
             "research_mode": mode,
@@ -1188,11 +1317,46 @@ def dispatch_query_request(
         body["error"] = "rate_limit"
         body["message"] = msg
         body["_api_time_s"] = round(time.time() - start, 2)
+        if job:
+            failed = research_jobs.update_job(
+                job["job_id"],
+                user_id=user_id,
+                status="failed",
+                current_stage="Rate limited",
+                current_message=msg,
+            )
+            if failed:
+                body["_research_activity"] = research_jobs.activity_from_job(failed)
         return JSONResponse(status_code=429, content=body)
+    except QueryCancelledError as e:
+        msg = str(e) or "Research was cancelled."
+        cancelled = research_jobs.cancel_job(job["job_id"], user_id=user_id) if job else None
+        body = _ensure_query_ui_envelope(
+            {
+                "parsed_query": {},
+                "final_report": {"executive_summary": msg},
+                "tldr": msg,
+                "trader_memo": msg,
+                "hedge_fund_brief": msg,
+            },
+            q_store,
+        )
+        body["_route_decision"] = route_decision.to_dict()
+        if cancelled:
+            body["_research_activity"] = research_jobs.activity_from_job(cancelled)
+        return _finalize_query_response(body, req, user_id, background_tasks, q_store, start)
     except HTTPException:
         raise
     except Exception as e:
         log.error("[/query] Error: %s", e)
+        if job:
+            research_jobs.update_job(
+                job["job_id"],
+                user_id=user_id,
+                status="failed",
+                current_stage="Failed",
+                current_message=str(e),
+            )
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
@@ -1488,6 +1652,31 @@ def create_research_plan(req: ResearchPlanRequest, user_id: AtlasUserId):
         "activity": research_jobs.activity_from_job(job),
         "route_decision": route_decision.to_dict(),
     }
+
+
+@app.get("/jobs")
+def list_research_jobs_api(
+    user_id: AtlasUserId,
+    session_id: Optional[str] = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=200),
+):
+    jobs = research_jobs.list_jobs(user_id, session_id=session_id, limit=limit)
+    return {
+        "ok": True,
+        "jobs": jobs,
+        "activities": [research_jobs.activity_from_job(job) for job in jobs],
+    }
+
+
+@app.get("/user/preferences")
+def get_user_preferences_api(user_id: AtlasUserId):
+    return {"ok": True, "preferences": atlas_db.get_user_preferences(user_id)}
+
+
+@app.patch("/user/preferences")
+def update_user_preferences_api(req: UserPreferencesRequest, user_id: AtlasUserId):
+    updates = req.model_dump(exclude_unset=True)
+    return {"ok": True, "preferences": atlas_db.update_user_preferences(user_id, updates)}
 
 
 @app.get("/jobs/{job_id}")

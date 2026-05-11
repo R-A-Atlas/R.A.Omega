@@ -96,6 +96,58 @@ CREATE INDEX IF NOT EXISTS idx_user_watchlist_user ON public.user_watchlist (use
 
 COMMENT ON TABLE public.user_watchlist IS 'ATLAS dashboard watchlist; one row per user per ticker.';
 
+-- Durable research job control plane (Deep Research / Web Search activity UX)
+CREATE TABLE IF NOT EXISTS public.research_jobs (
+    id TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+    session_id UUID REFERENCES public.chat_sessions (id) ON DELETE SET NULL,
+    query TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued'
+        CHECK (status IN ('queued', 'in_progress', 'completed', 'failed', 'cancelled')),
+    route_band TEXT NOT NULL DEFAULT 'deep_research',
+    progress_pct INTEGER NOT NULL DEFAULT 0 CHECK (progress_pct >= 0 AND progress_pct <= 100),
+    current_stage TEXT,
+    current_message TEXT,
+    search_count INTEGER NOT NULL DEFAULT 0,
+    plan_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    events_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    sources_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    artifacts_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    route_decision JSONB NOT NULL DEFAULT '{}'::jsonb,
+    cancel_requested BOOLEAN NOT NULL DEFAULT false,
+    completed_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_research_jobs_user_updated
+    ON public.research_jobs (user_id, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_research_jobs_session_updated
+    ON public.research_jobs (session_id, updated_at DESC);
+
+COMMENT ON TABLE public.research_jobs IS 'Deep Research/Web Search jobs, visible activity state, cancellation flag, and artifacts.';
+
+-- User-scoped personalization/settings for the chat experience.
+CREATE TABLE IF NOT EXISTS public.user_preferences (
+    user_id UUID PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+    display_name TEXT,
+    default_research_mode TEXT NOT NULL DEFAULT 'normal'
+        CHECK (default_research_mode IN ('normal', 'web', 'deep')),
+    answer_style TEXT NOT NULL DEFAULT 'balanced',
+    risk_profile TEXT NOT NULL DEFAULT 'balanced',
+    market_focus TEXT NOT NULL DEFAULT 'US equities',
+    source_strictness TEXT NOT NULL DEFAULT 'balanced',
+    memory_enabled BOOLEAN NOT NULL DEFAULT true,
+    notifications_enabled BOOLEAN NOT NULL DEFAULT false,
+    accent_color TEXT NOT NULL DEFAULT 'blue',
+    extra_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+COMMENT ON TABLE public.user_preferences IS 'Per-user R.A. Omega settings, personalization, mode defaults, and UI preferences.';
+
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- Migration: Sessions/watchlist objects (if missing) + RLS owner policies on tenant tables
 -- Date: 2026-05-09
@@ -131,6 +183,52 @@ CREATE INDEX IF NOT EXISTS idx_user_watchlist_user ON public.user_watchlist (use
 ALTER TABLE public.queries
     ADD COLUMN IF NOT EXISTS session_id UUID REFERENCES public.chat_sessions (id) ON DELETE SET NULL;
 
+CREATE TABLE IF NOT EXISTS public.research_jobs (
+    id TEXT PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES auth.users (id) ON DELETE CASCADE,
+    session_id UUID REFERENCES public.chat_sessions (id) ON DELETE SET NULL,
+    query TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'queued'
+        CHECK (status IN ('queued', 'in_progress', 'completed', 'failed', 'cancelled')),
+    route_band TEXT NOT NULL DEFAULT 'deep_research',
+    progress_pct INTEGER NOT NULL DEFAULT 0 CHECK (progress_pct >= 0 AND progress_pct <= 100),
+    current_stage TEXT,
+    current_message TEXT,
+    search_count INTEGER NOT NULL DEFAULT 0,
+    plan_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    events_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    sources_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    artifacts_json JSONB NOT NULL DEFAULT '[]'::jsonb,
+    route_decision JSONB NOT NULL DEFAULT '{}'::jsonb,
+    cancel_requested BOOLEAN NOT NULL DEFAULT false,
+    completed_at TIMESTAMPTZ,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_research_jobs_user_updated
+    ON public.research_jobs (user_id, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_research_jobs_session_updated
+    ON public.research_jobs (session_id, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS public.user_preferences (
+    user_id UUID PRIMARY KEY REFERENCES auth.users (id) ON DELETE CASCADE,
+    display_name TEXT,
+    default_research_mode TEXT NOT NULL DEFAULT 'normal'
+        CHECK (default_research_mode IN ('normal', 'web', 'deep')),
+    answer_style TEXT NOT NULL DEFAULT 'balanced',
+    risk_profile TEXT NOT NULL DEFAULT 'balanced',
+    market_focus TEXT NOT NULL DEFAULT 'US equities',
+    source_strictness TEXT NOT NULL DEFAULT 'balanced',
+    memory_enabled BOOLEAN NOT NULL DEFAULT true,
+    notifications_enabled BOOLEAN NOT NULL DEFAULT false,
+    accent_color TEXT NOT NULL DEFAULT 'blue',
+    extra_json JSONB NOT NULL DEFAULT '{}'::jsonb,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
 -- --- Section B: row level security (owner = auth.uid()) ---
 
 ALTER TABLE public.chat_sessions ENABLE ROW LEVEL SECURITY;
@@ -156,6 +254,16 @@ CREATE POLICY "positions_owner" ON public.positions
 ALTER TABLE public.user_watchlist ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "user_watchlist_owner" ON public.user_watchlist;
 CREATE POLICY "user_watchlist_owner" ON public.user_watchlist
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+ALTER TABLE public.research_jobs ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "research_jobs_owner" ON public.research_jobs;
+CREATE POLICY "research_jobs_owner" ON public.research_jobs
+    FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "user_preferences_owner" ON public.user_preferences;
+CREATE POLICY "user_preferences_owner" ON public.user_preferences
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

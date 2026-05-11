@@ -64,12 +64,15 @@ _SESSIONS_TABLE = "chat_sessions"
 _FOLDERS_TABLE = "user_folders"
 _POSITIONS_TABLE = "positions"
 _WATCHLIST_TABLE = "user_watchlist"
+_RESEARCH_JOBS_TABLE = "research_jobs"
+_USER_PREFS_TABLE = "user_preferences"
 _MAX_REPORTS_PER_USER = 200
 
 TEST_USER_LOCAL = "test_user_local"
 
 # In-memory sessions when ATLAS_DISABLE_AUTH=test_user_local (no Supabase UUID)
 _mock_chat_sessions: dict[str, list[dict[str, Any]]] = {}
+_mock_user_preferences: dict[str, dict[str, Any]] = {}
 
 _supabase_client: Any = None
 
@@ -108,6 +111,8 @@ def supabase_schema_status() -> dict[str, Any]:
         "configured": is_configured(),
         "chat_sessions_reachable": None,
         "user_watchlist_reachable": None,
+        "research_jobs_reachable": None,
+        "user_preferences_reachable": None,
         "queries_has_session_id_column": None,
         "detail": None,
     }
@@ -141,6 +146,20 @@ def supabase_schema_status() -> dict[str, Any]:
         status["queries_has_session_id_column"] = False
         errs.append(f"queries.session_id:{e!s}")
 
+    try:
+        client.table(_RESEARCH_JOBS_TABLE).select("id").limit(1).execute()
+        status["research_jobs_reachable"] = True
+    except Exception as e:
+        status["research_jobs_reachable"] = False
+        errs.append(f"research_jobs:{e!s}")
+
+    try:
+        client.table(_USER_PREFS_TABLE).select("user_id").limit(1).execute()
+        status["user_preferences_reachable"] = True
+    except Exception as e:
+        status["user_preferences_reachable"] = False
+        errs.append(f"user_preferences:{e!s}")
+
     if errs:
         status["detail"] = "; ".join(errs)[:800]
     return status
@@ -148,6 +167,113 @@ def supabase_schema_status() -> dict[str, Any]:
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+def _is_uuidish(value: str | None) -> bool:
+    if not value:
+        return False
+    try:
+        uuid.UUID(str(value))
+        return True
+    except Exception:
+        return False
+
+
+def _research_job_row_api(r: dict[str, Any]) -> dict[str, Any]:
+    def ts(val: Any) -> Optional[str]:
+        if val is None:
+            return None
+        if isinstance(val, str):
+            return val
+        if hasattr(val, "isoformat"):
+            return val.isoformat()
+        return str(val)
+
+    return {
+        "job_id": str(r.get("id") or r.get("job_id") or ""),
+        "user_id": str(r.get("user_id") or ""),
+        "session_id": str(r.get("session_id")) if r.get("session_id") else None,
+        "query": r.get("query") or "",
+        "status": r.get("status") or "queued",
+        "route_band": r.get("route_band") or "deep_research",
+        "progress_pct": int(r.get("progress_pct") or 0),
+        "current_stage": r.get("current_stage"),
+        "current_message": r.get("current_message"),
+        "search_count": int(r.get("search_count") or 0),
+        "plan": r.get("plan_json") or r.get("plan") or [],
+        "events": r.get("events_json") or r.get("events") or [],
+        "sources": r.get("sources_json") or r.get("sources") or [],
+        "artifacts": r.get("artifacts_json") or r.get("artifacts") or [],
+        "route_decision": r.get("route_decision") or {},
+        "cancel_requested": bool(r.get("cancel_requested")),
+        "created_at": ts(r.get("created_at")),
+        "updated_at": ts(r.get("updated_at")),
+        "completed_at": ts(r.get("completed_at")),
+    }
+
+
+def _research_job_payload(job: dict[str, Any]) -> dict[str, Any]:
+    payload: dict[str, Any] = {
+        "id": job.get("job_id") or job.get("id"),
+        "user_id": job.get("user_id"),
+        "query": job.get("query") or "",
+        "status": job.get("status") or "queued",
+        "route_band": job.get("route_band") or "deep_research",
+        "progress_pct": max(0, min(100, int(job.get("progress_pct") or 0))),
+        "current_stage": job.get("current_stage"),
+        "current_message": job.get("current_message"),
+        "search_count": int(job.get("search_count") or 0),
+        "plan_json": job.get("plan") or [],
+        "events_json": job.get("events") or [],
+        "sources_json": job.get("sources") or [],
+        "artifacts_json": job.get("artifacts") or [],
+        "route_decision": job.get("route_decision") or {},
+        "cancel_requested": bool(job.get("cancel_requested")),
+        "updated_at": _now_iso(),
+    }
+    if job.get("session_id") and _is_uuidish(str(job.get("session_id"))):
+        payload["session_id"] = str(job.get("session_id"))
+    if job.get("completed_at"):
+        payload["completed_at"] = job.get("completed_at")
+    if job.get("created_at"):
+        payload["created_at"] = job.get("created_at")
+    return payload
+
+
+_DEFAULT_USER_PREFERENCES: dict[str, Any] = {
+    "display_name": "",
+    "default_research_mode": "normal",
+    "answer_style": "balanced",
+    "risk_profile": "balanced",
+    "market_focus": "US equities",
+    "source_strictness": "balanced",
+    "memory_enabled": True,
+    "notifications_enabled": False,
+    "accent_color": "blue",
+    "extra_json": {},
+}
+
+
+def _clean_user_preferences(raw: dict[str, Any] | None) -> dict[str, Any]:
+    out = dict(_DEFAULT_USER_PREFERENCES)
+    if raw:
+        out.update({k: v for k, v in raw.items() if k in out})
+    out["display_name"] = str(out.get("display_name") or "").strip()[:120]
+    if out.get("default_research_mode") not in {"normal", "web", "deep"}:
+        out["default_research_mode"] = "normal"
+    for key, max_len in {
+        "answer_style": 40,
+        "risk_profile": 40,
+        "market_focus": 80,
+        "source_strictness": 40,
+        "accent_color": 40,
+    }.items():
+        out[key] = str(out.get(key) or _DEFAULT_USER_PREFERENCES[key]).strip()[:max_len]
+    out["memory_enabled"] = bool(out.get("memory_enabled"))
+    out["notifications_enabled"] = bool(out.get("notifications_enabled"))
+    if not isinstance(out.get("extra_json"), dict):
+        out["extra_json"] = {}
+    return out
 
 
 def _session_row_api(r: dict[str, Any]) -> dict[str, Any]:
@@ -310,6 +436,171 @@ def delete_chat_session(user_id: str, session_id: str) -> bool:
         return False
     client.table(_SESSIONS_TABLE).delete().eq("user_id", user_id).eq("id", session_id).execute()
     return True
+
+
+def get_user_preferences(user_id: str) -> dict[str, Any]:
+    if user_id == TEST_USER_LOCAL or not _is_uuidish(user_id):
+        stored = _mock_user_preferences.get(user_id)
+        return {"user_id": user_id, **_clean_user_preferences(stored)}
+    client = get_supabase_client()
+    if not client:
+        return {"user_id": user_id, **_clean_user_preferences(None)}
+    resp = (
+        client.table(_USER_PREFS_TABLE)
+        .select("*")
+        .eq("user_id", user_id)
+        .limit(1)
+        .execute()
+    )
+    rows = resp.data or []
+    if not rows:
+        return {"user_id": user_id, **_clean_user_preferences(None)}
+    cleaned = _clean_user_preferences(rows[0])
+    return {
+        "user_id": user_id,
+        **cleaned,
+        "created_at": rows[0].get("created_at"),
+        "updated_at": rows[0].get("updated_at"),
+    }
+
+
+def update_user_preferences(user_id: str, updates: dict[str, Any]) -> dict[str, Any]:
+    cleaned = _clean_user_preferences(updates)
+    if user_id == TEST_USER_LOCAL or not _is_uuidish(user_id):
+        existing = _mock_user_preferences.get(user_id, {})
+        merged = _clean_user_preferences({**existing, **cleaned})
+        merged["updated_at"] = _now_iso()
+        _mock_user_preferences[user_id] = merged
+        return {"user_id": user_id, **merged}
+    client = get_supabase_client()
+    if not client:
+        return {"user_id": user_id, **cleaned}
+    payload = {**cleaned, "user_id": user_id, "updated_at": _now_iso()}
+    client.table(_USER_PREFS_TABLE).upsert(payload, on_conflict="user_id").execute()
+    return get_user_preferences(user_id)
+
+
+def insert_research_job(job: dict[str, Any]) -> Optional[dict[str, Any]]:
+    """Persist a research job to Supabase when tenant ids are real UUIDs."""
+    user_id = str(job.get("user_id") or "")
+    if not _is_uuidish(user_id):
+        return None
+    client = get_supabase_client()
+    if not client:
+        return None
+    payload = _research_job_payload(job)
+    client.table(_RESEARCH_JOBS_TABLE).upsert(payload, on_conflict="id").execute()
+    return fetch_research_job(user_id, str(payload["id"]))
+
+
+def fetch_research_job(user_id: str, job_id: str) -> Optional[dict[str, Any]]:
+    if not (_is_uuidish(user_id) and job_id):
+        return None
+    client = get_supabase_client()
+    if not client:
+        return None
+    resp = (
+        client.table(_RESEARCH_JOBS_TABLE)
+        .select("*")
+        .eq("user_id", user_id)
+        .eq("id", job_id)
+        .limit(1)
+        .execute()
+    )
+    rows = resp.data or []
+    return _research_job_row_api(rows[0]) if rows else None
+
+
+def update_research_job(
+    user_id: str,
+    job_id: str,
+    updates: dict[str, Any],
+) -> Optional[dict[str, Any]]:
+    if not (_is_uuidish(user_id) and job_id):
+        return None
+    client = get_supabase_client()
+    if not client:
+        return None
+    payload: dict[str, Any] = {"updated_at": _now_iso()}
+    field_map = {
+        "status": "status",
+        "route_band": "route_band",
+        "progress_pct": "progress_pct",
+        "current_stage": "current_stage",
+        "current_message": "current_message",
+        "search_count": "search_count",
+        "cancel_requested": "cancel_requested",
+        "completed_at": "completed_at",
+    }
+    for src, dst in field_map.items():
+        if src in updates:
+            payload[dst] = updates[src]
+    json_map = {
+        "plan": "plan_json",
+        "events": "events_json",
+        "sources": "sources_json",
+        "artifacts": "artifacts_json",
+        "route_decision": "route_decision",
+    }
+    for src, dst in json_map.items():
+        if src in updates:
+            payload[dst] = updates[src]
+    if "activity" in updates and isinstance(updates["activity"], dict):
+        activity = updates["activity"]
+        for src, dst in {
+            "route_band": "route_band",
+            "progress_pct": "progress_pct",
+            "current_stage": "current_stage",
+            "current_message": "current_message",
+            "search_count": "search_count",
+            "plan": "plan_json",
+            "events": "events_json",
+            "sources": "sources_json",
+        }.items():
+            if src in activity:
+                payload[dst] = activity[src]
+        if isinstance(activity.get("artifacts"), list) and activity.get("artifacts"):
+            payload["artifacts_json"] = activity["artifacts"]
+        if isinstance(activity.get("events"), list):
+            existing = fetch_research_job(user_id, job_id)
+            existing_events = list((existing or {}).get("events") or [])
+            merged: list[dict[str, Any]] = []
+            seen: set[str] = set()
+            for event in [*existing_events, *list(activity.get("events") or [])]:
+                if not isinstance(event, dict):
+                    continue
+                key = "|".join(str(event.get(k) or "") for k in ("type", "label", "detail", "loop", "ts"))
+                if key in seen:
+                    continue
+                seen.add(key)
+                merged.append(event)
+            payload["events_json"] = merged[-80:]
+    if "event" in updates and isinstance(updates["event"], dict):
+        existing = fetch_research_job(user_id, job_id)
+        if existing:
+            payload["events_json"] = list(existing.get("events") or []) + [updates["event"]]
+    if "progress_pct" in payload:
+        payload["progress_pct"] = max(0, min(100, int(payload["progress_pct"] or 0)))
+    client.table(_RESEARCH_JOBS_TABLE).update(payload).eq("user_id", user_id).eq("id", job_id).execute()
+    return fetch_research_job(user_id, job_id)
+
+
+def list_research_jobs(
+    user_id: str,
+    *,
+    session_id: Optional[str] = None,
+    limit: int = 50,
+) -> list[dict[str, Any]]:
+    if not _is_uuidish(user_id):
+        return []
+    client = get_supabase_client()
+    if not client:
+        return []
+    qb = client.table(_RESEARCH_JOBS_TABLE).select("*").eq("user_id", user_id)
+    if session_id and _is_uuidish(session_id):
+        qb = qb.eq("session_id", session_id)
+    resp = qb.order("updated_at", desc=True).limit(max(1, min(200, int(limit)))).execute()
+    return [_research_job_row_api(r) for r in (resp.data or [])]
 
 
 def insert_research_query(

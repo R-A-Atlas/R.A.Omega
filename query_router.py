@@ -34,7 +34,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Callable, Optional
 
 from dotenv import load_dotenv
 
@@ -61,6 +61,10 @@ class GeminiQuotaExceededError(RuntimeError):
     def __init__(self, message: str = RATE_LIMIT_USER_MESSAGE):
         super().__init__(message)
         self.user_message = message
+
+
+class QueryCancelledError(RuntimeError):
+    """Raised when a caller requests cancellation between pipeline stages."""
 
 
 def _strip_json_fence(raw: str) -> str:
@@ -1704,7 +1708,14 @@ Use only numbers from context; otherwise say unknown or null."""
             "final_report": report,
         }
 
-    def run(self, query: str, client=None, user_id: Optional[str] = None) -> dict:
+    def run(
+        self,
+        query: str,
+        client=None,
+        user_id: Optional[str] = None,
+        progress_callback: Optional[Callable[[dict[str, Any]], None]] = None,
+        cancel_check: Optional[Callable[[], bool]] = None,
+    ) -> dict:
         """
         Execute the full 10-loop ATLAS research pipeline.
 
@@ -1719,6 +1730,24 @@ Use only numbers from context; otherwise say unknown or null."""
             self.client = client
         timing: dict[str, float] = {}
 
+        def progress(stage: str, pct: int, message: str, loop: str | int | None = None) -> None:
+            if progress_callback:
+                progress_callback(
+                    {
+                        "stage": stage,
+                        "progress_pct": pct,
+                        "message": message,
+                        "loop": loop,
+                        "ts": datetime.now(timezone.utc).isoformat(),
+                    }
+                )
+
+        def check_cancel(stage: str) -> None:
+            if cancel_check and cancel_check():
+                progress("Cancelled", 100, f"Cancelled before {stage}.")
+                raise QueryCancelledError(f"Research cancelled before {stage}")
+
+        progress("Parsing request", 8, "Classifying intent, tickers, options context, and urgency.", "parse")
         parsed = self.parser.parse(query, client=self.client)
         timing["parse"] = round(time.time() - t_start, 2)
         log.info(
@@ -1726,14 +1755,20 @@ Use only numbers from context; otherwise say unknown or null."""
             parsed.query_type, parsed.tickers, parsed.urgency
         )
 
+        check_cancel("Loop 1")
+        progress("Loop 1: market scrape", 15, "Gathering market, quote, filings, and awareness context.", 1)
         t0 = time.time()
         l1 = self.loop1_scrape(parsed)
         timing["loop1_scrape"] = round(time.time() - t0, 2)
 
+        check_cancel("Loop 2")
+        progress("Loop 2: fact check", 25, "Cross-checking gathered context and tagging evidence quality.", 2)
         t0 = time.time()
         l2 = self.loop2_factcheck(l1, parsed)
         timing["loop2_factcheck"] = round(time.time() - t0, 2)
 
+        check_cancel("Loop 3")
+        progress("Loop 3: satellite context", 35, "Adding volume, congress, memory, sector, and pattern context.", 3)
         t0 = time.time()
         l3 = self.loop3_synthesize(l2, l1, parsed)
         timing["loop3_context_gather"] = round(time.time() - t0, 2)
@@ -1744,15 +1779,21 @@ Use only numbers from context; otherwise say unknown or null."""
             "final_report": {},
             "audit_notes": [],
         }
+        check_cancel("Loop 5")
+        progress("Loop 5: personalization", 45, "Loading portfolio, tracker, paper-trade, and risk context.", 5)
         t0 = time.time()
         l5 = self.loop5_personalize(l4_pre, parsed, user_id=user_id)
         timing["loop5_personalize"] = round(time.time() - t0, 2)
 
+        check_cancel("Loop 8")
+        progress("Loop 8: regime memory", 55, "Checking historical analogues and regime memory.", 8)
         t0 = time.time()
         l8 = self.loop8_regime_memory(l5, parsed)
         timing["loop8_regime"] = round(time.time() - t0, 2)
 
         finance_kb_block = ""
+        check_cancel("RAG retrieval")
+        progress("Knowledge retrieval", 62, "Retrieving finance knowledge and local RAG context.", "rag")
         t0 = time.time()
         if self._rag_ok and self._rag is not None:
             try:
@@ -1764,6 +1805,8 @@ Use only numbers from context; otherwise say unknown or null."""
                 log.debug("[rag] finance_knowledge context: %s", e)
         timing["finance_kb_retrieval"] = round(time.time() - t0, 2)
 
+        check_cancel("batch synthesis")
+        progress("Loops 3-10: synthesis batch", 72, "Running the single low-cost synthesis, scenario, stress, and narrative batch.", "batch_3_10")
         t0 = time.time()
         l_batch = self.loop_batch_synthesize(
             parsed, l1, l2, l3, l5, l8, finance_kb_block=finance_kb_block
@@ -1771,23 +1814,33 @@ Use only numbers from context; otherwise say unknown or null."""
         timing["loop_batch_llm"] = round(time.time() - t0, 2)
 
         report = dict(l_batch.get("final_report") or {})
+        check_cancel("Loop 4 audit")
+        progress("Loop 4: trade-plan audit", 82, "Auditing trade plan consistency and risk controls.", 4)
         t0 = time.time()
         l4 = self.loop4_python_trade_plan_audit(report)
         timing["loop4_python_audit"] = round(time.time() - t0, 2)
         report = dict(l4.get("final_report") or {})
 
+        check_cancel("Loop 6")
+        progress("Loop 6: execution timing", 88, "Generating execution rules and alert hooks.", 6)
         t0 = time.time()
         l6 = self.loop6_execution_timing({"final_report": report}, parsed)
         timing["loop6_execution"] = round(time.time() - t0, 2)
 
+        check_cancel("Loop 7")
+        progress("Loop 7: scenario EV", 92, "Calculating scenario expected value where possible.", 7)
         t0 = time.time()
         l7 = self.loop7_probabilistic_scenarios(l6, parsed)
         timing["loop7_scenarios_ev"] = round(time.time() - t0, 2)
 
+        check_cancel("Loop 9")
+        progress("Loop 9: adversarial check", 96, "Stress-testing assumptions and failure modes.", 9)
         t0 = time.time()
         l9 = self.loop9_adversarial_stress_test(l7, parsed)
         timing["loop9_adversarial"] = round(time.time() - t0, 2)
 
+        check_cancel("Loop 10")
+        progress("Loop 10: final narrative", 98, "Compiling the final answer for the selected output style.", 10)
         t0 = time.time()
         l10 = self.loop10_narrative_compiler(l9, parsed)
         timing["loop10_narrative"] = round(time.time() - t0, 2)
@@ -1800,6 +1853,7 @@ Use only numbers from context; otherwise say unknown or null."""
             timing["total"],
             timing.get("loop_batch_llm", 0),
         )
+        progress("Completed", 100, "10-loop research pipeline completed.", "done")
 
         final = l10.get("final_report", {})
         if isinstance(final, dict) and parsed.query_type:
@@ -1871,6 +1925,8 @@ class QueryRouter:
         session_id: Optional[str] = None,
         *,
         crypto_snapshot: bool = False,
+        progress_callback: Optional[Callable[[dict[str, Any]], None]] = None,
+        cancel_check: Optional[Callable[[], bool]] = None,
     ) -> dict[str, Any]:
         with _QUERY_PIPELINE_LOCK:
             raw_q = (query or "").strip()
@@ -1907,7 +1963,12 @@ class QueryRouter:
                         log.warning("[QueryRouter] Omega route failed, using 10-loop: %s", e)
                 else:
                     log.warning("[QueryRouter] GENERAL_FINANCE but Omega missing — falling back to 10-loop")
-            return self._engine.run(raw_q, user_id=user_id)
+            return self._engine.run(
+                raw_q,
+                user_id=user_id,
+                progress_callback=progress_callback,
+                cancel_check=cancel_check,
+            )
 
     def parse_only(self, query: str) -> ParsedQuery:
         return self._engine.parser.parse(query, client=self._engine.client)

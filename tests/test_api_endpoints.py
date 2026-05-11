@@ -321,6 +321,17 @@ def test_post_query_updates_existing_research_job(
 
     class FakeRouter:
         def route(self, query: str, **kwargs):
+            cb = kwargs.get("progress_callback")
+            if cb:
+                cb(
+                    {
+                        "stage": "Loop 1: market scrape",
+                        "progress_pct": 15,
+                        "message": "Gathering market context.",
+                        "loop": 1,
+                        "ts": "2026-05-11T00:00:00+00:00",
+                    }
+                )
             return {
                 "parsed_query": {"query_type": "MARKET_DEEP_DIVE"},
                 "final_report": {"executive_summary": "done"},
@@ -345,7 +356,38 @@ def test_post_query_updates_existing_research_job(
     body = r.json()
     assert body["_research_activity"]["job_id"] == job_id
     assert body["_research_activity"]["status"] == "completed"
+    assert any(
+        event.get("label") == "Loop 1: market scrape"
+        for event in body["_research_activity"]["events"]
+    )
     assert client.get(f"/jobs/{job_id}").json()["activity"]["status"] == "completed"
+
+
+def test_user_preferences_round_trip(client: TestClient) -> None:
+    r = client.get("/user/preferences")
+    assert r.status_code == 200
+    assert r.json()["preferences"]["default_research_mode"] == "normal"
+
+    r2 = client.patch(
+        "/user/preferences",
+        json={
+            "display_name": "Roberto",
+            "default_research_mode": "web",
+            "answer_style": "desk",
+            "risk_profile": "conservative",
+            "market_focus": "US equities",
+            "source_strictness": "strict",
+            "memory_enabled": False,
+            "notifications_enabled": True,
+            "accent_color": "green",
+        },
+    )
+    assert r2.status_code == 200
+    prefs = r2.json()["preferences"]
+    assert prefs["display_name"] == "Roberto"
+    assert prefs["default_research_mode"] == "web"
+    assert prefs["memory_enabled"] is False
+    assert prefs["notifications_enabled"] is True
 
 
 def test_api_v1_query_503_when_keys_not_configured(

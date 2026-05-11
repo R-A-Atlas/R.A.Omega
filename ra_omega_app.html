@@ -2073,6 +2073,30 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     setNotificationsEnabled(false);
                     setAccentColor('blue');
                 }
+                let cancelled = false;
+                (async () => {
+                    try {
+                        const r = await fetch(apiBase() + '/user/preferences', {
+                            headers: authHeaders(),
+                        });
+                        if (!r.ok || cancelled) return;
+                        const body = await r.json();
+                        const p = body && body.preferences ? body.preferences : null;
+                        if (!p || cancelled) return;
+                        setDisplayName(p.display_name || '');
+                        setDefaultMode(p.default_research_mode || 'normal');
+                        setAnswerStyle(p.answer_style || 'balanced');
+                        setRiskProfile(p.risk_profile || 'balanced');
+                        setMarketFocus(p.market_focus || 'US equities');
+                        setSourceStrictness(p.source_strictness || 'balanced');
+                        setMemoryEnabled(p.memory_enabled !== false);
+                        setNotificationsEnabled(p.notifications_enabled === true);
+                        setAccentColor(p.accent_color || 'blue');
+                    } catch (_) {}
+                })();
+                return () => {
+                    cancelled = true;
+                };
             }, [open]);
 
             if (!open) return null;
@@ -2085,9 +2109,21 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                 (payload.user_metadata && payload.user_metadata.email) ||
                 '—';
 
-            const save = () => {
+            const save = async () => {
+                const d = (displayName || '').trim().slice(0, 120);
+                const base = (apiBaseCustom || '').trim().replace(/\/$/, '');
+                const prefsPayload = {
+                    display_name: d,
+                    default_research_mode: defaultMode || 'normal',
+                    answer_style: answerStyle || 'balanced',
+                    risk_profile: riskProfile || 'balanced',
+                    market_focus: (marketFocus || '').trim().slice(0, 80),
+                    source_strictness: sourceStrictness || 'balanced',
+                    memory_enabled: !!memoryEnabled,
+                    notifications_enabled: !!notificationsEnabled,
+                    accent_color: accentColor || 'blue',
+                };
                 try {
-                    const d = (displayName || '').trim().slice(0, 120);
                     if (d) localStorage.setItem('atlas_display_name', d);
                     else localStorage.removeItem('atlas_display_name');
 
@@ -2096,7 +2132,6 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         localStorage.setItem('atlas_query_timeout_ms', String(mins * 60000));
                     }
 
-                    const base = (apiBaseCustom || '').trim().replace(/\/$/, '');
                     if (base) localStorage.setItem('atlas_api_base', base);
                     else localStorage.removeItem('atlas_api_base');
 
@@ -2108,6 +2143,13 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     localStorage.setItem('atlas_memory_enabled', memoryEnabled ? 'true' : 'false');
                     localStorage.setItem('atlas_notifications_enabled', notificationsEnabled ? 'true' : 'false');
                     localStorage.setItem('atlas_accent_color', accentColor || 'blue');
+                } catch (_) {}
+                try {
+                    await fetch(apiBase() + '/user/preferences', {
+                        method: 'PATCH',
+                        headers: authHeaders(),
+                        body: JSON.stringify(prefsPayload),
+                    });
                 } catch (_) {}
                 if (onSaved) onSaved();
                 onClose();
