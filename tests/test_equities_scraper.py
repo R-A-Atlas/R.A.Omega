@@ -56,6 +56,17 @@ def test_equities_scraper_shapes_yahoo_screens(monkeypatch):
     assert [r["ticker"] for r in out["combined"]] == ["ABC", "XYZ", "VOL"]
 
 
+def test_equities_scraper_uses_fallback_when_live_source_empty(monkeypatch):
+    monkeypatch.setattr(equities_scraper, "requests_get_json", lambda *_args, **_kwargs: {})
+
+    out = equities_scraper.scrape(count_per_bucket=5)
+
+    assert out["record_count"] > 0
+    assert out["combined"]
+    assert out["_meta"]["data_quality"] == "fallback"
+    assert any("fallback_used" in w for w in out["_meta"]["warnings"])
+
+
 def test_equities_write_outputs_uses_cache_pair(tmp_path, monkeypatch):
     monkeypatch.setattr(equities_scraper, "DATA_CACHE_DIR", tmp_path)
     stable, stamped = equities_scraper.write_outputs(

@@ -71,6 +71,19 @@ def test_t3_output_schema_valid_when_scraper_built(monkeypatch):
         assert item["volume_oi_ratio"] > 3.0
 
 
+def test_t3_fallback_used_when_cboe_returns_no_rows(monkeypatch):
+    from atlas_agents.trading.options_flow import options_flow_scraper as mod
+
+    monkeypatch.setattr(mod, "requests_get_text", lambda *_args, **_kwargs: "<html></html>")
+
+    result = mod.scrape(top_n=5)
+
+    assert result["record_count"] > 0
+    assert result["unusual_activity"]
+    assert result["_meta"]["data_quality"] == "fallback"
+    assert "fallback_used" in result["_meta"]["warning"]
+
+
 def test_t3_write_outputs_uses_cache_pair(tmp_path, monkeypatch):
     from atlas_agents.trading.options_flow import options_flow_scraper as mod
 

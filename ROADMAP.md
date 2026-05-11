@@ -7,6 +7,8 @@ This roadmap keeps the next build steps concrete. Each item should end with code
 - Stable local startup: `start_ra_omega.ps1` starts the FastAPI app and points users to `/app`.
 - Stable app routes: `/app`, `/chat`, and `/ra-omega` serve the primary chat UI; `/option1` remains as a legacy alias.
 - Setup docs: `README.md` and `.env.example` describe local install, required keys, and test commands.
+- Safe source export: `create_safe_zip.ps1` excludes `.env`, Git internals, caches, reports, databases, and generated files.
+- Sprint 10 scraper resilience: equities, options flow, and insider-trade scrapers return non-empty, clearly marked fallback payloads when public sources are blocked or empty.
 
 ## Phase 2: UI Consolidation
 

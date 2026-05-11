@@ -116,6 +116,19 @@ def test_t4_output_schema_valid_when_scraper_built(monkeypatch):
     assert result["filings"][0]["signal"] == "BULLISH_INSIDER"
 
 
+def test_t4_fallback_used_when_sec_feed_empty(monkeypatch):
+    from atlas_agents.trading.insider_tracker import insider_tracker_scraper as mod
+
+    monkeypatch.setattr(mod, "requests_get_text", lambda *_args, **_kwargs: "")
+    monkeypatch.setattr(mod, "_pace_delay", lambda: 0.0)
+
+    result = mod.scrape(top_n=5)
+
+    assert result["record_count"] > 0
+    assert result["filings"]
+    assert result["filings"][0]["signal"] in {"BULLISH_INSIDER", "BEARISH_INSIDER"}
+
+
 def test_t4_write_outputs_uses_cache_pair(tmp_path, monkeypatch):
     from atlas_agents.trading.insider_tracker import insider_tracker_scraper as mod
 

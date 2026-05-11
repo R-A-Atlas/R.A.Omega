@@ -46,6 +46,7 @@ atlas_pending_deep.json
 dashboard_state.json
 
 # Generated exports and large local artifacts
+*.zip
 *.pdf
 *.docx
 full_codebase.txt

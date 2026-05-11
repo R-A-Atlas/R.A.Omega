@@ -18,6 +18,8 @@ The main local product surface is:
 
 ## Quick Start
 
+Use a normal local code folder such as `C:\Users\crist\Projects\R.A.Omega`. Avoid running the Git working repo directly inside OneDrive/Desktop because OneDrive can prompt about deleting Git's internal object files whenever Git repacks, stages, or cleans its index.
+
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
@@ -84,6 +86,18 @@ Start from `.env.example`. Important variables:
 - `SENDGRID_API_KEY` or SMTP variables for digest email.
 
 Never commit `.env`, keys, local cache folders, database files, generated reports, or exports.
+
+## Safe ZIP Export
+
+Do not use a generic ZIP tool if it shows `.env files included`. `.gitignore` protects Git commits, but it does not force every ZIP tool to exclude secrets.
+
+Create a safe source archive with:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\create_safe_zip.ps1
+```
+
+That script excludes `.env`, `.git`, caches, local databases, reports, generated exports, and existing ZIP files.
 
 ## Main Files
 

@@ -314,7 +314,7 @@ def get_current_user(
     if not atlas_db.is_configured():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
     client = atlas_db.get_supabase_client()
     if not client:
@@ -1348,7 +1348,7 @@ def nl_report_edit(req: ReportEditRequest, user_id: AtlasUserId):
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
     try:
         row = atlas_db.fetch_research_query_row(user_id, req.report_id.strip())
@@ -1627,7 +1627,7 @@ def create_chat_session_api(req: SessionCreateRequest, user_id: AtlasUserId):
         if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
             raise HTTPException(
                 status_code=503,
-                detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+                detail="Supabase is not configured on this server",
             )
     try:
         s = atlas_db.create_chat_session(user_id, title=req.title)
@@ -1645,7 +1645,7 @@ def list_chat_sessions_api(
         if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
             raise HTTPException(
                 status_code=503,
-                detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+                detail="Supabase is not configured on this server",
             )
     return {"sessions": atlas_db.list_chat_sessions(user_id, include_archived=include_archived)}
 
@@ -1660,7 +1660,7 @@ def patch_chat_session_api(
         if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
             raise HTTPException(
                 status_code=503,
-                detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+                detail="Supabase is not configured on this server",
             )
     updated = atlas_db.update_chat_session(
         user_id,
@@ -1680,7 +1680,7 @@ def delete_chat_session_api(session_id: str, user_id: AtlasUserId):
         if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
             raise HTTPException(
                 status_code=503,
-                detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+                detail="Supabase is not configured on this server",
             )
     if not atlas_db.delete_chat_session(user_id, session_id):
         raise HTTPException(404, "Session not found")
@@ -1757,7 +1757,7 @@ def get_positions(user_id: AtlasUserId):
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
     stocks, options = atlas_db.fetch_positions_cache_shapes(user_id)
     return {
@@ -1779,7 +1779,7 @@ def add_position(req: PositionRequest, user_id: AtlasUserId):
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
 
     ticker = req.ticker.upper().strip()
@@ -1843,7 +1843,7 @@ def remove_position(
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
 
     try:
@@ -1877,7 +1877,7 @@ def get_watchlist(user_id: AtlasUserId):
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
     return {"tickers": atlas_db.list_watchlist_tickers(user_id)}
 
@@ -1891,7 +1891,7 @@ def add_to_watchlist(req: WatchlistRequest, user_id: AtlasUserId):
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
     ticker = req.ticker.upper().strip()
     if not ticker:
@@ -1915,7 +1915,7 @@ def remove_from_watchlist(ticker: str, user_id: AtlasUserId):
     if not atlas_db.is_configured() or not atlas_db.get_supabase_client():
         raise HTTPException(
             status_code=503,
-            detail="Supabase is not configured (set SUPABASE_URL and SUPABASE_KEY)",
+            detail="Supabase is not configured on this server",
         )
     try:
         atlas_db.remove_watchlist_ticker(user_id, ticker)

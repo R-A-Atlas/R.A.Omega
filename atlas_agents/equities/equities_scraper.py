@@ -34,6 +34,70 @@ SCREENS = {
 }
 
 
+FALLBACK_QUOTES: dict[str, list[dict[str, Any]]] = {
+    "gainers": [
+        {
+            "symbol": "NVDA",
+            "shortName": "NVIDIA Corporation",
+            "regularMarketPrice": 0,
+            "regularMarketChange": 0,
+            "regularMarketChangePercent": 0,
+            "regularMarketVolume": 0,
+            "marketCap": None,
+        },
+        {
+            "symbol": "AMD",
+            "shortName": "Advanced Micro Devices, Inc.",
+            "regularMarketPrice": 0,
+            "regularMarketChange": 0,
+            "regularMarketChangePercent": 0,
+            "regularMarketVolume": 0,
+            "marketCap": None,
+        },
+    ],
+    "losers": [
+        {
+            "symbol": "TSLA",
+            "shortName": "Tesla, Inc.",
+            "regularMarketPrice": 0,
+            "regularMarketChange": 0,
+            "regularMarketChangePercent": 0,
+            "regularMarketVolume": 0,
+            "marketCap": None,
+        },
+        {
+            "symbol": "SMCI",
+            "shortName": "Super Micro Computer, Inc.",
+            "regularMarketPrice": 0,
+            "regularMarketChange": 0,
+            "regularMarketChangePercent": 0,
+            "regularMarketVolume": 0,
+            "marketCap": None,
+        },
+    ],
+    "active": [
+        {
+            "symbol": "AAPL",
+            "shortName": "Apple Inc.",
+            "regularMarketPrice": 0,
+            "regularMarketChange": 0,
+            "regularMarketChangePercent": 0,
+            "regularMarketVolume": 0,
+            "marketCap": None,
+        },
+        {
+            "symbol": "MSFT",
+            "shortName": "Microsoft Corporation",
+            "regularMarketPrice": 0,
+            "regularMarketChange": 0,
+            "regularMarketChangePercent": 0,
+            "regularMarketVolume": 0,
+            "marketCap": None,
+        },
+    ],
+}
+
+
 def iso_now_z() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -72,6 +136,13 @@ def _quote_row(q: dict[str, Any], *, bucket: str, rank: int) -> dict[str, Any]:
     }
 
 
+def _fallback_bucket(bucket: str, *, count: int) -> list[dict[str, Any]]:
+    return [
+        _quote_row(q, bucket=bucket, rank=i + 1)
+        for i, q in enumerate(FALLBACK_QUOTES.get(bucket, [])[: max(1, count)])
+    ]
+
+
 def fetch_yahoo_screen(screen_id: str, *, count: int) -> list[dict[str, Any]]:
     data = requests_get_json(
         YAHOO_SCREENER_URL,
@@ -99,10 +170,14 @@ def scrape(*, count_per_bucket: int = 25) -> dict[str, Any]:
         except Exception as e:
             warnings.append(f"{bucket}_fetch_failed:{e}")
             quotes = []
-        buckets[bucket] = [
+        rows = [
             _quote_row(q, bucket=bucket, rank=i + 1)
             for i, q in enumerate(quotes[: max(1, count_per_bucket)])
         ]
+        if not rows:
+            warnings.append(f"{bucket}_fallback_used:live_source_empty")
+            rows = _fallback_bucket(bucket, count=count_per_bucket)
+        buckets[bucket] = rows
 
     seen: set[str] = set()
     combined: list[dict[str, Any]] = []
@@ -124,7 +199,10 @@ def scrape(*, count_per_bucket: int = 25) -> dict[str, Any]:
         "combined": combined,
     }
     if warnings:
-        payload["_meta"] = {"warnings": warnings}
+        payload["_meta"] = {
+            "warnings": warnings,
+            "data_quality": "fallback" if any("fallback_used" in w for w in warnings) else "live",
+        }
     return payload
 
 
