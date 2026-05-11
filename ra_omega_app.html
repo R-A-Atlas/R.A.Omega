@@ -1819,6 +1819,67 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             );
         };
 
+        const ResearchActivityPanel = ({ activity, decision, active }) => {
+            if (!activity && !decision && !active) return null;
+            const route = (activity && activity.route_band) || (decision && decision.route_band) || 'research';
+            const plan = Array.isArray(activity && activity.plan) ? activity.plan : [];
+            const events = Array.isArray(activity && activity.events) ? activity.events : [];
+            const sources = Array.isArray(activity && activity.sources) ? activity.sources : [];
+            const pct = activity && Number.isFinite(Number(activity.progress_pct)) ? Math.max(0, Math.min(100, Number(activity.progress_pct))) : active ? 35 : 100;
+            const label = route.replace(/_/g, ' ');
+            return (
+                <div className="rounded-xl border border-borderSubtle bg-base/45 p-4">
+                    <div className="flex items-center justify-between gap-3 mb-3">
+                        <div>
+                            <div className="text-[10px] font-mono uppercase tracking-[0.22em] text-accent-indigo">Research activity</div>
+                            <div className="mt-1 text-sm font-medium capitalize text-textMain">{label}</div>
+                        </div>
+                        <span className="text-[10px] font-mono rounded border border-borderSubtle px-2 py-1 text-textMuted">
+                            {active ? 'running' : activity?.status || 'ready'}
+                        </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-surfaceHover overflow-hidden mb-3">
+                        <div className="h-full rounded-full bg-accent-indigo" style={{ width: `${pct}%` }} />
+                    </div>
+                    {activity?.current_message && (
+                        <p className="text-[11px] leading-relaxed text-textMuted mb-3">{activity.current_message}</p>
+                    )}
+                    {plan.length > 0 && (
+                        <div className="space-y-2 mb-3">
+                            {plan.slice(0, 5).map((step) => (
+                                <div key={step.id || step.title} className="flex items-start gap-2 text-[11px]">
+                                    <span className={
+                                        'mt-0.5 h-2 w-2 rounded-full shrink-0 ' +
+                                        (step.status === 'done' ? 'bg-accent-emerald' : step.status === 'doing' ? 'bg-amber-400' : 'bg-textMuted/35')
+                                    } />
+                                    <span className="text-textMain/85 leading-snug">{step.title}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {events.length > 0 && (
+                        <div className="space-y-2 border-t border-borderSubtle pt-3">
+                            {events.slice(0, 4).map((evt) => (
+                                <div key={evt.id || evt.title} className="text-[11px] leading-relaxed">
+                                    <div className="font-medium text-textMain/90">{evt.title}</div>
+                                    {evt.body && <div className="text-textMuted">{evt.body}</div>}
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {sources.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                            {sources.slice(0, 8).map((src) => (
+                                <span key={src} className="rounded border border-borderSubtle bg-surface/60 px-2 py-0.5 text-[10px] font-mono text-textMuted">
+                                    {src}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         /** Rebuild POST /query envelope from DB row (result_json is flattened final_report + _parsed_query + _timing). */
         function normalizeStoredReportToEnvelope(queryText, stored) {
             const r = stored && typeof stored === 'object' ? { ...stored } : {};
@@ -1889,6 +1950,48 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             return isPlainChatResponse(data)
                 ? { content: formatQueryResponse(data) }
                 : { content: formatQueryResponse(data), rawData: data };
+        }
+
+        function buildPendingResearchActivity(query, mode) {
+            const route = mode === 'deep' ? 'deep_research' : mode === 'web' ? 'market_snapshot' : 'focused_analysis';
+            const plan = route === 'deep_research'
+                ? [
+                    { id: 'plan', title: 'Build a decision-grade research plan', status: 'done' },
+                    { id: 'gather', title: 'Gather market, cache, RAG, and source evidence', status: 'doing' },
+                    { id: 'verify', title: 'Verify conflicts, freshness, and missing evidence', status: 'todo' },
+                    { id: 'synthesize', title: 'Compile final report, sources, and artifacts', status: 'todo' },
+                ]
+                : [
+                    { id: 'scope', title: 'Identify the requested finance scope', status: 'done' },
+                    { id: 'evidence', title: 'Check available evidence and freshness', status: 'doing' },
+                    { id: 'answer', title: 'Return the right-sized answer', status: 'todo' },
+                ];
+            return {
+                status: 'in_progress',
+                route_band: route,
+                progress_pct: route === 'deep_research' ? 18 : 40,
+                current_stage: 'Preparing research',
+                current_message: 'Visible activity shows plan steps and evidence checks, not hidden reasoning.',
+                search_count: 0,
+                query,
+                plan,
+                events: [
+                    {
+                        id: 'pending_1',
+                        kind: 'analysis_summary',
+                        title: 'Research route selected',
+                        body: route === 'deep_research'
+                            ? 'Deep research is active because the user selected the full research lane.'
+                            : 'A lighter research lane is active to verify the answer without overbuilding.',
+                        sources: [],
+                        status: 'done',
+                    },
+                ],
+                sources: route === 'deep_research'
+                    ? ['data_cache', 'RAG', 'market_tools', 'filings', 'web_sources']
+                    : ['data_cache', 'market_tools'],
+                artifacts: [],
+            };
         }
 
         if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout !== 'function') {
@@ -2281,6 +2384,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const [loopStepBySession, setLoopStepBySession] = useState({});
             const [lastTotalsBySession, setLastTotalsBySession] = useState({});
             const [processingBySession, setProcessingBySession] = useState({});
+            const [researchActivityBySession, setResearchActivityBySession] = useState({});
 
             const [sessions, setSessions] = useState([]);
             const [activeSessionId, setActiveSessionId] = useState(() => {
@@ -2554,6 +2658,11 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                             delete n[String(id)];
                             return n;
                         });
+                        setResearchActivityBySession((prev) => {
+                            const n = { ...prev };
+                            delete n[String(id)];
+                            return n;
+                        });
                         await loadSessions();
                     }
                 } catch (_) {}
@@ -2736,6 +2845,12 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                     const form = new FormData();
                     const activeMode = researchMode || 'normal';
+                    if (activeMode === 'deep' || activeMode === 'web') {
+                        setResearchActivityBySession((prev) => ({
+                            ...prev,
+                            [sid]: buildPendingResearchActivity('Voice query', activeMode),
+                        }));
+                    }
                     form.append('audio', blob, 'recording.webm');
                     form.append('session_id', sid);
                     form.append('research_mode', activeMode);
@@ -2806,10 +2921,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 v: typeof v === 'number' ? v + 's' : String(v),
                             }))
                             .slice(0, 16);
-                        const src = countDataSources(data.loop_outputs);
-                        setLastTotalsBySession((prev) => ({
+                    const src = countDataSources(data.loop_outputs);
+                    if (data && data._research_activity) {
+                        setResearchActivityBySession((prev) => ({
                             ...prev,
-                            [sid]: {
+                            [sid]: data._research_activity,
+                        }));
+                    }
+                    setLastTotalsBySession((prev) => ({
+                        ...prev,
+                        [sid]: {
                                 sources: src != null ? String(src) : '—',
                                 costStr: estimateGeminiUsd(timing),
                                 totalS: timing.total != null ? String(timing.total) + 's' : '—',
@@ -2984,6 +3105,12 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                 setToolsOpen(false);
                 const activeMode = researchMode || 'normal';
+                if (activeMode === 'deep' || activeMode === 'web') {
+                    setResearchActivityBySession((prev) => ({
+                        ...prev,
+                        [sid]: buildPendingResearchActivity(q, activeMode),
+                    }));
+                }
                 const queryBody = {
                     query: q,
                     session_id: sid,
@@ -3043,6 +3170,12 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         }))
                         .slice(0, 16);
                     const src = countDataSources(data.loop_outputs);
+                    if (data && data._research_activity) {
+                        setResearchActivityBySession((prev) => ({
+                            ...prev,
+                            [sid]: data._research_activity,
+                        }));
+                    }
                     setLastTotalsBySession((prev) => ({
                         ...prev,
                         [sid]: {
@@ -3118,6 +3251,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const liveSources =
                 activeIsProcessing ? String(Math.min(8, 6 + Math.min(loopStepIdx, 3))) : lastTotals.sources || '—';
             const liveCost = activeIsProcessing ? '~$0.008 (est.)' : lastTotals.costStr;
+
+            const lastResearchMeta = useMemo(() => {
+                const real = [...logs].reverse().find((m) => m && m.rawData && !isPlainChatResponse(m.rawData));
+                const raw = real && real.rawData ? real.rawData : null;
+                const pending = activeSessionId ? researchActivityBySession[String(activeSessionId)] : null;
+                return {
+                    activity: pending || (raw && raw._research_activity ? raw._research_activity : null),
+                    decision: raw && raw._route_decision ? raw._route_decision : null,
+                };
+            }, [logs, activeSessionId, researchActivityBySession]);
 
             const activeSession = sessions.find((s) => String(s.id) === String(activeSessionId));
             const headerChatTitle = activeSession?.title || (activeSessionId ? 'Chat' : 'New chat');
@@ -3431,6 +3574,13 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                             <span className="text-sm font-medium text-textMain">R.A. Omega</span>
                                             <span className="text-[14px] text-textMain/95 leading-snug">{liveLoopLine}</span>
                                             <span className="text-[12px] font-mono text-textMuted">Advances about every 10s while the engine cross-checks data, risk, and execution context.</span>
+                                            <div className="mt-3 xl:hidden">
+                                                <ResearchActivityPanel
+                                                    activity={lastResearchMeta.activity}
+                                                    decision={lastResearchMeta.decision}
+                                                    active={!!activeIsProcessing && researchMode === 'deep'}
+                                                />
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -3572,6 +3722,11 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         </div>
 
                         <div className="space-y-5 flex-1 overflow-y-auto min-h-0">
+                            <ResearchActivityPanel
+                                activity={lastResearchMeta.activity}
+                                decision={lastResearchMeta.decision}
+                                active={!!activeIsProcessing && researchMode === 'deep'}
+                            />
                             <div>
                                 <h3 className="text-xs font-semibold text-textMain mb-2 flex items-center gap-2">
                                     <Icon name="Activity" size={14} className="text-textMuted" /> Live progress

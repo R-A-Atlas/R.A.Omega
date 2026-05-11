@@ -85,6 +85,19 @@ def test_e4_fast_chat_renders_plain_text():
     assert "loops === 0" in content, "zero-loop fast chat not recognized"
 
 
+def test_e4_research_activity_panel_present():
+    """Research lanes expose visible plan/activity summaries without rendering hidden reasoning."""
+    content = APP_HTML.read_text(encoding="utf-8")
+    assert "const ResearchActivityPanel" in content, "research activity panel missing"
+    assert "_research_activity" in content, "research activity payload not consumed"
+    assert "_route_decision" in content, "route decision metadata not consumed"
+    assert "buildPendingResearchActivity" in content, "pending research plan not shown while running"
+    assert "researchActivityBySession" in content, "research activity session state missing"
+    assert "Research activity" in content, "research activity label missing"
+    assert "current_message" in content, "activity current message missing"
+    assert "xl:hidden" in content, "research activity should be visible outside wide desktop side panel"
+
+
 def test_e4_backend_files_not_referenced_as_editable():
     """AGENT_PROMPT.md explicitly marks backend Python files as off-limits."""
     p = (

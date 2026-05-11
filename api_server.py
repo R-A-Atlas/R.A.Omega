@@ -106,6 +106,7 @@ ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 sys.path.insert(0, str(BASE_DIR))
 
 import atlas_db  # noqa: E402
+from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 
 try:
     from gemini_limiter import is_rate_limit_error
@@ -612,11 +613,12 @@ def _maybe_fast_chat_shaped(
     q_store: str,
     req: "QueryRequest",
     start: float,
+    route_decision: Optional[RouteDecision] = None,
 ) -> Optional[dict]:
     mode = getattr(req, "research_mode", "normal") or "normal"
     if getattr(req, "crypto_snapshot", False):
         return None
-    if mode == "deep":
+    if mode == "deep" or (route_decision and route_decision.route_band == "deep_research"):
         return None
     reply = _conversational_reply_text(q_store, getattr(req, "user_display_name", None))
     if not reply:
@@ -659,8 +661,102 @@ def _maybe_fast_chat_shaped(
             "market_focus": getattr(req, "market_focus", None),
         },
     }
+    if route_decision is not None:
+        shaped["_route_decision"] = route_decision.to_dict()
     log.info("[/query] fast chat reply (%d chars)", len(q_store))
     return _ensure_query_ui_envelope(shaped, q_store)
+
+
+def _build_research_activity_payload(query: str, route_decision: RouteDecision) -> dict:
+    """Visible research plan/activity summaries. No hidden chain-of-thought."""
+    route = route_decision.route_band
+    if route == "quick_chat":
+        return {}
+    plan_by_route = {
+        "market_snapshot": [
+            ("scope", "Identify the market/entity snapshot requested"),
+            ("cache", "Check fresh cached market and macro data"),
+            ("answer", "Return a compact answer with visuals only if useful"),
+        ],
+        "focused_analysis": [
+            ("scope", "Classify tickers, timeframe, and decision context"),
+            ("evidence", "Gather cache/RAG/market evidence and note missing slots"),
+            ("risk", "Check catalysts, levels, scenarios, and failure modes"),
+            ("answer", "Shape a focused finance memo"),
+        ],
+        "deep_research": [
+            ("plan", "Build a decision-grade research plan"),
+            ("gather", "Gather cached and live evidence across relevant finance sources"),
+            ("verify", "Cross-check conflicts, freshness, and missing evidence"),
+            ("synthesize", "Compile the final cited report and artifacts"),
+        ],
+        "compliance_escalation": [
+            ("scope", "Identify the regulated or advice-sensitive part of the request"),
+            ("policy", "Apply finance safety and disclosure policy"),
+            ("answer", "Return research framing, safer alternatives, or refusal where required"),
+        ],
+    }
+    events_by_route = {
+        "market_snapshot": [
+            ("analysis_summary", "Choosing market snapshot mode", "The request appears answerable with a small evidence budget."),
+            ("search_batch", "Checking market context", "Using cached prices, regime, breadth, and relevant data feeds where available."),
+        ],
+        "focused_analysis": [
+            ("analysis_summary", "Choosing focused analysis", "The request needs finance reasoning, but not a full background research job."),
+            ("verification", "Checking evidence quality", "The response should expose risks, assumptions, and missing data rather than overstate certainty."),
+        ],
+        "deep_research": [
+            ("analysis_summary", "Choosing deep research", "The request was explicitly routed to the full research lane."),
+            ("search_batch", "Planning evidence gathering", "The job should use multiple source categories and preserve an activity trail."),
+            ("verification", "Preparing report verification", "The final answer should separate evidence, assumptions, risks, and action boundaries."),
+        ],
+        "compliance_escalation": [
+            ("analysis_summary", "Compliance review triggered", "The request may involve personalized advice, guarantees, or regulated finance context."),
+            ("verification", "Constraining output", "The response should avoid prohibited advice and keep an auditable research frame."),
+        ],
+    }
+    plan = [
+        {"id": key, "title": title, "status": "todo"}
+        for key, title in plan_by_route.get(route, [])
+    ]
+    for idx, item in enumerate(plan):
+        if route in {"market_snapshot", "focused_analysis", "compliance_escalation"} and idx < len(plan) - 1:
+            item["status"] = "done"
+        elif route == "deep_research" and idx == 0:
+            item["status"] = "done"
+        elif idx == 1:
+            item["status"] = "doing"
+
+    events = [
+        {
+            "id": f"evt_{idx + 1}",
+            "kind": kind,
+            "title": title,
+            "body": body,
+            "sources": [],
+            "status": "done" if route != "deep_research" or idx == 0 else "queued",
+        }
+        for idx, (kind, title, body) in enumerate(events_by_route.get(route, []))
+    ]
+    source_chips = {
+        "market_snapshot": ["data_cache", "market_regime"],
+        "focused_analysis": ["data_cache", "RAG", "market_tools"],
+        "deep_research": ["data_cache", "RAG", "market_tools", "filings", "web_sources"],
+        "compliance_escalation": ["policy", "audit_log"],
+    }.get(route, [])
+    return {
+        "status": "completed",
+        "route_band": route,
+        "progress_pct": 100 if route != "deep_research" else 35,
+        "current_stage": "Research plan and activity trail prepared",
+        "current_message": "Showing the visible research plan and activity summaries, not hidden reasoning.",
+        "search_count": min(route_decision.tool_budget * 4, 40),
+        "query": query,
+        "plan": plan,
+        "events": events,
+        "sources": source_chips,
+        "artifacts": [],
+    }
 
 
 def _finalize_query_response(
@@ -905,6 +1001,11 @@ def dispatch_query_request(
     q_store = req.query.strip()
     route_input = q_store
     mode = getattr(req, "research_mode", "normal") or "normal"
+    route_decision = decide_route(
+        q_store,
+        forced_mode=mode,
+        web_search=bool(getattr(req, "web_search", False)),
+    )
     if req.user_display_name and str(req.user_display_name).strip():
         nick = str(req.user_display_name).strip()[:120]
         route_input = (
@@ -930,6 +1031,13 @@ def dispatch_query_request(
         request_hints.append(f"User risk profile: {str(req.risk_profile).strip()[:40]}.")
     if req.market_focus:
         request_hints.append(f"Market focus: {str(req.market_focus).strip()[:80]}.")
+    request_hints.append(
+        "Route decision: "
+        f"{route_decision.route_band} "
+        f"(deep_score={route_decision.deep_score:.2f}, tool_budget={route_decision.tool_budget}, output={route_decision.output_shape})."
+    )
+    if route_decision.compliance_flags:
+        request_hints.append("Compliance flags: " + ", ".join(route_decision.compliance_flags) + ".")
     if request_hints:
         route_input = "[Request controls]\n- " + "\n- ".join(request_hints) + f"\n\n{route_input}"
 
@@ -941,7 +1049,7 @@ def dispatch_query_request(
     log.info("[/query] %s", q_store[:100])
 
     try:
-        fast = _maybe_fast_chat_shaped(router, q_store, req, start)
+        fast = _maybe_fast_chat_shaped(router, q_store, req, start, route_decision)
         if fast is not None:
             return _finalize_query_response(
                 fast, req, user_id, background_tasks, q_store, start
@@ -961,6 +1069,10 @@ def dispatch_query_request(
             "risk_profile": req.risk_profile,
             "market_focus": req.market_focus,
         }
+        shaped["_route_decision"] = route_decision.to_dict()
+        activity = _build_research_activity_payload(q_store, route_decision)
+        if activity:
+            shaped["_research_activity"] = activity
         return _finalize_query_response(
             shaped, req, user_id, background_tasks, q_store, start
         )

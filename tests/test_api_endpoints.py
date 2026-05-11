@@ -246,6 +246,7 @@ def test_post_query_dispatches_router_and_returns_ui_payload(
     assert body["parsed_query"]["query_type"] == "MARKET_DEEP_DIVE"
     assert body["final_report"]["ticker"] == "NVDA"
     assert body["tldr"] == "NVDA remains constructive above support."
+    assert body["_route_decision"]["route_band"] == "focused_analysis"
 
 
 def test_post_query_accepts_research_controls(
@@ -278,8 +279,12 @@ def test_post_query_accepts_research_controls(
     body = r.json()
     assert body["_request_controls"]["research_mode"] == "deep"
     assert body["_request_controls"]["web_search"] is True
+    assert body["_route_decision"]["route_band"] == "deep_research"
+    assert body["_research_activity"]["route_band"] == "deep_research"
+    assert body["_research_activity"]["plan"]
     assert calls
     assert "Research mode: DEEP" in calls[0]["query"]
+    assert "Route decision: deep_research" in calls[0]["query"]
     assert "Answer style: desk." in calls[0]["query"]
     assert "hi" in calls[0]["query"]
 
