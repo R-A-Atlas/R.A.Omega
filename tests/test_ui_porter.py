@@ -72,6 +72,19 @@ def test_e4_chat_modes_and_settings_present():
     assert "atlas_risk_profile" in content, "risk profile personalization missing"
 
 
+def test_e4_fast_chat_renders_plain_text():
+    """Conversation/zero-loop replies must not render through report cards."""
+    content = APP_HTML.read_text(encoding="utf-8")
+    assert "function isPlainChatResponse" in content, "plain chat detector missing"
+    assert "function logFromQueryResponse" in content, "response log shaper missing"
+    assert "log.rawData && !isPlainChatResponse(log.rawData)" in content, (
+        "fast chat should bypass StructuredResponse"
+    )
+    assert "if (isPlainChatResponse(data))" in content, "plain chat formatter should dedupe response text"
+    assert "pq.intent_route === 'CONVERSATION'" in content, "conversation route not recognized"
+    assert "loops === 0" in content, "zero-loop fast chat not recognized"
+
+
 def test_e4_backend_files_not_referenced_as_editable():
     """AGENT_PROMPT.md explicitly marks backend Python files as off-limits."""
     p = (

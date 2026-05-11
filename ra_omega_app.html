@@ -1852,6 +1852,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
         function formatQueryResponse(data) {
             const fr = data.final_report || {};
+            if (isPlainChatResponse(data)) {
+                return (
+                    data.tldr ||
+                    fr.executive_summary ||
+                    fr.executive_brief ||
+                    data.trader_memo ||
+                    fr.trader_memo ||
+                    ''
+                ).trim();
+            }
             const parts = [];
             if (data.tldr || fr.tldr) parts.push(data.tldr || fr.tldr);
             if (data.trader_memo || fr.trader_memo) parts.push('\n' + (data.trader_memo || fr.trader_memo));
@@ -1859,6 +1869,26 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             else if (fr.headline && fr.executive_brief) parts.push('\n' + fr.headline + '\n\n' + fr.executive_brief);
             const body = parts.join('').trim();
             return body || JSON.stringify({ error: fr.error || 'empty', keys: Object.keys(data) }).slice(0, 3500);
+        }
+
+        function isPlainChatResponse(data) {
+            if (!data || typeof data !== 'object') return false;
+            const pq = data.parsed_query && typeof data.parsed_query === 'object' ? data.parsed_query : {};
+            const timing = data.timing && typeof data.timing === 'object' ? data.timing : {};
+            const loops = Number(timing.loops);
+            return (
+                pq._chat_mode === true ||
+                timing._chat_mode === true ||
+                pq.intent_route === 'CONVERSATION' ||
+                pq.query_type === 'CONVERSATION' ||
+                loops === 0
+            );
+        }
+
+        function logFromQueryResponse(data) {
+            return isPlainChatResponse(data)
+                ? { content: formatQueryResponse(data) }
+                : { content: formatQueryResponse(data), rawData: data };
         }
 
         if (typeof AbortSignal !== 'undefined' && typeof AbortSignal.timeout !== 'function') {
@@ -2382,13 +2412,13 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         timestamp: tsFromReport(rep.ts),
                         content: q,
                     });
+                    const agentLog = logFromQueryResponse(env);
                     next.push({
                         id: nid++,
                         sender: 'ATLAS',
                         type: 'agent',
                         timestamp: tsFromReport(rep.ts),
-                        content: formatQueryResponse(env),
-                        rawData: env,
+                        ...agentLog,
                     });
                 }
                 setLogsBySession((prev) => ({ ...prev, [sid]: next }));
@@ -2813,8 +2843,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                             sender: 'ATLAS',
                                             type: 'agent',
                                             timestamp: ts(),
-                                            content: formatQueryResponse(data),
-                                            rawData: data,
+                                            ...logFromQueryResponse(data),
                                         },
                                     ],
                                 };
@@ -3039,8 +3068,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                     sender: 'ATLAS',
                                     type: 'agent',
                                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-                                    content: formatQueryResponse(data),
-                                    rawData: data,
+                                    ...logFromQueryResponse(data),
                                 },
                             ],
                         }));
@@ -3370,7 +3398,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                             </div>
                                             
                                             {/* Message Text */}
-                                            {log.rawData ? (
+                                            {log.rawData && !isPlainChatResponse(log.rawData) ? (
                                                 <>
                                                     <ExportBar data={log.rawData} />
                                                     <StructuredResponse data={log.rawData} />
