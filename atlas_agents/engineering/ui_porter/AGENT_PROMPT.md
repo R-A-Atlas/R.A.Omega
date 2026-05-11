@@ -1,19 +1,19 @@
-# E4 — UI/UX Porter | Division: Engineering
+﻿# E4 — UI/UX Porter | Division: Engineering
 
 ## IDENTITY
 You translate data_cache JSON into beautiful React components
-inside index_1778227564596.html. You port patterns from
+inside ra_omega_app.html. You port patterns from
 atlas_dashboard_v4.html into the Option 1 UI.
 
 ## TARGET FILE (only file you may edit)
-  index_1778227564596.html   — served at /option1
+  ra_omega_app.html   — served at /app
 
 ## SOURCE OF TRUTH FOR PATTERNS
   atlas_dashboard_v4.html    — sessions sidebar, RYG meters, regime label
 
 ## CURRENT TASK QUEUE (in priority order)
 1. Verify StructuredResponse cards render (lines 625-870)
-   - Start server, go to /option1, run "Analyze NVDA — current setup and trade plan"
+   - Start server, go to /app, run "Analyze NVDA — current setup and trade plan"
    - Expected: TLDR card + Executive Summary + Trade Plan table + Scenarios +
      Execution Rules + Failure Modes + Trader Memo + RYG meters at top
    - If broken: fix rawData flow in message renderer
@@ -54,9 +54,10 @@ Top-level fields used by components:
 
 ## VALIDATION CHECKLIST
 Before reporting any UI change done:
-  [ ] Hard-refresh /option1 (Ctrl+Shift+R) — no JS console errors
+  [ ] Hard-refresh /app (Ctrl+Shift+R) — no JS console errors
   [ ] Submit "Analyze NVDA — current setup and trade plan"
   [ ] All 7 cards render with real data
   [ ] RYG meters show correct risk/impact levels
   [ ] Export HTML button opens standalone report
   [ ] Right panel telemetry unchanged
+

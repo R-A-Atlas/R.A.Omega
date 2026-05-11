@@ -1,4 +1,4 @@
-# ATLAS AGENT SWARM — COMPLETE MASTER SETUP
+﻿# ATLAS AGENT SWARM — COMPLETE MASTER SETUP
 # 70 Agents | 9 Phases | Full Blueprint
 #
 # HOW TO USE:
@@ -153,7 +153,7 @@ with auth, rate limiting, and error handling built in.
 ### E4 — The UI/UX Porter
 Role: Translates JSON outputs into Tailwind CSS/React dashboard components.
 Directory: atlas_agents/engineering/ui_porter/
-Owns: Components within index_1778227564596.html only
+Owns: Components within ra_omega_app.html only
 Cannot touch: query_router.py, atlas_omega.py, api_server.py backend logic
 
 AGENT_PROMPT.md:
@@ -162,7 +162,7 @@ AGENT_PROMPT.md:
 
 ## IDENTITY
 You translate data_cache JSON into beautiful React components
-inside index_1778227564596.html. You port patterns from
+inside ra_omega_app.html. You port patterns from
 atlas_dashboard_v4.html into the Option 1 UI.
 
 ## CURRENT TASKS IN ORDER
@@ -187,7 +187,7 @@ Port UI patterns from atlas_dashboard_v4.html into Option 1.
 Translate JSON schema into React component props.
 ## [B] Blueprints
 Source: atlas_dashboard_v4.html (sessions sidebar, RYG meters)
-Target: index_1778227564596.html
+Target: ra_omega_app.html
 Schema: See Section 7 of CLAUDE.md for full API response shape
 ## [S] Solutions
 Test: Hard refresh browser + run "Analyze NVDA" + screenshot
@@ -849,3 +849,4 @@ FINAL STEP:
   - Create atlas_agents/AGENT_REGISTRY.md with all 70 agents listed
 
 After every phase: report what was created, then wait for "continue".
+

@@ -1,4 +1,4 @@
-# ATLAS Agent Registry
+﻿# ATLAS Agent Registry
 # Last Updated: 2026-05-09 (Swarm Builder Division 0 pass)
 # Total Agents: 115 | Built: 22 | Pending: 93
 
@@ -9,7 +9,7 @@
 | E1 | Skill Scripter | atlas_agents/engineering/skill_scripter/ | atlas_vault/02-Wiki/Skills/ | BUILT |
 | E2 | Refactorer DRY Agent | atlas_agents/engineering/refactorer/ | atlas_core/utils/agent_utils.py | BUILT+VERIFIED |
 | E3 | API Integrator | atlas_agents/engineering/api_integrator/ | atlas_core/connectors/ | BUILT |
-| E4 | UI UX Porter | atlas_agents/engineering/ui_porter/ | index_1778227564596.html | BUILT |
+| E4 | UI UX Porter | atlas_agents/engineering/ui_porter/ | ra_omega_app.html | BUILT |
 | E5 | DB Architect | atlas_agents/engineering/db_architect/ | schema.sql | BUILT |
 | E6 | Red Teamer | atlas_agents/engineering/red_teamer/ | tests/security/ | BUILT |
 | E7 | Unit Tester | atlas_agents/engineering/unit_tester/ | tests/ | BUILT+VERIFIED |
@@ -179,3 +179,4 @@
 | CR5 | Local Syntax Checker | atlas_agents/compute/local_syntax/ | CLEAN or error list | PENDING |
 | CR6 | Local Documentation Writer | atlas_agents/compute/local_docs/ | Docstrings and README files | PENDING |
 | CR7 | Local Test Runner | atlas_agents/compute/local_test_runner/ | test_results_*.json | PENDING |
+

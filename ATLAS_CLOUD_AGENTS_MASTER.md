@@ -1,4 +1,4 @@
-# ATLAS CLOUD AGENT PROMPTS
+﻿# ATLAS CLOUD AGENT PROMPTS
 Copy and paste these into Cursor's Agent Builder.
 
 
@@ -67,5 +67,6 @@ AESTHETIC & TONAL RULES:
 2. The Voice: Casual, direct, authoritative. No poetic or "storybook" AI language. Cut the corporate jargon.
 
 EVERY SESSION:
-Audit UI files (like index_1778227564596.html) or marketing copy. If it violates the rules, output the exact code/text replacement to fix it.
+Audit UI files (like ra_omega_app.html) or marketing copy. If it violates the rules, output the exact code/text replacement to fix it.
 ════════════════════════════════════════
+

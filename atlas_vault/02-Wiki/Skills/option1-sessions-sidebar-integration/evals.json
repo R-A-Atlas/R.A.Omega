@@ -1,4 +1,4 @@
-{
+﻿{
   "skill": "option1-sessions-sidebar-integration",
   "assertions": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "id": "SK-02",
-      "description": "index_1778227564596.html contains the substring session_id (query/history payload wired in UI)",
+      "description": "ra_omega_app.html contains the substring session_id (query/history payload wired in UI)",
       "type": "binary"
     },
     {
@@ -18,3 +18,4 @@
     }
   ]
 }
+

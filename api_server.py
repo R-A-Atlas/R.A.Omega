@@ -101,7 +101,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ATLAS_DIR = BASE_DIR
 ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"
 ATLAS_DASHBOARD_V2 = ATLAS_DIR / "atlas_dashboard_v2.html"
-ATLAS_OPTION1_CHAT = ATLAS_DIR / "index_1778227564596.html"
+RA_OMEGA_APP = ATLAS_DIR / "ra_omega_app.html"
 ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 sys.path.insert(0, str(BASE_DIR))
 
@@ -1196,12 +1196,12 @@ def serve_dashboard_v4():
 @app.get("/atlas_option1.html")
 def serve_atlas_option1_chat():
     """Main R.A. Omega chat UI - same origin as API for POST /query and /omega."""
-    if not ATLAS_OPTION1_CHAT.is_file():
+    if not RA_OMEGA_APP.is_file():
         raise HTTPException(
             status_code=404,
-            detail="Missing index_1778227564596.html next to api_server.py",
+            detail="Missing ra_omega_app.html next to api_server.py",
         )
-    return FileResponse(ATLAS_OPTION1_CHAT, media_type="text/html; charset=utf-8")
+    return FileResponse(RA_OMEGA_APP, media_type="text/html; charset=utf-8")
 
 
 @app.get("/atlas_dashboard_v2.html")

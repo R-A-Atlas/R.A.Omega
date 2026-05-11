@@ -102,7 +102,7 @@ That script excludes `.env`, `.git`, caches, local databases, reports, generated
 ## Main Files
 
 - `api_server.py` - FastAPI app, API endpoints, auth dependency, UI routes.
-- `index_1778227564596.html` - primary R.A. Omega chat UI, served at `/app` with `/option1` kept as a legacy alias.
+- `ra_omega_app.html` - primary R.A. Omega chat UI, served at `/app` with `/option1` kept as a legacy alias.
 - `atlas_omega.py` - core Omega financial assistant logic.
 - `query_router.py` - routing layer for finance queries.
 - `atlas_agents/` - agent prompts and modules by domain.
@@ -114,7 +114,7 @@ That script excludes `.env`, `.git`, caches, local databases, reports, generated
 
 See `ROADMAP.md` for the full implementation sequence.
 
-1. Consolidate the primary UI into a stable filename, such as `ra_omega_app.html`, after updating the tests and routes that still reference the current filename.
+1. Archive or remove obsolete dashboard prototypes after confirming which historical views are still useful.
 2. Add a single app config layer for model/provider settings instead of spreading provider behavior across scripts.
 3. Complete voice input UX: recording state, transcript preview, send/cancel behavior, and graceful errors when `OPENAI_API_KEY` is missing.
 4. Tighten hosted auth/session flow with Supabase and keep `ATLAS_DISABLE_AUTH=true` local-only.

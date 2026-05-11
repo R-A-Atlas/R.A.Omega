@@ -1,4 +1,4 @@
-# ATLAS — MASTER GUIDE (Agentic OS + Engineering SOT)
+﻿# ATLAS — MASTER GUIDE (Agentic OS + Engineering SOT)
 # Read this ENTIRE file before touching any code.
 # This is the single source of truth for every session.
 #
@@ -58,7 +58,7 @@ Intent router (NEW):
 
 ## 4. HOW TO START THE SERVER
 
-  cd "C:\Users\crist\OneDrive\Desktop\trading platform overview"
+  cd "C:\Users\crist\Projects\R.A.Omega"
   uvicorn api_server:app --host 127.0.0.1 --port 8000
 
 Wait for: INFO: Application startup complete.
@@ -96,7 +96,7 @@ URLs:
 ### ACTIVE FRONTEND
   index_1778228972988.html      Zenith 3D landing. Served at /.
   auth.html                     Sign In + Create Account. Served at /auth.
-  index_1778227564596.html      Main app UI (Option 1). Served at /option1.
+  ra_omega_app.html      Main app UI (Option 1). Served at /app.
   atlas_dashboard_v4.html       Old dashboard. Served at /v2. Keep for compat.
 
 ### DO NOT DELETE (data moat)
@@ -216,7 +216,7 @@ Auth + Database:
   ⬜ After you verify in Supabase: replace the two lines above (✅ migration file / ⚠️ NEEDS ACTION)
      with a single ✅ noting production DB has sessions/watchlist column + RLS applied
 
-UI — Option 1 (index_1778227564596.html at /option1):
+UI — Option 1 (ra_omega_app.html at /app):
   ✅ StructuredResponse cards + QuickStatsStrip (RYG-style risk / impact meters)
   ✅ ExportBar — HTML Report, Export PDF (print dialog), Infographic, Copy JSON
   ✅ generateStandaloneReport() — dark theme, Inter + JetBrains Mono, ATLAS branding,
@@ -254,7 +254,7 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
   Expected: TLDR card (colored border) + Executive Summary + Trade Plan table +
             Scenarios bars + Execution Rules + Failure Modes + Trader Memo +
             HTML Report button + Copy JSON button
-  If broken: fix rawData flow in message renderer (search for `log.rawData` in index_1778227564596.html)
+  If broken: fix rawData flow in message renderer (search for `log.rawData` in ra_omega_app.html)
 
 ### PRIORITY 2 — Port sessions sidebar into Option 1 UI — DONE (in repo)
   Implemented: sidebar, POST /sessions, session_id on /query, context topics,
@@ -410,7 +410,7 @@ Sub-agents: ONLY for cleanly isolated tasks. For interdependent tasks use ONE co
 
 ## 16. AUDIT SEQUENCE — RUN THIS EVERY SESSION START
 
-  1. In index_1778227564596.html, locate `log.rawData` in the message list JSX
+  1. In ra_omega_app.html, locate `log.rawData` in the message list JSX
      Confirm `<StructuredResponse data={log.rawData} />` (and ExportBar) still render for agent rows
 
   2. Start server: uvicorn api_server:app --host 127.0.0.1 --port 8000

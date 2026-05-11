@@ -1,4 +1,4 @@
-"""
+﻿"""
 ATLAS SWARM BOOTSTRAP SCRIPT
 Generates all 115 agent directories and stub files locally.
 Zero AI credits. Pure Python file creation.
@@ -43,7 +43,7 @@ AGENTS = [
     ("engineering/api_integrator",    "E3",   "API Integrator",
      "0-Engineering", "atlas_core/connectors/", "External APIs"),
     ("engineering/ui_porter",         "E4",   "UI UX Porter",
-     "0-Engineering", "index_1778227564596.html", "Internal"),
+     "0-Engineering", "ra_omega_app.html", "Internal"),
     ("engineering/db_architect",      "E5",   "DB Architect",
      "0-Engineering", "schema.sql", "Supabase"),
     ("engineering/red_teamer",        "E6",   "Red Teamer",
@@ -497,3 +497,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

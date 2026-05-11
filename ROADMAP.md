@@ -12,7 +12,7 @@ This roadmap keeps the next build steps concrete. Each item should end with code
 
 ## Phase 2: UI Consolidation
 
-- Rename or replace `index_1778227564596.html` with a stable product filename, such as `ra_omega_app.html`.
+- Use `ra_omega_app.html` as the stable product filename for the primary chat UI.
 - Keep legacy routes during transition so old bookmarks and tests do not break.
 - Move obsolete dashboard prototypes into an archive folder or document which ones are still supported.
 - Add browser-level regression checks for desktop and mobile layout.
@@ -48,7 +48,7 @@ codex/ui-consolidation
 
 Target outcome:
 
-- Stable UI filename.
+- Stable UI filename: `ra_omega_app.html`.
 - Stable `/app` route.
 - Old `/option1` alias preserved.
 - Browser screenshots verified.

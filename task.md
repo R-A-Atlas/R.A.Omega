@@ -1,4 +1,4 @@
-Fix the chat response rendering in index_1778227564596.html.
+﻿Fix the chat response rendering in ra_omega_app.html.
 
 The API returns structured JSON but the UI shows plain text.
 The JSON has these fields: tldr, trader_memo, execution_rules, 

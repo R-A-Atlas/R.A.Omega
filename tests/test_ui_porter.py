@@ -3,6 +3,8 @@ import importlib
 import pathlib
 import re
 
+APP_HTML = pathlib.Path(__file__).resolve().parents[1] / "ra_omega_app.html"
+
 
 def test_e4_package_importable():
     """atlas_agents.engineering.ui_porter package loads without error."""
@@ -38,23 +40,15 @@ def test_e4_skill_md_exists():
 
 
 def test_e4_quickstatsstrip_component_present():
-    """QuickStatsStrip component exists in the Option 1 HTML file."""
-    p = (
-        pathlib.Path(__file__).resolve().parents[1]
-        / "index_1778227564596.html"
-    )
-    assert p.exists(), "index_1778227564596.html missing"
-    content = p.read_text(encoding="utf-8")
+    """QuickStatsStrip component exists in the primary app HTML file."""
+    assert APP_HTML.exists(), "ra_omega_app.html missing"
+    content = APP_HTML.read_text(encoding="utf-8")
     assert "QuickStatsStrip" in content, "QuickStatsStrip component not found in Option 1"
 
 
 def test_e4_sessions_sidebar_present():
     """Live sessions sidebar (loadSessions / createNewChat) present in Option 1."""
-    p = (
-        pathlib.Path(__file__).resolve().parents[1]
-        / "index_1778227564596.html"
-    )
-    content = p.read_text(encoding="utf-8")
+    content = APP_HTML.read_text(encoding="utf-8")
     assert "loadSessions" in content, "loadSessions not found — sidebar not ported"
     assert "createNewChat" in content, "createNewChat not found — New Chat button missing"
     assert "activeSessionId" in content, "activeSessionId state not found"
@@ -62,11 +56,7 @@ def test_e4_sessions_sidebar_present():
 
 def test_e4_session_id_sent_on_query():
     """POST /query body includes session_id when active session exists."""
-    p = (
-        pathlib.Path(__file__).resolve().parents[1]
-        / "index_1778227564596.html"
-    )
-    content = p.read_text(encoding="utf-8")
+    content = APP_HTML.read_text(encoding="utf-8")
     assert "session_id" in content, "session_id not wired into POST /query body"
 
 

@@ -1,4 +1,4 @@
-# Skill: Option 1 sessions sidebar integration
+﻿# Skill: Option 1 sessions sidebar integration
 
 **ID:** SK-14  
 **Created:** 2026-05-09  
@@ -8,7 +8,7 @@
 
 ## [D] Direction
 
-**What this skill does:** Documents the **end-to-end** chat thread UX on **`/option1`** (`index_1778227564596.html`): list/create/rename/archive/delete sessions, persist active session, attach `session_id` to queries, and scope history.
+**What this skill does:** Documents the **end-to-end** chat thread UX on **`/option1`** (`ra_omega_app.html`): list/create/rename/archive/delete sessions, persist active session, attach `session_id` to queries, and scope history.
 
 **When to use it:** Porting the sidebar to another surface, debugging 503 vs auth, or verifying `session_id` flows to the backend.
 
@@ -34,7 +34,7 @@
 
 **Read before using**
 
-- Frontend: `index_1778227564596.html` — search `atlas_active_session_id`, `fetch(apiBase() + '/sessions'`, `session_id`
+- Frontend: `ra_omega_app.html` — search `atlas_active_session_id`, `fetch(apiBase() + '/sessions'`, `session_id`
 - Backend: `api_server.py` — `@app.post/get/patch/delete("/sessions")` and docstring block near file header
 - Data: `atlas_db.py` — `list_chat_sessions`, create/update/delete session helpers + Supabase vs mock
 - Migration: `supabase-b6-tenant-migration` for `chat_sessions` table
@@ -56,10 +56,10 @@
 **Discover hooks**
 
 ```powershell
-cd "C:\Users\crist\OneDrive\Desktop\trading platform overview"
-findstr /C:"/sessions" index_1778227564596.html
-findstr /C:"atlas_active_session_id" index_1778227564596.html
-findstr /C:"session_id" index_1778227564596.html
+cd "C:\Users\crist\Projects\R.A.Omega"
+findstr /C:"/sessions" ra_omega_app.html
+findstr /C:"atlas_active_session_id" ra_omega_app.html
+findstr /C:"session_id" ra_omega_app.html
 findstr /C:"/sessions" api_server.py
 ```
 
@@ -72,3 +72,4 @@ python -m py_compile api_server.py
 **Validation**
 
 - Run evals in `evals.json`.
+

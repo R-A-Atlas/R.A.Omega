@@ -1,4 +1,4 @@
-# ATLAS — 25 CURSOR CLOUD AGENT COMPLETE ROSTER
+﻿# ATLAS — 25 CURSOR CLOUD AGENT COMPLETE ROSTER
 # All prompts are copy-paste ready.
 # Create each agent in Cursor by clicking + New Agent.
 # Paste the prompt under System Instructions.
@@ -212,7 +212,7 @@ EVERY SESSION:
 5. Build with the smallest possible diff
 
 YOUR FILES — CAN MODIFY:
-  index_1778227564596.html     Main app UI at /option1
+  ra_omega_app.html     Main app UI at /option1
   api_server.py                Add routes only — never edit existing logic
   atlas_db.py                  Add functions only — never edit existing ones
   auth.html                    Auth UX polish only
@@ -497,7 +497,7 @@ DESIGN STANDARDS — never deviate:
     hold:           #D29922 (amber)
 
 CURRENT BUILD QUEUE:
-1. Upgrade generateStandaloneReport() in index_1778227564596.html (line ~250)
+1. Upgrade generateStandaloneReport() in ra_omega_app.html (line ~250)
    Build these 9 sections as dark-themed HTML:
    - TLDR (large colored text, border matches rating)
    - Executive Summary (full prose card)
@@ -692,7 +692,7 @@ VOICE INPUT (V1 — Whisper):
   Process: Accept audio blob → call OpenAI Whisper API → get transcript
            → forward to POST /query → return same response envelope
   Requires: OPENAI_API_KEY in .env
-  UI: Add microphone button to index_1778227564596.html sidebar
+  UI: Add microphone button to ra_omega_app.html sidebar
   Browser API: navigator.mediaDevices.getUserMedia for recording
 
 VOICE OUTPUT (V2 — TTS):
@@ -1652,3 +1652,4 @@ STANDARD WORKFLOW FOR ANY TASK:
 WHEN SOMETHING BREAKS:
   E1 Debugger → C1 QA Enforcer → E3 Incident Logger
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
