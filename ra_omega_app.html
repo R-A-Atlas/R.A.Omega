@@ -1887,10 +1887,18 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
         }
 
         const SettingsModal = ({ open, onClose, onSaved }) => {
-            const [tab, setTab] = React.useState('profile');
+            const [tab, setTab] = React.useState('general');
             const [displayName, setDisplayName] = React.useState('');
             const [timeoutMin, setTimeoutMin] = React.useState('15');
             const [apiBaseCustom, setApiBaseCustom] = React.useState('');
+            const [defaultMode, setDefaultMode] = React.useState('normal');
+            const [answerStyle, setAnswerStyle] = React.useState('balanced');
+            const [riskProfile, setRiskProfile] = React.useState('balanced');
+            const [marketFocus, setMarketFocus] = React.useState('US equities');
+            const [sourceStrictness, setSourceStrictness] = React.useState('balanced');
+            const [memoryEnabled, setMemoryEnabled] = React.useState(true);
+            const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
+            const [accentColor, setAccentColor] = React.useState('blue');
 
             React.useEffect(() => {
                 if (!open) return;
@@ -1901,10 +1909,26 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         Number.isFinite(v) && v >= 120000 ? String(Math.max(2, Math.round(v / 60000))) : '15'
                     );
                     setApiBaseCustom(localStorage.getItem('atlas_api_base') || '');
+                    setDefaultMode(localStorage.getItem('atlas_default_research_mode') || 'normal');
+                    setAnswerStyle(localStorage.getItem('atlas_answer_style') || 'balanced');
+                    setRiskProfile(localStorage.getItem('atlas_risk_profile') || 'balanced');
+                    setMarketFocus(localStorage.getItem('atlas_market_focus') || 'US equities');
+                    setSourceStrictness(localStorage.getItem('atlas_source_strictness') || 'balanced');
+                    setMemoryEnabled(localStorage.getItem('atlas_memory_enabled') !== 'false');
+                    setNotificationsEnabled(localStorage.getItem('atlas_notifications_enabled') === 'true');
+                    setAccentColor(localStorage.getItem('atlas_accent_color') || 'blue');
                 } catch (_) {
                     setDisplayName('');
                     setTimeoutMin('15');
                     setApiBaseCustom('');
+                    setDefaultMode('normal');
+                    setAnswerStyle('balanced');
+                    setRiskProfile('balanced');
+                    setMarketFocus('US equities');
+                    setSourceStrictness('balanced');
+                    setMemoryEnabled(true);
+                    setNotificationsEnabled(false);
+                    setAccentColor('blue');
                 }
             }, [open]);
 
@@ -1932,6 +1956,15 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     const base = (apiBaseCustom || '').trim().replace(/\/$/, '');
                     if (base) localStorage.setItem('atlas_api_base', base);
                     else localStorage.removeItem('atlas_api_base');
+
+                    localStorage.setItem('atlas_default_research_mode', defaultMode || 'normal');
+                    localStorage.setItem('atlas_answer_style', answerStyle || 'balanced');
+                    localStorage.setItem('atlas_risk_profile', riskProfile || 'balanced');
+                    localStorage.setItem('atlas_market_focus', (marketFocus || '').trim().slice(0, 80));
+                    localStorage.setItem('atlas_source_strictness', sourceStrictness || 'balanced');
+                    localStorage.setItem('atlas_memory_enabled', memoryEnabled ? 'true' : 'false');
+                    localStorage.setItem('atlas_notifications_enabled', notificationsEnabled ? 'true' : 'false');
+                    localStorage.setItem('atlas_accent_color', accentColor || 'blue');
                 } catch (_) {}
                 if (onSaved) onSaved();
                 onClose();
@@ -1953,17 +1986,52 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                 </button>
             );
 
+            const selectRow = (label, value, setter, options) => (
+                <div>
+                    <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">{label}</label>
+                    <select
+                        value={value}
+                        onChange={(e) => setter(e.target.value)}
+                        className="w-full rounded-lg border border-borderSubtle bg-base px-3 py-2 text-sm text-textMain"
+                    >
+                        {options.map((opt) => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
+            );
+
+            const toggleRow = (label, desc, checked, setter) => (
+                <div className="flex items-start justify-between gap-4 rounded-lg border border-borderSubtle bg-base/45 px-3 py-3">
+                    <div>
+                        <div className="text-sm font-medium text-textMain">{label}</div>
+                        <div className="mt-1 text-[11px] text-textMuted leading-relaxed">{desc}</div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => setter(!checked)}
+                        className={'relative h-6 w-11 shrink-0 rounded-full border transition-colors ' + (checked ? 'border-accent-indigo bg-accent-indigo' : 'border-borderSubtle bg-surfaceHover')}
+                        aria-pressed={checked}
+                    >
+                        <span className={'absolute top-[2px] h-[18px] w-[18px] rounded-full bg-white transition-transform ' + (checked ? 'translate-x-[20px]' : 'translate-x-[2px]')} />
+                    </button>
+                </div>
+            );
+
             return (
                 <div
                     className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/65 backdrop-blur-sm"
                     onClick={onClose}
                 >
                     <div
-                        className="w-full max-w-lg rounded-2xl border border-borderSubtle bg-surface shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
+                        className="w-full max-w-3xl rounded-2xl border border-borderSubtle bg-surface shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <div className="flex items-center justify-between px-5 py-4 border-b border-borderSubtle shrink-0">
-                            <span className="text-sm font-semibold text-textMain">Settings</span>
+                            <div>
+                                <span className="block text-sm font-semibold text-textMain">Settings</span>
+                                <span className="block text-[10px] font-mono text-textMuted uppercase tracking-[0.18em]">R.A. Omega workspace</span>
+                            </div>
                             <button
                                 type="button"
                                 onClick={onClose}
@@ -1973,8 +2041,127 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 <Icon name="X" size={18} />
                             </button>
                         </div>
-                        <div className="flex border-b border-borderSubtle shrink-0">{tabBtn('profile', 'Profile')}{tabBtn('prefs', 'Preferences')}</div>
+                        <div className="flex flex-wrap border-b border-borderSubtle shrink-0">
+                            {tabBtn('general', 'General')}
+                            {tabBtn('personalization', 'Personal')}
+                            {tabBtn('research', 'Research')}
+                            {tabBtn('data', 'Data')}
+                            {tabBtn('account', 'Account')}
+                        </div>
                         <div className="p-5 overflow-y-auto flex-1 space-y-4">
+                            {tab === 'general' && (
+                                <>
+                                    {selectRow('Appearance', 'dark', () => {}, [
+                                        { value: 'dark', label: 'Dark' },
+                                        { value: 'system', label: 'System' },
+                                    ])}
+                                    {selectRow('Accent color', accentColor, setAccentColor, [
+                                        { value: 'blue', label: 'Omega blue' },
+                                        { value: 'green', label: 'Market green' },
+                                        { value: 'gold', label: 'Signal gold' },
+                                    ])}
+                                    {toggleRow('Notifications', 'Allow completed report notices and saved research updates when browser support is enabled.', notificationsEnabled, setNotificationsEnabled)}
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">Query timeout (minutes)</label>
+                                        <input
+                                            type="number"
+                                            min={2}
+                                            max={60}
+                                            value={timeoutMin}
+                                            onChange={(e) => setTimeoutMin(e.target.value)}
+                                            className="w-full rounded-lg border border-borderSubtle bg-base px-3 py-2 text-sm text-textMain"
+                                        />
+                                        <p className="text-[11px] text-textMuted mt-1.5">POST /query client wait (2-60). Default 15.</p>
+                                    </div>
+                                </>
+                            )}
+                            {tab === 'personalization' && (
+                                <>
+                                    <p className="text-[12px] text-textMuted leading-relaxed">
+                                        These preferences ride with each request so Omega can adapt style, risk framing, and market focus without forcing deep research every time.
+                                    </p>
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">Display name</label>
+                                        <input
+                                            type="text"
+                                            value={displayName}
+                                            onChange={(e) => setDisplayName(e.target.value)}
+                                            placeholder="What should R.A. Omega call you?"
+                                            className="w-full rounded-lg border border-borderSubtle bg-base px-3 py-2 text-sm text-textMain placeholder-textMuted/40"
+                                            maxLength={120}
+                                        />
+                                    </div>
+                                    {selectRow('Answer style', answerStyle, setAnswerStyle, [
+                                        { value: 'balanced', label: 'Balanced' },
+                                        { value: 'concise', label: 'Concise' },
+                                        { value: 'desk', label: 'Institutional desk note' },
+                                        { value: 'teacher', label: 'Explain like a coach' },
+                                    ])}
+                                    {selectRow('Risk profile', riskProfile, setRiskProfile, [
+                                        { value: 'conservative', label: 'Conservative' },
+                                        { value: 'balanced', label: 'Balanced' },
+                                        { value: 'aggressive', label: 'Aggressive' },
+                                        { value: 'capital-preservation', label: 'Capital preservation' },
+                                    ])}
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">Default market focus</label>
+                                        <input
+                                            type="text"
+                                            value={marketFocus}
+                                            onChange={(e) => setMarketFocus(e.target.value)}
+                                            placeholder="US equities, crypto, macro, real estate..."
+                                            className="w-full rounded-lg border border-borderSubtle bg-base px-3 py-2 text-sm text-textMain placeholder-textMuted/40"
+                                            maxLength={80}
+                                        />
+                                    </div>
+                                </>
+                            )}
+                            {tab === 'research' && (
+                                <>
+                                    {selectRow('Default composer mode', defaultMode, setDefaultMode, [
+                                        { value: 'normal', label: 'Normal - fast validated replies' },
+                                        { value: 'web', label: 'Web search - source checked' },
+                                        { value: 'deep', label: 'Deep research - full 10-loop' },
+                                    ])}
+                                    {selectRow('Source strictness', sourceStrictness, setSourceStrictness, [
+                                        { value: 'balanced', label: 'Balanced' },
+                                        { value: 'strict', label: 'Prefer primary sources' },
+                                        { value: 'speed', label: 'Prefer speed' },
+                                    ])}
+                                    <div className="rounded-lg border border-accent-indigo/25 bg-accent-indigo/10 px-3 py-3 text-[12px] text-textMuted leading-relaxed">
+                                        Normal mode is the default for chat, file-style requests, and quick decisions. Deep research only runs when selected from the composer or saved here.
+                                    </div>
+                                </>
+                            )}
+                            {tab === 'data' && (
+                                <>
+                                    {toggleRow('Use chat memory', 'Keep session context, saved preferences, and report metadata available for better follow-up answers.', memoryEnabled, setMemoryEnabled)}
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">API base URL (optional)</label>
+                                        <input
+                                            type="text"
+                                            value={apiBaseCustom}
+                                            onChange={(e) => setApiBaseCustom(e.target.value)}
+                                            placeholder="http://127.0.0.1:8000"
+                                            className="w-full rounded-lg border border-borderSubtle bg-base px-3 py-2 text-sm text-textMain font-mono placeholder-textMuted/40"
+                                        />
+                                        <p className="text-[11px] text-textMuted mt-1.5">Leave empty to use the same origin as this page.</p>
+                                    </div>
+                                </>
+                            )}
+                            {tab === 'account' && (
+                                <>
+                                    <div>
+                                        <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">Account email</label>
+                                        <div className="text-sm text-textMain/85 font-mono truncate py-2 px-3 rounded-lg bg-surfaceHover border border-borderSubtle">
+                                            {email}
+                                        </div>
+                                    </div>
+                                    <div className="rounded-lg border border-borderSubtle bg-base/45 px-3 py-3 text-[12px] text-textMuted leading-relaxed">
+                                        Supabase authentication and paid tier controls belong here before hosted launch. Local development can still run with auth disabled.
+                                    </div>
+                                </>
+                            )}
                             {tab === 'profile' && (
                                 <>
                                     <p className="text-[12px] text-textMuted leading-relaxed">
@@ -2075,6 +2262,10 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const [regimeState, setRegimeState] = useState({ loading: true, label: '', signal: '' });
             const [settingsOpen, setSettingsOpen] = useState(false);
             const [prefsTick, setPrefsTick] = useState(0);
+            const [toolsOpen, setToolsOpen] = useState(false);
+            const [researchMode, setResearchMode] = useState(() => {
+                try { return localStorage.getItem('atlas_default_research_mode') || 'normal'; } catch { return 'normal'; }
+            });
             const [mobileSessionsOpen, setMobileSessionsOpen] = useState(false);
             const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
@@ -2514,12 +2705,21 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     startProgressTick(sid);
 
                     const form = new FormData();
+                    const activeMode = researchMode || 'normal';
                     form.append('audio', blob, 'recording.webm');
                     form.append('session_id', sid);
+                    form.append('research_mode', activeMode);
+                    form.append('web_search', activeMode === 'web' || activeMode === 'deep' ? 'true' : 'false');
                     form.append('crypto_snapshot', 'false');
                     try {
                         const nick = (localStorage.getItem('atlas_display_name') || '').trim();
                         if (nick) form.append('user_display_name', nick);
+                        const answerStyle = (localStorage.getItem('atlas_answer_style') || '').trim();
+                        const riskProfile = (localStorage.getItem('atlas_risk_profile') || '').trim();
+                        const marketFocus = (localStorage.getItem('atlas_market_focus') || '').trim();
+                        if (answerStyle) form.append('answer_style', answerStyle);
+                        if (riskProfile) form.append('risk_profile', riskProfile);
+                        if (marketFocus) form.append('market_focus', marketFocus);
                     } catch (_) {}
 
                     try {
@@ -2658,6 +2858,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     stopProgressTick,
                     loadSessionHistory,
                     applyHistoryReports,
+                    researchMode,
                 ]
             );
 
@@ -2752,10 +2953,23 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                 setInputValue('');
                 startProgressTick(sid);
 
-                const queryBody = { query: q, session_id: sid };
+                setToolsOpen(false);
+                const activeMode = researchMode || 'normal';
+                const queryBody = {
+                    query: q,
+                    session_id: sid,
+                    research_mode: activeMode,
+                    web_search: activeMode === 'web' || activeMode === 'deep',
+                };
                 try {
                     const nick = (localStorage.getItem('atlas_display_name') || '').trim();
                     if (nick) queryBody.user_display_name = nick;
+                    const answerStyle = (localStorage.getItem('atlas_answer_style') || '').trim();
+                    const riskProfile = (localStorage.getItem('atlas_risk_profile') || '').trim();
+                    const marketFocus = (localStorage.getItem('atlas_market_focus') || '').trim();
+                    if (answerStyle) queryBody.answer_style = answerStyle;
+                    if (riskProfile) queryBody.risk_profile = riskProfile;
+                    if (marketFocus) queryBody.market_focus = marketFocus;
                 } catch (_) {}
 
                 try {
@@ -2897,7 +3111,10 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     <SettingsModal
                         open={settingsOpen}
                         onClose={() => setSettingsOpen(false)}
-                        onSaved={() => setPrefsTick((t) => t + 1)}
+                        onSaved={() => {
+                            setPrefsTick((t) => t + 1);
+                            try { setResearchMode(localStorage.getItem('atlas_default_research_mode') || 'normal'); } catch (_) {}
+                        }}
                     />
                     {mobileSessionsOpen ? (
                         <div className="fixed inset-0 z-[60] md:hidden">
@@ -3210,8 +3427,75 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                                         <div className="flex items-center justify-between px-2 pb-1">
                                             <div className="flex items-center gap-2">
-                                                <button type="button" className="p-1.5 rounded hover:bg-surfaceHover text-textMuted hover:text-textMain transition-colors">
-                                                    <Icon name="Globe" size={16} />
+                                                <div className="relative">
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setToolsOpen((v) => !v)}
+                                                        className="p-1.5 rounded-full hover:bg-surfaceHover text-textMuted hover:text-textMain transition-colors"
+                                                        title="Tools and research mode"
+                                                        aria-label="Tools and research mode"
+                                                    >
+                                                        <Icon name="Plus" size={17} />
+                                                    </button>
+                                                    {toolsOpen && (
+                                                        <div className="absolute bottom-full left-0 mb-2 w-72 rounded-2xl border border-borderSubtle bg-surface shadow-2xl p-2 z-40">
+                                                            {[
+                                                                { mode: 'normal', icon: 'Brain', label: 'Thinking', desc: 'Fast chat with validation.' },
+                                                                { mode: 'web', icon: 'Globe', label: 'Web search', desc: 'Verify current facts and sources.' },
+                                                                { mode: 'deep', icon: 'SearchCheck', label: 'Deep research', desc: 'Explicit full 10-loop research.' },
+                                                            ].map((item) => (
+                                                                <button
+                                                                    key={item.mode}
+                                                                    type="button"
+                                                                    onClick={() => {
+                                                                        setResearchMode(item.mode);
+                                                                        try { localStorage.setItem('atlas_default_research_mode', item.mode); } catch (_) {}
+                                                                        setToolsOpen(false);
+                                                                    }}
+                                                                    className={
+                                                                        'w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ' +
+                                                                        (researchMode === item.mode ? 'bg-accent-indigo/15 text-textMain' : 'text-textMuted hover:bg-surfaceHover hover:text-textMain')
+                                                                    }
+                                                                >
+                                                                    <Icon name={item.icon} size={16} />
+                                                                    <span className="min-w-0">
+                                                                        <span className="block text-sm font-medium">{item.label}</span>
+                                                                        <span className="block text-[11px] leading-snug opacity-75">{item.desc}</span>
+                                                                    </span>
+                                                                </button>
+                                                            ))}
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setToolsOpen(false);
+                                                                    setSettingsOpen(true);
+                                                                }}
+                                                                className="mt-1 w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-textMuted hover:bg-surfaceHover hover:text-textMain transition-colors border-t border-borderSubtle/70"
+                                                            >
+                                                                <Icon name="Settings" size={16} />
+                                                                <span className="text-sm font-medium">Settings</span>
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        const next = researchMode === 'deep' ? 'normal' : 'deep';
+                                                        setResearchMode(next);
+                                                        try { localStorage.setItem('atlas_default_research_mode', next); } catch (_) {}
+                                                    }}
+                                                    className={
+                                                        'hidden sm:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-mono transition-colors ' +
+                                                        (researchMode === 'deep'
+                                                            ? 'border-accent-indigo bg-accent-indigo/18 text-textMain'
+                                                            : researchMode === 'web'
+                                                              ? 'border-cyan-400/35 bg-cyan-400/10 text-cyan-100'
+                                                              : 'border-borderSubtle text-textMuted hover:text-textMain')
+                                                    }
+                                                >
+                                                    <Icon name={researchMode === 'deep' ? 'SearchCheck' : researchMode === 'web' ? 'Globe' : 'Brain'} size={13} />
+                                                    {researchMode === 'deep' ? 'Deep research' : researchMode === 'web' ? 'Web search' : 'Normal'}
                                                 </button>
                                             </div>
 

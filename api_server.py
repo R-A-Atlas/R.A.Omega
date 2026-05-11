@@ -238,10 +238,19 @@ async def _validation_handler(request: Request, exc: RequestValidationError):
 class QueryRequest(BaseModel):
     query: str
     session_id: Optional[str] = None
+    research_mode: str = Field(
+        default="normal",
+        pattern="^(normal|web|deep)$",
+        description="normal = efficient default, web = source-checking mode, deep = explicit full research mode.",
+    )
+    web_search: bool = False
     # When true, Omega (or /query omega short-circuit) loads data_cache/crypto_top50_latest.json.
     crypto_snapshot: bool = False
     # Optional: "What should the assistant call you?" — woven into the routed prompt only (original query is persisted as-is).
     user_display_name: Optional[str] = Field(default=None, max_length=120)
+    answer_style: Optional[str] = Field(default=None, max_length=40)
+    risk_profile: Optional[str] = Field(default=None, max_length=40)
+    market_focus: Optional[str] = Field(default=None, max_length=80)
 
 class PositionRequest(BaseModel):
     ticker: str
@@ -604,7 +613,10 @@ def _maybe_fast_chat_shaped(
     req: "QueryRequest",
     start: float,
 ) -> Optional[dict]:
+    mode = getattr(req, "research_mode", "normal") or "normal"
     if getattr(req, "crypto_snapshot", False):
+        return None
+    if mode == "deep":
         return None
     reply = _conversational_reply_text(q_store, getattr(req, "user_display_name", None))
     if not reply:
@@ -639,6 +651,13 @@ def _maybe_fast_chat_shaped(
             "_chat_mode": True,
         },
         "clarification_questions": [],
+        "_request_controls": {
+            "research_mode": mode,
+            "web_search": bool(getattr(req, "web_search", False) or mode == "web"),
+            "answer_style": getattr(req, "answer_style", None),
+            "risk_profile": getattr(req, "risk_profile", None),
+            "market_focus": getattr(req, "market_focus", None),
+        },
     }
     log.info("[/query] fast chat reply (%d chars)", len(q_store))
     return _ensure_query_ui_envelope(shaped, q_store)
@@ -885,11 +904,34 @@ def dispatch_query_request(
 
     q_store = req.query.strip()
     route_input = q_store
+    mode = getattr(req, "research_mode", "normal") or "normal"
     if req.user_display_name and str(req.user_display_name).strip():
         nick = str(req.user_display_name).strip()[:120]
         route_input = (
             f"[User personalization: address the user as “{nick}” when natural in prose.]\n\n{q_store}"
         )
+
+    request_hints: list[str] = []
+    if mode == "deep":
+        request_hints.append(
+            "Research mode: DEEP. Use the full research pipeline, broaden source/data checks, and synthesize a cited decision-grade report."
+        )
+    elif mode == "web" or getattr(req, "web_search", False):
+        request_hints.append(
+            "Research mode: WEB. Verify current facts with source/data checks before answering, but keep the response efficient."
+        )
+    else:
+        request_hints.append(
+            "Research mode: NORMAL. Stay fast and conversational unless the request clearly needs the full Omega analysis pipeline."
+        )
+    if req.answer_style:
+        request_hints.append(f"Answer style: {str(req.answer_style).strip()[:40]}.")
+    if req.risk_profile:
+        request_hints.append(f"User risk profile: {str(req.risk_profile).strip()[:40]}.")
+    if req.market_focus:
+        request_hints.append(f"Market focus: {str(req.market_focus).strip()[:80]}.")
+    if request_hints:
+        route_input = "[Request controls]\n- " + "\n- ".join(request_hints) + f"\n\n{route_input}"
 
     router = get_router()
     if not router:
@@ -912,6 +954,13 @@ def dispatch_query_request(
             crypto_snapshot=req.crypto_snapshot,
         )
         shaped = _ensure_query_ui_envelope(raw, q_store)
+        shaped["_request_controls"] = {
+            "research_mode": mode,
+            "web_search": bool(getattr(req, "web_search", False) or mode in ("web", "deep")),
+            "answer_style": req.answer_style,
+            "risk_profile": req.risk_profile,
+            "market_focus": req.market_focus,
+        }
         return _finalize_query_response(
             shaped, req, user_id, background_tasks, q_store, start
         )
@@ -1381,8 +1430,13 @@ async def voice_query(
     user_id: AtlasUserId,
     audio: UploadFile = File(..., description="Audio file for Whisper (webm, wav, mp3, m4a, etc.)"),
     session_id: Optional[str] = Form(None),
+    research_mode: str = Form("normal"),
+    web_search: str = Form("false"),
     crypto_snapshot: str = Form("false"),
     user_display_name: Optional[str] = Form(None),
+    answer_style: Optional[str] = Form(None),
+    risk_profile: Optional[str] = Form(None),
+    market_focus: Optional[str] = Form(None),
 ):
     """Transcribe audio with OpenAI Whisper, then run the same path as POST /query."""
     body = await audio.read()
@@ -1394,8 +1448,13 @@ async def voice_query(
     req = QueryRequest(
         query=text,
         session_id=(session_id or "").strip() or None,
+        research_mode=(research_mode or "normal").strip() or "normal",
+        web_search=str(web_search).strip().lower() in ("1", "true", "yes", "on"),
         crypto_snapshot=cs,
         user_display_name=(user_display_name or "").strip() or None,
+        answer_style=(answer_style or "").strip() or None,
+        risk_profile=(risk_profile or "").strip() or None,
+        market_focus=(market_focus or "").strip() or None,
     )
     out = dispatch_query_request(req, user_id, background_tasks)
     if isinstance(out, dict):

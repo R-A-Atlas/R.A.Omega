@@ -60,6 +60,18 @@ def test_e4_session_id_sent_on_query():
     assert "session_id" in content, "session_id not wired into POST /query body"
 
 
+def test_e4_chat_modes_and_settings_present():
+    """Composer has explicit normal/web/deep modes and settings persist preferences."""
+    content = APP_HTML.read_text(encoding="utf-8")
+    assert "atlas_default_research_mode" in content, "default research mode preference missing"
+    assert "research_mode" in content, "POST /query research_mode not wired"
+    assert "web_search" in content, "POST /query web_search not wired"
+    assert "Deep research" in content, "Deep research composer action missing"
+    assert "Web search" in content, "Web search composer action missing"
+    assert "atlas_answer_style" in content, "answer style personalization missing"
+    assert "atlas_risk_profile" in content, "risk profile personalization missing"
+
+
 def test_e4_backend_files_not_referenced_as_editable():
     """AGENT_PROMPT.md explicitly marks backend Python files as off-limits."""
     p = (

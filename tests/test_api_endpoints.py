@@ -236,18 +236,52 @@ def test_post_query_dispatches_router_and_returns_ui_payload(
     )
     assert r.status_code == 200
     body = r.json()
-    assert calls == [
-        {
-            "query": "Analyze NVDA",
-            "user_id": "test_user_local",
-            "session_id": "session-1",
-            "crypto_snapshot": False,
-        }
-    ]
+    assert calls
+    assert calls[0]["query"].endswith("Analyze NVDA")
+    assert "Research mode: NORMAL" in calls[0]["query"]
+    assert calls[0]["user_id"] == "test_user_local"
+    assert calls[0]["session_id"] == "session-1"
+    assert calls[0]["crypto_snapshot"] is False
     assert body["query"] == "Analyze NVDA"
     assert body["parsed_query"]["query_type"] == "MARKET_DEEP_DIVE"
     assert body["final_report"]["ticker"] == "NVDA"
     assert body["tldr"] == "NVDA remains constructive above support."
+
+
+def test_post_query_accepts_research_controls(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient,
+) -> None:
+    calls: list[dict[str, object]] = []
+
+    class FakeRouter:
+        def route(self, query: str, **kwargs):
+            calls.append({"query": query, **kwargs})
+            return {
+                "parsed_query": {"query_type": "MARKET_DEEP_DIVE"},
+                "final_report": {"executive_summary": "done"},
+                "tldr": "done",
+            }
+
+    monkeypatch.setattr(api_server, "get_router", lambda: FakeRouter())
+    r = client.post(
+        "/query",
+        json={
+            "query": "hi",
+            "research_mode": "deep",
+            "web_search": True,
+            "answer_style": "desk",
+            "risk_profile": "conservative",
+            "market_focus": "US equities",
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["_request_controls"]["research_mode"] == "deep"
+    assert body["_request_controls"]["web_search"] is True
+    assert calls
+    assert "Research mode: DEEP" in calls[0]["query"]
+    assert "Answer style: desk." in calls[0]["query"]
+    assert "hi" in calls[0]["query"]
 
 
 def test_api_v1_query_503_when_keys_not_configured(
