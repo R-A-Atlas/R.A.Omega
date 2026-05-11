@@ -289,6 +289,65 @@ def test_post_query_accepts_research_controls(
     assert "hi" in calls[0]["query"]
 
 
+def test_research_job_plan_get_and_cancel(
+    monkeypatch: pytest.MonkeyPatch, tmp_path,
+) -> None:
+    api_server.research_jobs.configure_store(tmp_path / "research_jobs.json")
+    c = TestClient(app)
+    r = c.post(
+        "/jobs/plan",
+        json={"query": "deep research NVDA", "research_mode": "deep"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    job_id = body["activity"]["job_id"]
+    assert job_id.startswith("research_")
+    assert body["activity"]["status"] == "queued"
+    assert body["route_decision"]["route_band"] == "deep_research"
+
+    r2 = c.get(f"/jobs/{job_id}")
+    assert r2.status_code == 200
+    assert r2.json()["activity"]["job_id"] == job_id
+
+    r3 = c.post(f"/jobs/{job_id}/cancel")
+    assert r3.status_code == 200
+    assert r3.json()["activity"]["status"] == "cancelled"
+
+
+def test_post_query_updates_existing_research_job(
+    monkeypatch: pytest.MonkeyPatch, tmp_path, client: TestClient,
+) -> None:
+    api_server.research_jobs.configure_store(tmp_path / "research_jobs.json")
+
+    class FakeRouter:
+        def route(self, query: str, **kwargs):
+            return {
+                "parsed_query": {"query_type": "MARKET_DEEP_DIVE"},
+                "final_report": {"executive_summary": "done"},
+                "tldr": "done",
+            }
+
+    monkeypatch.setattr(api_server, "get_router", lambda: FakeRouter())
+    plan = client.post(
+        "/jobs/plan",
+        json={"query": "deep research NVDA", "research_mode": "deep"},
+    ).json()
+    job_id = plan["activity"]["job_id"]
+    r = client.post(
+        "/query",
+        json={
+            "query": "deep research NVDA",
+            "research_mode": "deep",
+            "research_job_id": job_id,
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["_research_activity"]["job_id"] == job_id
+    assert body["_research_activity"]["status"] == "completed"
+    assert client.get(f"/jobs/{job_id}").json()["activity"]["status"] == "completed"
+
+
 def test_api_v1_query_503_when_keys_not_configured(
     monkeypatch: pytest.MonkeyPatch, client: TestClient,
 ) -> None:

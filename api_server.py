@@ -107,6 +107,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 import atlas_db  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
+from orchestration import research_jobs  # noqa: E402
 
 try:
     from gemini_limiter import is_rate_limit_error
@@ -123,6 +124,7 @@ except ImportError:
         user_message = "API Rate Limit Exceeded - Please wait 60 seconds"
 
 RATE_LIMIT_UI_MESSAGE = "API Rate Limit Exceeded - Please wait 60 seconds"
+research_jobs.configure_store(BASE_DIR / "data_cache" / "research_jobs.json")
 
 CORS_ORIGINS = [
     "http://localhost:3000",
@@ -252,6 +254,14 @@ class QueryRequest(BaseModel):
     answer_style: Optional[str] = Field(default=None, max_length=40)
     risk_profile: Optional[str] = Field(default=None, max_length=40)
     market_focus: Optional[str] = Field(default=None, max_length=80)
+    research_job_id: Optional[str] = Field(default=None, max_length=80)
+
+
+class ResearchPlanRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=10_000)
+    session_id: Optional[str] = None
+    research_mode: str = Field(default="deep", pattern="^(normal|web|deep)$")
+    web_search: bool = False
 
 class PositionRequest(BaseModel):
     ticker: str
@@ -620,6 +630,8 @@ def _maybe_fast_chat_shaped(
         return None
     if mode == "deep" or (route_decision and route_decision.route_band == "deep_research"):
         return None
+    if route_decision and route_decision.route_band != "quick_chat":
+        return None
     reply = _conversational_reply_text(q_store, getattr(req, "user_display_name", None))
     if not reply:
         return None
@@ -745,6 +757,7 @@ def _build_research_activity_payload(query: str, route_decision: RouteDecision) 
         "compliance_escalation": ["policy", "audit_log"],
     }.get(route, [])
     return {
+        "job_id": None,
         "status": "completed",
         "route_band": route,
         "progress_pct": 100 if route != "deep_research" else 35,
@@ -757,6 +770,40 @@ def _build_research_activity_payload(query: str, route_decision: RouteDecision) 
         "sources": source_chips,
         "artifacts": [],
     }
+
+
+def _create_research_job_for_request(
+    *,
+    query: str,
+    user_id: str,
+    session_id: Optional[str],
+    route_decision: RouteDecision,
+) -> dict:
+    activity = _build_research_activity_payload(query, route_decision)
+    if not activity:
+        activity = {
+            "status": "queued",
+            "route_band": route_decision.route_band,
+            "progress_pct": 5,
+            "current_stage": "Queued",
+            "current_message": "Research job queued.",
+            "search_count": 0,
+            "query": query,
+            "plan": [],
+            "events": [],
+            "sources": [],
+            "artifacts": [],
+        }
+    activity["status"] = "queued"
+    activity["progress_pct"] = min(int(activity.get("progress_pct") or 0), 20)
+    job = research_jobs.create_job(
+        user_id=user_id,
+        query=query,
+        route_decision=route_decision.to_dict(),
+        activity=activity,
+        session_id=session_id,
+    )
+    return job
 
 
 def _finalize_query_response(
@@ -1006,6 +1053,39 @@ def dispatch_query_request(
         forced_mode=mode,
         web_search=bool(getattr(req, "web_search", False)),
     )
+    job: Optional[dict] = None
+    if req.research_job_id:
+        job = research_jobs.get_job(req.research_job_id, user_id=user_id)
+        if job and job.get("status") == "cancelled":
+            body = _ensure_query_ui_envelope(
+                {
+                    "parsed_query": {},
+                    "final_report": {
+                        "executive_summary": "Research was cancelled before completion.",
+                    },
+                    "tldr": "Research was cancelled before completion.",
+                    "_route_decision": route_decision.to_dict(),
+                    "_research_activity": research_jobs.activity_from_job(job),
+                },
+                q_store,
+            )
+            return _finalize_query_response(body, req, user_id, background_tasks, q_store, time.time())
+    elif route_decision.route_band in {"deep_research", "market_snapshot"}:
+        job = _create_research_job_for_request(
+            query=q_store,
+            user_id=user_id,
+            session_id=req.session_id,
+            route_decision=route_decision,
+        )
+    if job:
+        research_jobs.update_job(
+            job["job_id"],
+            user_id=user_id,
+            status="in_progress",
+            progress_pct=max(int(job.get("progress_pct") or 0), 25),
+            current_stage="Running analysis",
+            current_message="Omega is gathering evidence and preparing the response.",
+        )
     if req.user_display_name and str(req.user_display_name).strip():
         nick = str(req.user_display_name).strip()[:120]
         route_input = (
@@ -1071,6 +1151,18 @@ def dispatch_query_request(
         }
         shaped["_route_decision"] = route_decision.to_dict()
         activity = _build_research_activity_payload(q_store, route_decision)
+        if job:
+            updated_job = research_jobs.update_job(
+                job["job_id"],
+                user_id=user_id,
+                status="completed",
+                progress_pct=100,
+                current_stage="Completed",
+                current_message="Research complete. Final response is ready.",
+                activity={**activity, "status": "completed", "progress_pct": 100},
+            )
+            if updated_job:
+                activity = research_jobs.activity_from_job(updated_job)
         if activity:
             shaped["_research_activity"] = activity
         return _finalize_query_response(
@@ -1375,6 +1467,50 @@ def serve_dashboard_v2_only():
     return FileResponse(ATLAS_DASHBOARD_V2, media_type="text/html; charset=utf-8")
 
 
+@app.post("/jobs/plan")
+def create_research_plan(req: ResearchPlanRequest, user_id: AtlasUserId):
+    """Create a visible research plan/job before a long research request starts."""
+    q = req.query.strip()
+    route_decision = decide_route(
+        q,
+        forced_mode=req.research_mode or "deep",
+        web_search=bool(req.web_search),
+    )
+    job = _create_research_job_for_request(
+        query=q,
+        user_id=user_id,
+        session_id=req.session_id,
+        route_decision=route_decision,
+    )
+    return {
+        "ok": True,
+        "job": job,
+        "activity": research_jobs.activity_from_job(job),
+        "route_decision": route_decision.to_dict(),
+    }
+
+
+@app.get("/jobs/{job_id}")
+def get_research_job(job_id: str, user_id: AtlasUserId):
+    job = research_jobs.get_job(job_id, user_id=user_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Research job not found")
+    return {
+        "ok": True,
+        "job": job,
+        "activity": research_jobs.activity_from_job(job),
+        "route_decision": job.get("route_decision") or {},
+    }
+
+
+@app.post("/jobs/{job_id}/cancel")
+def cancel_research_job(job_id: str, user_id: AtlasUserId):
+    job = research_jobs.cancel_job(job_id, user_id=user_id)
+    if not job:
+        raise HTTPException(status_code=404, detail="Research job not found")
+    return {"ok": True, "job": job, "activity": research_jobs.activity_from_job(job)}
+
+
 @app.get("/auth")
 @app.get("/login")
 def serve_auth():
@@ -1549,6 +1685,7 @@ async def voice_query(
     answer_style: Optional[str] = Form(None),
     risk_profile: Optional[str] = Form(None),
     market_focus: Optional[str] = Form(None),
+    research_job_id: Optional[str] = Form(None),
 ):
     """Transcribe audio with OpenAI Whisper, then run the same path as POST /query."""
     body = await audio.read()
@@ -1567,6 +1704,7 @@ async def voice_query(
         answer_style=(answer_style or "").strip() or None,
         risk_profile=(risk_profile or "").strip() or None,
         market_focus=(market_focus or "").strip() or None,
+        research_job_id=(research_job_id or "").strip() or None,
     )
     out = dispatch_query_request(req, user_id, background_tasks)
     if isinstance(out, dict):

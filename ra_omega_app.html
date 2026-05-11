@@ -1819,7 +1819,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             );
         };
 
-        const ResearchActivityPanel = ({ activity, decision, active }) => {
+        const ResearchActivityPanel = ({ activity, decision, active, onCancel }) => {
             if (!activity && !decision && !active) return null;
             const route = (activity && activity.route_band) || (decision && decision.route_band) || 'research';
             const plan = Array.isArray(activity && activity.plan) ? activity.plan : [];
@@ -1875,6 +1875,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 </span>
                             ))}
                         </div>
+                    )}
+                    {active && activity?.job_id && onCancel && (
+                        <button
+                            type="button"
+                            onClick={() => onCancel(activity.job_id)}
+                            className="mt-3 inline-flex items-center gap-1.5 rounded border border-red-400/35 bg-red-500/10 px-2.5 py-1.5 text-[11px] font-mono text-red-100 hover:bg-red-500/15 transition-colors"
+                        >
+                            <Icon name="Square" size={12} />
+                            Stop research
+                        </button>
                     )}
                 </div>
             );
@@ -2845,14 +2855,32 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                     const form = new FormData();
                     const activeMode = researchMode || 'normal';
+                    let plannedJobId = null;
                     if (activeMode === 'deep' || activeMode === 'web') {
-                        setResearchActivityBySession((prev) => ({
-                            ...prev,
-                            [sid]: buildPendingResearchActivity('Voice query', activeMode),
-                        }));
+                        let plannedActivity = buildPendingResearchActivity('Voice query', activeMode);
+                        try {
+                            const planResp = await fetch(apiBase() + '/jobs/plan', {
+                                method: 'POST',
+                                headers: authHeaders(),
+                                body: JSON.stringify({
+                                    query: 'Voice query',
+                                    session_id: sid,
+                                    research_mode: activeMode,
+                                    web_search: activeMode === 'web' || activeMode === 'deep',
+                                }),
+                                signal: AbortSignal.timeout(12000),
+                            });
+                            const planData = await planResp.json().catch(() => ({}));
+                            if (planResp.ok && planData.activity) {
+                                plannedActivity = planData.activity;
+                                plannedJobId = planData.activity.job_id || planData.job?.job_id || null;
+                            }
+                        } catch (_) {}
+                        setResearchActivityBySession((prev) => ({ ...prev, [sid]: plannedActivity }));
                     }
                     form.append('audio', blob, 'recording.webm');
                     form.append('session_id', sid);
+                    if (plannedJobId) form.append('research_job_id', plannedJobId);
                     form.append('research_mode', activeMode);
                     form.append('web_search', activeMode === 'web' || activeMode === 'deep' ? 'true' : 'false');
                     form.append('crypto_snapshot', 'false');
@@ -3105,11 +3133,28 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                 setToolsOpen(false);
                 const activeMode = researchMode || 'normal';
+                let plannedJobId = null;
                 if (activeMode === 'deep' || activeMode === 'web') {
-                    setResearchActivityBySession((prev) => ({
-                        ...prev,
-                        [sid]: buildPendingResearchActivity(q, activeMode),
-                    }));
+                    let plannedActivity = buildPendingResearchActivity(q, activeMode);
+                    try {
+                        const planResp = await fetch(apiBase() + '/jobs/plan', {
+                            method: 'POST',
+                            headers: authHeaders(),
+                            body: JSON.stringify({
+                                query: q,
+                                session_id: sid,
+                                research_mode: activeMode,
+                                web_search: activeMode === 'web' || activeMode === 'deep',
+                            }),
+                            signal: AbortSignal.timeout(12000),
+                        });
+                        const planData = await planResp.json().catch(() => ({}));
+                        if (planResp.ok && planData.activity) {
+                            plannedActivity = planData.activity;
+                            plannedJobId = planData.activity.job_id || planData.job?.job_id || null;
+                        }
+                    } catch (_) {}
+                    setResearchActivityBySession((prev) => ({ ...prev, [sid]: plannedActivity }));
                 }
                 const queryBody = {
                     query: q,
@@ -3117,6 +3162,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     research_mode: activeMode,
                     web_search: activeMode === 'web' || activeMode === 'deep',
                 };
+                if (plannedJobId) queryBody.research_job_id = plannedJobId;
                 try {
                     const nick = (localStorage.getItem('atlas_display_name') || '').trim();
                     if (nick) queryBody.user_display_name = nick;
@@ -3276,6 +3322,50 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const bgLoopStepIdx =
                 otherProcessingIds.length === 1 ? loopStepBySession[otherProcessingIds[0]] ?? 0 : 0;
             const bgLiveLoopLine = LOOP_STEPS[bgLoopStepIdx] || LOOP_STEPS[0];
+
+            const cancelResearchJob = useCallback(async (jobId) => {
+                const sid = activeSessionId ? String(activeSessionId) : null;
+                if (!jobId || !sid) return;
+                try {
+                    const r = await fetch(apiBase() + '/jobs/' + encodeURIComponent(jobId) + '/cancel', {
+                        method: 'POST',
+                        headers: authHeaders(),
+                        signal: AbortSignal.timeout(10000),
+                    });
+                    const d = await r.json().catch(() => ({}));
+                    if (r.ok && d.activity) {
+                        setResearchActivityBySession((prev) => ({ ...prev, [sid]: d.activity }));
+                    }
+                } catch (_) {}
+            }, [activeSessionId]);
+
+            useEffect(() => {
+                const sid = activeSessionId ? String(activeSessionId) : null;
+                if (!sid || !processingBySession[sid]) return;
+                const activity = researchActivityBySession[sid];
+                const jobId = activity && activity.job_id;
+                if (!jobId || !['queued', 'in_progress'].includes(String(activity.status || ''))) return;
+                let cancelled = false;
+                const poll = async () => {
+                    try {
+                        const r = await fetch(apiBase() + '/jobs/' + encodeURIComponent(jobId), {
+                            headers: authHeaders(),
+                            signal: AbortSignal.timeout(8000),
+                        });
+                        if (!r.ok) return;
+                        const d = await r.json();
+                        if (!cancelled && d.activity) {
+                            setResearchActivityBySession((prev) => ({ ...prev, [sid]: d.activity }));
+                        }
+                    } catch (_) {}
+                };
+                void poll();
+                const id = setInterval(poll, 2000);
+                return () => {
+                    cancelled = true;
+                    clearInterval(id);
+                };
+            }, [activeSessionId, processingBySession, researchActivityBySession]);
 
             return (
                 <div className="flex h-full w-full gap-3 lg:gap-4">
@@ -3579,6 +3669,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                                     activity={lastResearchMeta.activity}
                                                     decision={lastResearchMeta.decision}
                                                     active={!!activeIsProcessing && researchMode === 'deep'}
+                                                    onCancel={cancelResearchJob}
                                                 />
                                             </div>
                                         </div>
@@ -3726,6 +3817,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 activity={lastResearchMeta.activity}
                                 decision={lastResearchMeta.decision}
                                 active={!!activeIsProcessing && researchMode === 'deep'}
+                                onCancel={cancelResearchJob}
                             />
                             <div>
                                 <h3 className="text-xs font-semibold text-textMain mb-2 flex items-center gap-2">
