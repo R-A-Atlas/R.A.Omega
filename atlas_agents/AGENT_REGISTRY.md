@@ -24,11 +24,11 @@
 | D2 | Equities Scanner | atlas_agents/equities/ | data_cache/equities_latest.json | BUILT+VERIFIED |
 | D3 | Options Flow Monitor | atlas_agents/trading/options_flow/ | data_cache/options_flow_latest.json | BUILT |
 | D4 | Insider Tracker | atlas_agents/trading/insider_tracker/ | data_cache/insider_trades_latest.json | BUILT |
-| D5 | Earnings Parser | atlas_agents/trading/earnings_parser/ | data_cache/earnings_latest.json | PENDING |
-| D6 | Forex Radar | atlas_agents/trading/forex_radar/ | data_cache/forex_latest.json | PENDING |
-| D7 | Commodities Watch | atlas_agents/trading/commodities/ | data_cache/commodities_latest.json | PENDING |
+| D5 | Earnings Parser | atlas_agents/trading/earnings_parser/ | data_cache/earnings_latest.json | BUILT+VERIFIED |
+| D6 | Forex Radar | atlas_agents/trading/forex_radar/ | data_cache/forex_latest.json | BUILT+VERIFIED |
+| D7 | Commodities Watch | atlas_agents/trading/commodities/ | data_cache/commodities_latest.json | BUILT+VERIFIED |
 | D8 | Dark Pool Monitor | atlas_agents/trading/dark_pool/ | data_cache/dark_pool_latest.json | BUILT+VERIFIED |
-| D9 | Penny Stock Screener | atlas_agents/trading/penny_screener/ | data_cache/penny_stocks_latest.json | PENDING |
+| D9 | Penny Stock Screener | atlas_agents/trading/penny_screener/ | data_cache/penny_stocks_latest.json | BUILT+VERIFIED |
 | D10 | Bond Yield Curve | atlas_agents/trading/bond_yields/ | data_cache/bond_yields_latest.json | BUILT+VERIFIED |
 
 ## Division 2-RealEstate
@@ -87,13 +87,13 @@
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
 | M1 | Fed Rate Probability | atlas_agents/macro/fed_watch/ | data_cache/fed_watch_latest.json | BUILT+VERIFIED |
-| M2 | Supply Chain Indexer | atlas_agents/macro/supply_chain/ | data_cache/supply_chain_latest.json | PENDING |
-| M3 | Energy Grid Monitor | atlas_agents/macro/energy/ | data_cache/energy_latest.json | PENDING |
-| M4 | Climate Risk FEMA Bot | atlas_agents/macro/climate_risk/ | data_cache/climate_risk_latest.json | PENDING |
-| M5 | Geopolitical Tariff Tracker | atlas_agents/macro/tariffs/ | data_cache/tariffs_latest.json | PENDING |
-| M6 | Job Market BLS Bot | atlas_agents/macro/jobs/ | data_cache/jobs_latest.json | PENDING |
+| M2 | Supply Chain Indexer | atlas_agents/macro/supply_chain/ | data_cache/supply_chain_latest.json | BUILT+VERIFIED |
+| M3 | Energy Grid Monitor | atlas_agents/macro/energy/ | data_cache/energy_latest.json | BUILT+VERIFIED |
+| M4 | Climate Risk FEMA Bot | atlas_agents/macro/climate_risk/ | data_cache/climate_risk_latest.json | BUILT+VERIFIED |
+| M5 | Geopolitical Tariff Tracker | atlas_agents/macro/tariffs/ | data_cache/tariffs_latest.json | BUILT+VERIFIED |
+| M6 | Job Market BLS Bot | atlas_agents/macro/jobs/ | data_cache/jobs_latest.json | BUILT+VERIFIED |
 | M7 | Inflation CPI Bot | atlas_agents/macro/inflation/ | data_cache/cpi_latest.json | BUILT+VERIFIED |
-| M8 | Congressional Trade Watcher | atlas_agents/macro/congress_trades/ | data_cache/congress_trades_latest.json | PENDING |
+| M8 | Congressional Trade Watcher | atlas_agents/macro/congress_trades/ | data_cache/congress_trades_latest.json | BUILT+VERIFIED |
 | M9 | Global Liquidity Monitor | atlas_agents/macro/global_liquidity/ | data_cache/global_liquidity_latest.json | BUILT+VERIFIED |
 
 ## Division 8-Growth

@@ -117,6 +117,15 @@ INTENT_TREASURY_YIELD_MARKET_SCAN = "TREASURY_YIELD_MARKET_SCAN"
 INTENT_CPI_INFLATION_MARKET_SCAN = "CPI_INFLATION_MARKET_SCAN"
 INTENT_FED_WATCH_MARKET_SCAN = "FED_WATCH_MARKET_SCAN"
 INTENT_WATCH_MARKET_SCAN = "WATCH_MARKET_SCAN"
+INTENT_EARNINGS_MARKET_SCAN = "EARNINGS_MARKET_SCAN"
+INTENT_FOREX_MARKET_SCAN = "FOREX_MARKET_SCAN"
+INTENT_COMMODITIES_MARKET_SCAN = "COMMODITIES_MARKET_SCAN"
+INTENT_SUPPLY_CHAIN_MARKET_SCAN = "SUPPLY_CHAIN_MARKET_SCAN"
+INTENT_ENERGY_MARKET_SCAN = "ENERGY_MARKET_SCAN"
+INTENT_CLIMATE_RISK_MARKET_SCAN = "CLIMATE_RISK_MARKET_SCAN"
+INTENT_TARIFFS_MARKET_SCAN = "TARIFFS_MARKET_SCAN"
+INTENT_JOBS_MARKET_SCAN = "JOBS_MARKET_SCAN"
+INTENT_CONGRESS_TRADES_MARKET_SCAN = "CONGRESS_TRADES_MARKET_SCAN"
 
 _ROUTER_TICKER_DD_EXCLUDE_RE = re.compile(
     r"\banalyze\s+[A-Z]{2,5}\b|\b(?:deep\s+dive|dd)\s+on\s+[A-Z]{2,5}\b",
@@ -204,6 +213,15 @@ _FED_TOPIC_RE = re.compile(
     r"|\bfed\b.*?(?:basis\s+points|bps\b|rates?\s+markets?|meeting)\b",
     re.I | re.S,
 )
+_EARNINGS_TOPIC_RE = re.compile(r"\b(?:earnings\s+calendar|upcoming\s+earnings|earnings\s+preview|reports?\s+earnings)\b", re.I | re.S)
+_FOREX_TOPIC_RE = re.compile(r"\b(?:forex|fx\b|currency|currencies|dxy|usd/(?:eur|jpy|gbp|cad|chf|aud|cny|mxn)|euro|yen|pound)\b", re.I | re.S)
+_COMMODITIES_TOPIC_RE = re.compile(r"\b(?:commodit(?:y|ies)|gold|silver|copper|oil|crude|natural\s+gas|wheat|corn)\b", re.I | re.S)
+_SUPPLY_CHAIN_TOPIC_RE = re.compile(r"\b(?:supply\s+chain|freight|shipping\s+rates?|container|drewry|freightos|logistics)\b", re.I | re.S)
+_ENERGY_TOPIC_RE = re.compile(r"\b(?:energy\s+grid|electricity|gasoline|gas\s+prices?|renewables|coal|nuclear|grid\s+mix)\b", re.I | re.S)
+_CLIMATE_TOPIC_RE = re.compile(r"\b(?:climate\s+risk|fema|flood|nfip|insurance\s+premium|flood\s+zone)\b", re.I | re.S)
+_TARIFF_TOPIC_RE = re.compile(r"\b(?:tariff|ustr|section\s+301|section\s+232|trade\s+war|import\s+duty)\b", re.I | re.S)
+_JOBS_TOPIC_RE = re.compile(r"\b(?:jobs\s+report|job\s+market|payrolls?|unemployment|bls|labor\s+market)\b", re.I | re.S)
+_CONGRESS_TRADES_TOPIC_RE = re.compile(r"\b(?:congress(?:ional)?\s+trades?|stock\s+act|house\s+stock|politician\s+trades?)\b", re.I | re.S)
 
 _MARKET_HINT_RE = re.compile(
     r"\$[A-Za-z]{1,5}\b|"
@@ -346,6 +364,24 @@ def classify_sector_cache_intent(raw: str) -> Optional[str]:
         return INTENT_CPI_INFLATION_MARKET_SCAN
     if _FED_TOPIC_RE.search(q) and dc_ok:
         return INTENT_FED_WATCH_MARKET_SCAN
+    if _EARNINGS_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_EARNINGS_MARKET_SCAN
+    if _FOREX_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_FOREX_MARKET_SCAN
+    if _COMMODITIES_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_COMMODITIES_MARKET_SCAN
+    if _SUPPLY_CHAIN_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_SUPPLY_CHAIN_MARKET_SCAN
+    if _ENERGY_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_ENERGY_MARKET_SCAN
+    if _CLIMATE_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_CLIMATE_RISK_MARKET_SCAN
+    if _TARIFF_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_TARIFFS_MARKET_SCAN
+    if _JOBS_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_JOBS_MARKET_SCAN
+    if _CONGRESS_TRADES_TOPIC_RE.search(q) and dc_ok:
+        return INTENT_CONGRESS_TRADES_MARKET_SCAN
 
     return None
 

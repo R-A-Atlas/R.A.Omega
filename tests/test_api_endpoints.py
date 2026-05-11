@@ -20,6 +20,7 @@ from fastapi.testclient import TestClient
 from atlas_omega import (
     DC_INTENT_CRYPTO,
     DC_INTENT_EQUITIES,
+    DC_INTENT_FOREX,
     DC_INTENT_INSIDER,
     DC_INTENT_OPTIONS_FLOW,
     DC_INTENT_WATCHES,
@@ -33,6 +34,14 @@ from atlas_omega import (
 from query_router import (
     INTENT_CRYPTO_MARKET_SCAN,
     INTENT_EQUITIES_MARKET_SCAN,
+    INTENT_FOREX_MARKET_SCAN,
+    INTENT_COMMODITIES_MARKET_SCAN,
+    INTENT_SUPPLY_CHAIN_MARKET_SCAN,
+    INTENT_ENERGY_MARKET_SCAN,
+    INTENT_CLIMATE_RISK_MARKET_SCAN,
+    INTENT_TARIFFS_MARKET_SCAN,
+    INTENT_JOBS_MARKET_SCAN,
+    INTENT_CONGRESS_TRADES_MARKET_SCAN,
     INTENT_INSIDER_TRADES_MARKET_SCAN,
     INTENT_MARKET_DEEP_DIVE,
     INTENT_OPTIONS_FLOW_MARKET_SCAN,
@@ -491,6 +500,17 @@ def test_luxury_watch_topic_without_scan_pattern_is_not_routed() -> None:
     assert classify_sector_cache_intent("When was the Rolex Submariner introduced?") is None
 
 
+def test_classify_sector_cache_new_macro_agents() -> None:
+    assert classify_sector_cache_intent("Forex market snapshot today") == INTENT_FOREX_MARKET_SCAN
+    assert classify_sector_cache_intent("Commodities overview right now") == INTENT_COMMODITIES_MARKET_SCAN
+    assert classify_sector_cache_intent("Supply chain freight snapshot today") == INTENT_SUPPLY_CHAIN_MARKET_SCAN
+    assert classify_sector_cache_intent("Energy grid overview latest") == INTENT_ENERGY_MARKET_SCAN
+    assert classify_sector_cache_intent("FEMA flood climate risk snapshot") == INTENT_CLIMATE_RISK_MARKET_SCAN
+    assert classify_sector_cache_intent("Tariff trade war overview today") == INTENT_TARIFFS_MARKET_SCAN
+    assert classify_sector_cache_intent("Jobs report labor market snapshot") == INTENT_JOBS_MARKET_SCAN
+    assert classify_sector_cache_intent("Congressional trades recent snapshot") == INTENT_CONGRESS_TRADES_MARKET_SCAN
+
+
 def test_internal_knowledge_payload_loads_crypto_and_equities() -> None:
     """Requires data_cache/crypto_top50_latest.json and equities_latest.json (dev fixtures)."""
     c_json, c_meta = _load_internal_knowledge_payload(DC_INTENT_CRYPTO)
@@ -507,6 +527,16 @@ def test_internal_knowledge_payload_loads_crypto_and_equities() -> None:
         assert e_json.get("snapshot") == "equities_screener"
     else:
         assert "missing_file" in str(e_meta.get("error", "")) or e_meta.get("error")
+
+
+def test_internal_knowledge_payload_accepts_new_macro_intent() -> None:
+    payload, meta = _load_internal_knowledge_payload(DC_INTENT_FOREX)
+    assert meta.get("intent") == DC_INTENT_FOREX
+    if meta.get("loaded"):
+        assert payload is not None
+        assert payload.get("snapshot") == "forex_rates"
+    else:
+        assert meta.get("error")
 
 
 def test_d2_d3_d4_loaders_and_ticker_slices(tmp_path, monkeypatch: pytest.MonkeyPatch) -> None:

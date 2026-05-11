@@ -202,6 +202,15 @@ DC_INTENT_WATCHES = "WATCH_MARKET_SCAN"
 DC_INTENT_DARK_POOL = "DARK_POOL_MARKET_SCAN"
 DC_INTENT_SECTOR_ROTATION = "SECTOR_ROTATION_MARKET_SCAN"
 DC_INTENT_GLOBAL_LIQUIDITY = "GLOBAL_LIQUIDITY_MARKET_SCAN"
+DC_INTENT_EARNINGS = "EARNINGS_MARKET_SCAN"
+DC_INTENT_FOREX = "FOREX_MARKET_SCAN"
+DC_INTENT_COMMODITIES = "COMMODITIES_MARKET_SCAN"
+DC_INTENT_SUPPLY_CHAIN = "SUPPLY_CHAIN_MARKET_SCAN"
+DC_INTENT_ENERGY = "ENERGY_MARKET_SCAN"
+DC_INTENT_CLIMATE_RISK = "CLIMATE_RISK_MARKET_SCAN"
+DC_INTENT_TARIFFS = "TARIFFS_MARKET_SCAN"
+DC_INTENT_JOBS = "JOBS_MARKET_SCAN"
+DC_INTENT_CONGRESS_TRADES = "CONGRESS_TRADES_MARKET_SCAN"
 
 DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
     {
@@ -216,6 +225,15 @@ DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
         DC_INTENT_DARK_POOL,
         DC_INTENT_SECTOR_ROTATION,
         DC_INTENT_GLOBAL_LIQUIDITY,
+        DC_INTENT_EARNINGS,
+        DC_INTENT_FOREX,
+        DC_INTENT_COMMODITIES,
+        DC_INTENT_SUPPLY_CHAIN,
+        DC_INTENT_ENERGY,
+        DC_INTENT_CLIMATE_RISK,
+        DC_INTENT_TARIFFS,
+        DC_INTENT_JOBS,
+        DC_INTENT_CONGRESS_TRADES,
     }
 )
 
@@ -638,6 +656,15 @@ def _ik_row_count(compact: dict[str, Any]) -> int:
         "yields",
         "categories",
         "probabilities",
+        "upcoming",
+        "pairs",
+        "commodities",
+        "indices",
+        "breakdown",
+        "flood_zone_changes",
+        "active_tariffs",
+        "sector_breakdown",
+        "trades",
     ):
         block = compact.get(k)
         if isinstance(block, list):
@@ -681,6 +708,36 @@ def _compact_global_liquidity(obj: dict) -> dict:
     }
 
 
+def _compact_generic_cache(obj: dict, *, snapshot: str, list_key: str | None = None, limit: int = 20) -> dict:
+    out = {
+        "snapshot": snapshot,
+        "generated_at": obj.get("generated_at"),
+        "source": obj.get("source") or obj.get("data_source"),
+        "record_count": obj.get("record_count", 0),
+    }
+    for key in (
+        "global_trend",
+        "grid_trend",
+        "national_flood_risk_trend",
+        "active_count",
+        "escalating_count",
+        "labor_market_signal",
+        "unemployment_rate",
+        "jobs_added_thousands",
+        "dxy_proxy",
+        "renewables_pct_grid",
+        "electricity_avg_kwh_cents",
+        "gas_national_avg_gallon",
+        "most_traded_ticker",
+        "late_disclosure_count",
+    ):
+        if key in obj:
+            out[key] = obj.get(key)
+    if list_key and isinstance(obj.get(list_key), list):
+        out[list_key] = obj[list_key][:limit]
+    return out
+
+
 
 def _load_internal_knowledge_payload(
     intent: str,
@@ -699,6 +756,15 @@ def _load_internal_knowledge_payload(
         DC_INTENT_DARK_POOL: "dark_pool_latest.json",
         DC_INTENT_SECTOR_ROTATION: "sector_rotation_latest.json",
         DC_INTENT_GLOBAL_LIQUIDITY: "global_liquidity_latest.json",
+        DC_INTENT_EARNINGS: "earnings_latest.json",
+        DC_INTENT_FOREX: "forex_latest.json",
+        DC_INTENT_COMMODITIES: "commodities_latest.json",
+        DC_INTENT_SUPPLY_CHAIN: "supply_chain_latest.json",
+        DC_INTENT_ENERGY: "energy_latest.json",
+        DC_INTENT_CLIMATE_RISK: "climate_risk_latest.json",
+        DC_INTENT_TARIFFS: "tariffs_latest.json",
+        DC_INTENT_JOBS: "jobs_latest.json",
+        DC_INTENT_CONGRESS_TRADES: "congress_trades_latest.json",
     }
     fname = intent_files.get(intent)
     if not fname:
@@ -746,6 +812,24 @@ def _load_internal_knowledge_payload(
         compact = _compact_sector_rotation(raw_obj)
     elif intent == DC_INTENT_GLOBAL_LIQUIDITY:
         compact = _compact_global_liquidity(raw_obj)
+    elif intent == DC_INTENT_EARNINGS:
+        compact = _compact_generic_cache(raw_obj, snapshot="earnings_calendar", list_key="upcoming")
+    elif intent == DC_INTENT_FOREX:
+        compact = _compact_generic_cache(raw_obj, snapshot="forex_rates", list_key="pairs")
+    elif intent == DC_INTENT_COMMODITIES:
+        compact = _compact_generic_cache(raw_obj, snapshot="commodities", list_key="commodities")
+    elif intent == DC_INTENT_SUPPLY_CHAIN:
+        compact = _compact_generic_cache(raw_obj, snapshot="supply_chain", list_key="indices")
+    elif intent == DC_INTENT_ENERGY:
+        compact = _compact_generic_cache(raw_obj, snapshot="energy_grid", list_key="breakdown")
+    elif intent == DC_INTENT_CLIMATE_RISK:
+        compact = _compact_generic_cache(raw_obj, snapshot="climate_risk", list_key="flood_zone_changes")
+    elif intent == DC_INTENT_TARIFFS:
+        compact = _compact_generic_cache(raw_obj, snapshot="tariffs", list_key="active_tariffs")
+    elif intent == DC_INTENT_JOBS:
+        compact = _compact_generic_cache(raw_obj, snapshot="jobs", list_key="sector_breakdown")
+    elif intent == DC_INTENT_CONGRESS_TRADES:
+        compact = _compact_generic_cache(raw_obj, snapshot="congress_trades", list_key="trades")
     else:
         meta["error"] = "unknown_data_cache_intent"
         return None, meta
