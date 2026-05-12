@@ -258,6 +258,7 @@ def test_post_query_dispatches_router_and_returns_ui_payload(
     assert body["_route_decision"]["route_band"] == "focused_analysis"
     assert body["_active_agents"]["agent_ids"]
     assert "D2" in body["_active_agents"]["agent_ids"]
+    assert body["_specialist_packets"]["agent_ids"] == body["_active_agents"]["agent_ids"]
 
 
 def test_post_query_attaches_market_intelligence_for_tickers(
