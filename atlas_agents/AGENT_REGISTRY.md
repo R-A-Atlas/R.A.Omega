@@ -34,25 +34,25 @@
 ## Division 2-RealEstate
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| R1 | Residential Scout | atlas_agents/realestate/residential/ | data_cache/residential_latest.json | PENDING |
-| R2 | Rental Yield Calculator | atlas_agents/realestate/rental_yield/ | data_cache/rental_yield_latest.json | PENDING |
-| R3 | Airbnb STR Analyzer | atlas_agents/realestate/str_analyzer/ | data_cache/str_latest.json | PENDING |
-| R4 | Commercial Property Bot | atlas_agents/realestate/commercial/ | data_cache/commercial_latest.json | PENDING |
-| R5 | Zoning Permit Watcher | atlas_agents/realestate/zoning/ | data_cache/zoning_latest.json | PENDING |
-| R6 | REIT Screener | atlas_agents/realestate/reit_screener/ | data_cache/reits_latest.json | PENDING |
-| R7 | Mortgage Rate Tracker | atlas_agents/realestate/mortgage_rates/ | data_cache/mortgage_rates_latest.json | PENDING |
+| R1 | Residential Scout | atlas_agents/realestate/residential/ | data_cache/residential_latest.json | BUILT+VERIFIED |
+| R2 | Rental Yield Calculator | atlas_agents/realestate/rental_yield/ | data_cache/rental_yield_latest.json | BUILT+VERIFIED |
+| R3 | Airbnb STR Analyzer | atlas_agents/realestate/str_analyzer/ | data_cache/str_latest.json | BUILT+VERIFIED |
+| R4 | Commercial Property Bot | atlas_agents/realestate/commercial/ | data_cache/commercial_latest.json | BUILT+VERIFIED |
+| R5 | Zoning Permit Watcher | atlas_agents/realestate/zoning/ | data_cache/zoning_latest.json | BUILT+VERIFIED |
+| R6 | REIT Screener | atlas_agents/realestate/reit_screener/ | data_cache/reits_latest.json | BUILT+VERIFIED |
+| R7 | Mortgage Rate Tracker | atlas_agents/realestate/mortgage_rates/ | data_cache/mortgage_rates_latest.json | BUILT+VERIFIED |
 
 ## Division 3-Wealth
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| W1 | Credit Card Optimizer | atlas_agents/wealth/credit_cards/ | data_cache/credit_cards_latest.json | PENDING |
-| W2 | Auto Loan Scanner | atlas_agents/wealth/auto_loans/ | data_cache/auto_loans_latest.json | PENDING |
-| W3 | Student Debt Monitor | atlas_agents/wealth/student_debt/ | data_cache/student_debt_latest.json | PENDING |
-| W4 | HYSA Tracker | atlas_agents/wealth/hysa/ | data_cache/hysa_latest.json | PENDING |
-| W5 | IRA 401k Limit Bot | atlas_agents/wealth/retirement_limits/ | data_cache/retirement_limits_latest.json | PENDING |
-| W6 | Personal Loan Screener | atlas_agents/wealth/personal_loans/ | data_cache/personal_loans_latest.json | PENDING |
-| W7 | Cost of Living Indexer | atlas_agents/wealth/col_indexer/ | data_cache/col_latest.json | PENDING |
-| W8 | Insurance Premium Tracker | atlas_agents/wealth/insurance/ | data_cache/insurance_latest.json | PENDING |
+| W1 | Credit Card Optimizer | atlas_agents/wealth/credit_cards/ | data_cache/credit_cards_latest.json | BUILT+VERIFIED |
+| W2 | Auto Loan Scanner | atlas_agents/wealth/auto_loans/ | data_cache/auto_loans_latest.json | BUILT+VERIFIED |
+| W3 | Student Debt Monitor | atlas_agents/wealth/student_debt/ | data_cache/student_debt_latest.json | BUILT+VERIFIED |
+| W4 | HYSA Tracker | atlas_agents/wealth/hysa/ | data_cache/hysa_latest.json | BUILT+VERIFIED |
+| W5 | IRA 401k Limit Bot | atlas_agents/wealth/retirement_limits/ | data_cache/retirement_limits_latest.json | BUILT+VERIFIED |
+| W6 | Personal Loan Screener | atlas_agents/wealth/personal_loans/ | data_cache/personal_loans_latest.json | BUILT+VERIFIED |
+| W7 | Cost of Living Indexer | atlas_agents/wealth/col_indexer/ | data_cache/col_latest.json | BUILT+VERIFIED |
+| W8 | Insurance Premium Tracker | atlas_agents/wealth/insurance/ | data_cache/insurance_latest.json | BUILT+VERIFIED |
 
 ## Division 4-Legal
 | ID | Name | Directory | Output | Status |
@@ -135,14 +135,14 @@
 ## Division 11-Intelligence
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| IQ1 | Cross Asset Correlation | atlas_agents/intelligence/correlation/ | data_cache/correlation_latest.json | PENDING |
-| IQ2 | Regime Change Detector | atlas_agents/intelligence/regime_detector/ | Supabase alert + push | PENDING |
-| IQ3 | Earnings Season Coordinator | atlas_agents/intelligence/earnings_coord/ | data_cache/earnings_season_brief_latest.json | PENDING |
+| IQ1 | Cross Asset Correlation | atlas_agents/intelligence/correlation/ | data_cache/correlation_latest.json | BUILT+VERIFIED |
+| IQ2 | Regime Change Detector | atlas_agents/intelligence/regime_detector/ | data_cache/regime_change_latest.json | BUILT+VERIFIED |
+| IQ3 | Earnings Season Coordinator | atlas_agents/intelligence/earnings_coord/ | data_cache/earnings_season_brief_latest.json | BUILT+VERIFIED |
 | IQ4 | Sector Rotation Agent | atlas_agents/intelligence/sector_rotation/ | data_cache/sector_rotation_latest.json | BUILT+VERIFIED |
-| IQ5 | News Catalyst Agent | atlas_agents/intelligence/news_catalyst/ | data_cache/news_catalysts_latest.json | PENDING |
-| IQ6 | Sentiment Divergence Agent | atlas_agents/intelligence/sentiment_div/ | data_cache/sentiment_divergence_latest.json | PENDING |
-| IQ7 | Backtesting Agent | atlas_agents/intelligence/backtesting/ | atlas_vault/03-Outputs/Backtests/*.json | PENDING |
-| IQ8 | Risk Budget Agent | atlas_agents/intelligence/risk_budget/ | data_cache/risk_budget_latest.json | PENDING |
+| IQ5 | News Catalyst Agent | atlas_agents/intelligence/news_catalyst/ | data_cache/news_catalysts_latest.json | BUILT+VERIFIED |
+| IQ6 | Sentiment Divergence Agent | atlas_agents/intelligence/sentiment_div/ | data_cache/sentiment_divergence_latest.json | BUILT+VERIFIED |
+| IQ7 | Backtesting Agent | atlas_agents/intelligence/backtesting/ | atlas_vault/03-Outputs/Backtests/backtest_latest.json | BUILT+VERIFIED |
+| IQ8 | Risk Budget Agent | atlas_agents/intelligence/risk_budget/ | data_cache/risk_budget_latest.json | BUILT+VERIFIED |
 
 ## Division 12-Platform
 | ID | Name | Directory | Output | Status |
