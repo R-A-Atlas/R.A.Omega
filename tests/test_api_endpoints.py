@@ -367,6 +367,7 @@ def test_post_query_accepts_research_controls(
             "answer_style": "desk",
             "risk_profile": "conservative",
             "market_focus": "US equities",
+            "source_strictness": "strict",
             "report_depth": "full",
             "citation_preference": "always",
             "compliance_level": "strict",
@@ -383,6 +384,7 @@ def test_post_query_accepts_research_controls(
     assert "Research mode: DEEP" in calls[0]["query"]
     assert "Route decision: deep_research" in calls[0]["query"]
     assert "Answer style: desk." in calls[0]["query"]
+    assert "Source strictness: strict." in calls[0]["query"]
     assert "Preferred report depth: full." in calls[0]["query"]
     assert "Citation preference: always." in calls[0]["query"]
     assert "Compliance disclaimer level: strict." in calls[0]["query"]

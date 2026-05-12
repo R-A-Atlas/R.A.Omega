@@ -270,6 +270,7 @@ class QueryRequest(BaseModel):
     answer_style: Optional[str] = Field(default=None, max_length=40)
     risk_profile: Optional[str] = Field(default=None, max_length=40)
     market_focus: Optional[str] = Field(default=None, max_length=80)
+    source_strictness: Optional[str] = Field(default=None, max_length=40)
     report_depth: Optional[str] = Field(default=None, max_length=40)
     citation_preference: Optional[str] = Field(default=None, max_length=40)
     compliance_level: Optional[str] = Field(default=None, max_length=40)
@@ -819,6 +820,7 @@ def _maybe_fast_chat_shaped(
             "answer_style": getattr(req, "answer_style", None),
             "risk_profile": getattr(req, "risk_profile", None),
             "market_focus": getattr(req, "market_focus", None),
+            "source_strictness": getattr(req, "source_strictness", None),
             "report_depth": getattr(req, "report_depth", None),
             "citation_preference": getattr(req, "citation_preference", None),
             "compliance_level": getattr(req, "compliance_level", None),
@@ -1438,6 +1440,14 @@ def dispatch_query_request(
         request_hints.append(f"User risk profile: {str(req.risk_profile).strip()[:40]}.")
     if req.market_focus:
         request_hints.append(f"Market focus: {str(req.market_focus).strip()[:80]}.")
+    if req.source_strictness:
+        strictness = str(req.source_strictness).strip()[:40]
+        if strictness == "strict":
+            request_hints.append("Source strictness: strict. Prefer primary sources and label unverified or fallback evidence.")
+        elif strictness == "speed":
+            request_hints.append("Source strictness: speed. Keep source checks efficient while preserving safety-critical validation.")
+        else:
+            request_hints.append(f"Source strictness: {strictness}.")
     if req.report_depth:
         request_hints.append(f"Preferred report depth: {str(req.report_depth).strip()[:40]}.")
     if req.citation_preference:
@@ -1548,6 +1558,7 @@ def dispatch_query_request(
             "answer_style": req.answer_style,
             "risk_profile": req.risk_profile,
             "market_focus": req.market_focus,
+            "source_strictness": req.source_strictness,
             "report_depth": req.report_depth,
             "citation_preference": req.citation_preference,
             "compliance_level": req.compliance_level,
@@ -2327,6 +2338,7 @@ async def voice_query(
     answer_style: Optional[str] = Form(None),
     risk_profile: Optional[str] = Form(None),
     market_focus: Optional[str] = Form(None),
+    source_strictness: Optional[str] = Form(None),
     report_depth: Optional[str] = Form(None),
     citation_preference: Optional[str] = Form(None),
     compliance_level: Optional[str] = Form(None),
@@ -2349,6 +2361,7 @@ async def voice_query(
         answer_style=(answer_style or "").strip() or None,
         risk_profile=(risk_profile or "").strip() or None,
         market_focus=(market_focus or "").strip() or None,
+        source_strictness=(source_strictness or "").strip() or None,
         report_depth=(report_depth or "").strip() or None,
         citation_preference=(citation_preference or "").strip() or None,
         compliance_level=(compliance_level or "").strip() or None,
