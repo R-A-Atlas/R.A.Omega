@@ -247,9 +247,14 @@ _DEFAULT_USER_PREFERENCES: dict[str, Any] = {
     "risk_profile": "balanced",
     "market_focus": "US equities",
     "source_strictness": "balanced",
+    "report_depth": "standard",
+    "card_density": "comfortable",
+    "voice_dictation": True,
+    "citation_preference": "balanced",
+    "compliance_level": "standard",
     "memory_enabled": True,
     "notifications_enabled": False,
-    "accent_color": "blue",
+    "accent_color": "teal",
     "subscription_tier": "free",
     "subscription_status": "active",
     "stripe_customer_id": "",
@@ -270,6 +275,10 @@ def _clean_user_preferences(raw: dict[str, Any] | None) -> dict[str, Any]:
         "risk_profile": 40,
         "market_focus": 80,
         "source_strictness": 40,
+        "report_depth": 40,
+        "card_density": 40,
+        "citation_preference": 40,
+        "compliance_level": 40,
         "accent_color": 40,
         "subscription_tier": 40,
         "subscription_status": 40,
@@ -278,6 +287,7 @@ def _clean_user_preferences(raw: dict[str, Any] | None) -> dict[str, Any]:
         out[key] = str(out.get(key) or _DEFAULT_USER_PREFERENCES[key]).strip()[:max_len]
     out["memory_enabled"] = bool(out.get("memory_enabled"))
     out["notifications_enabled"] = bool(out.get("notifications_enabled"))
+    out["voice_dictation"] = bool(out.get("voice_dictation"))
     if not isinstance(out.get("extra_json"), dict):
         out["extra_json"] = {}
     return out

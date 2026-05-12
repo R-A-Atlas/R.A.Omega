@@ -270,6 +270,9 @@ class QueryRequest(BaseModel):
     answer_style: Optional[str] = Field(default=None, max_length=40)
     risk_profile: Optional[str] = Field(default=None, max_length=40)
     market_focus: Optional[str] = Field(default=None, max_length=80)
+    report_depth: Optional[str] = Field(default=None, max_length=40)
+    citation_preference: Optional[str] = Field(default=None, max_length=40)
+    compliance_level: Optional[str] = Field(default=None, max_length=40)
     research_job_id: Optional[str] = Field(default=None, max_length=80)
 
 
@@ -287,6 +290,11 @@ class UserPreferencesRequest(BaseModel):
     risk_profile: Optional[str] = Field(default=None, max_length=40)
     market_focus: Optional[str] = Field(default=None, max_length=80)
     source_strictness: Optional[str] = Field(default=None, max_length=40)
+    report_depth: Optional[str] = Field(default=None, max_length=40)
+    card_density: Optional[str] = Field(default=None, max_length=40)
+    voice_dictation: Optional[bool] = None
+    citation_preference: Optional[str] = Field(default=None, max_length=40)
+    compliance_level: Optional[str] = Field(default=None, max_length=40)
     memory_enabled: Optional[bool] = None
     notifications_enabled: Optional[bool] = None
     accent_color: Optional[str] = Field(default=None, max_length=40)
@@ -811,6 +819,9 @@ def _maybe_fast_chat_shaped(
             "answer_style": getattr(req, "answer_style", None),
             "risk_profile": getattr(req, "risk_profile", None),
             "market_focus": getattr(req, "market_focus", None),
+            "report_depth": getattr(req, "report_depth", None),
+            "citation_preference": getattr(req, "citation_preference", None),
+            "compliance_level": getattr(req, "compliance_level", None),
         },
     }
     if route_decision is not None:
@@ -1427,6 +1438,12 @@ def dispatch_query_request(
         request_hints.append(f"User risk profile: {str(req.risk_profile).strip()[:40]}.")
     if req.market_focus:
         request_hints.append(f"Market focus: {str(req.market_focus).strip()[:80]}.")
+    if req.report_depth:
+        request_hints.append(f"Preferred report depth: {str(req.report_depth).strip()[:40]}.")
+    if req.citation_preference:
+        request_hints.append(f"Citation preference: {str(req.citation_preference).strip()[:40]}.")
+    if req.compliance_level:
+        request_hints.append(f"Compliance disclaimer level: {str(req.compliance_level).strip()[:40]}.")
     request_hints.append(
         "Route decision: "
         f"{route_decision.route_band} "
@@ -1531,6 +1548,9 @@ def dispatch_query_request(
             "answer_style": req.answer_style,
             "risk_profile": req.risk_profile,
             "market_focus": req.market_focus,
+            "report_depth": req.report_depth,
+            "citation_preference": req.citation_preference,
+            "compliance_level": req.compliance_level,
         }
         shaped["_tier_usage"] = tier_usage
         shaped["_route_decision"] = route_decision.to_dict()
@@ -2189,6 +2209,9 @@ async def voice_query(
     answer_style: Optional[str] = Form(None),
     risk_profile: Optional[str] = Form(None),
     market_focus: Optional[str] = Form(None),
+    report_depth: Optional[str] = Form(None),
+    citation_preference: Optional[str] = Form(None),
+    compliance_level: Optional[str] = Form(None),
     research_job_id: Optional[str] = Form(None),
 ):
     """Transcribe audio with OpenAI Whisper, then run the same path as POST /query."""
@@ -2208,6 +2231,9 @@ async def voice_query(
         answer_style=(answer_style or "").strip() or None,
         risk_profile=(risk_profile or "").strip() or None,
         market_focus=(market_focus or "").strip() or None,
+        report_depth=(report_depth or "").strip() or None,
+        citation_preference=(citation_preference or "").strip() or None,
+        compliance_level=(compliance_level or "").strip() or None,
         research_job_id=(research_job_id or "").strip() or None,
     )
     out = dispatch_query_request(req, user_id, background_tasks)

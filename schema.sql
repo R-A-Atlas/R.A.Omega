@@ -138,9 +138,14 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
     risk_profile TEXT NOT NULL DEFAULT 'balanced',
     market_focus TEXT NOT NULL DEFAULT 'US equities',
     source_strictness TEXT NOT NULL DEFAULT 'balanced',
+    report_depth TEXT NOT NULL DEFAULT 'standard',
+    card_density TEXT NOT NULL DEFAULT 'comfortable',
+    voice_dictation BOOLEAN NOT NULL DEFAULT true,
+    citation_preference TEXT NOT NULL DEFAULT 'balanced',
+    compliance_level TEXT NOT NULL DEFAULT 'standard',
     memory_enabled BOOLEAN NOT NULL DEFAULT true,
     notifications_enabled BOOLEAN NOT NULL DEFAULT false,
-    accent_color TEXT NOT NULL DEFAULT 'blue',
+    accent_color TEXT NOT NULL DEFAULT 'teal',
     subscription_tier TEXT NOT NULL DEFAULT 'free'
         CHECK (subscription_tier IN ('free', 'starter', 'pro', 'business', 'enterprise', 'developer')),
     subscription_status TEXT NOT NULL DEFAULT 'active',
@@ -152,6 +157,13 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
 );
 
 COMMENT ON TABLE public.user_preferences IS 'Per-user R.A. Omega settings, personalization, mode defaults, and UI preferences.';
+
+ALTER TABLE public.user_preferences
+    ADD COLUMN IF NOT EXISTS report_depth TEXT NOT NULL DEFAULT 'standard',
+    ADD COLUMN IF NOT EXISTS card_density TEXT NOT NULL DEFAULT 'comfortable',
+    ADD COLUMN IF NOT EXISTS voice_dictation BOOLEAN NOT NULL DEFAULT true,
+    ADD COLUMN IF NOT EXISTS citation_preference TEXT NOT NULL DEFAULT 'balanced',
+    ADD COLUMN IF NOT EXISTS compliance_level TEXT NOT NULL DEFAULT 'standard';
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- Migration: Sessions/watchlist objects (if missing) + RLS owner policies on tenant tables

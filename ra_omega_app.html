@@ -2180,6 +2180,11 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     risk_profile: riskProfile || 'balanced',
                     market_focus: (marketFocus || '').trim().slice(0, 80),
                     source_strictness: sourceStrictness || 'balanced',
+                    report_depth: reportDepth || 'standard',
+                    card_density: cardDensity || 'comfortable',
+                    voice_dictation: !!voiceDictation,
+                    citation_preference: citationPreference || 'balanced',
+                    compliance_level: complianceLevel || 'standard',
                     memory_enabled: !!memoryEnabled,
                     notifications_enabled: !!notificationsEnabled,
                     accent_color: accentColor || 'teal',
@@ -3019,9 +3024,15 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         const answerStyle = (localStorage.getItem('atlas_answer_style') || '').trim();
                         const riskProfile = (localStorage.getItem('atlas_risk_profile') || '').trim();
                         const marketFocus = (localStorage.getItem('atlas_market_focus') || '').trim();
+                        const reportDepth = (localStorage.getItem('atlas_report_depth') || '').trim();
+                        const citationPreference = (localStorage.getItem('atlas_citation_preference') || '').trim();
+                        const complianceLevel = (localStorage.getItem('atlas_compliance_level') || '').trim();
                         if (answerStyle) form.append('answer_style', answerStyle);
                         if (riskProfile) form.append('risk_profile', riskProfile);
                         if (marketFocus) form.append('market_focus', marketFocus);
+                        if (reportDepth) form.append('report_depth', reportDepth);
+                        if (citationPreference) form.append('citation_preference', citationPreference);
+                        if (complianceLevel) form.append('compliance_level', complianceLevel);
                     } catch (_) {}
 
                     try {
@@ -3298,9 +3309,15 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     const answerStyle = (localStorage.getItem('atlas_answer_style') || '').trim();
                     const riskProfile = (localStorage.getItem('atlas_risk_profile') || '').trim();
                     const marketFocus = (localStorage.getItem('atlas_market_focus') || '').trim();
+                    const reportDepth = (localStorage.getItem('atlas_report_depth') || '').trim();
+                    const citationPreference = (localStorage.getItem('atlas_citation_preference') || '').trim();
+                    const complianceLevel = (localStorage.getItem('atlas_compliance_level') || '').trim();
                     if (answerStyle) queryBody.answer_style = answerStyle;
                     if (riskProfile) queryBody.risk_profile = riskProfile;
                     if (marketFocus) queryBody.market_focus = marketFocus;
+                    if (reportDepth) queryBody.report_depth = reportDepth;
+                    if (citationPreference) queryBody.citation_preference = citationPreference;
+                    if (complianceLevel) queryBody.compliance_level = complianceLevel;
                 } catch (_) {}
 
                 try {

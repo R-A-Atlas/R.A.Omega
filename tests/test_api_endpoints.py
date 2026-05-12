@@ -350,6 +350,9 @@ def test_post_query_accepts_research_controls(
             "answer_style": "desk",
             "risk_profile": "conservative",
             "market_focus": "US equities",
+            "report_depth": "full",
+            "citation_preference": "always",
+            "compliance_level": "strict",
         },
     )
     assert r.status_code == 200
@@ -363,6 +366,9 @@ def test_post_query_accepts_research_controls(
     assert "Research mode: DEEP" in calls[0]["query"]
     assert "Route decision: deep_research" in calls[0]["query"]
     assert "Answer style: desk." in calls[0]["query"]
+    assert "Preferred report depth: full." in calls[0]["query"]
+    assert "Citation preference: always." in calls[0]["query"]
+    assert "Compliance disclaimer level: strict." in calls[0]["query"]
     assert "hi" in calls[0]["query"]
 
 
@@ -454,6 +460,11 @@ def test_user_preferences_round_trip(client: TestClient) -> None:
             "risk_profile": "conservative",
             "market_focus": "US equities",
             "source_strictness": "strict",
+            "report_depth": "full",
+            "card_density": "compact",
+            "voice_dictation": False,
+            "citation_preference": "always",
+            "compliance_level": "strict",
             "memory_enabled": False,
             "notifications_enabled": True,
             "accent_color": "green",
@@ -463,6 +474,11 @@ def test_user_preferences_round_trip(client: TestClient) -> None:
     prefs = r2.json()["preferences"]
     assert prefs["display_name"] == "Roberto"
     assert prefs["default_research_mode"] == "web"
+    assert prefs["report_depth"] == "full"
+    assert prefs["card_density"] == "compact"
+    assert prefs["voice_dictation"] is False
+    assert prefs["citation_preference"] == "always"
+    assert prefs["compliance_level"] == "strict"
     assert prefs["memory_enabled"] is False
     assert prefs["notifications_enabled"] is True
 

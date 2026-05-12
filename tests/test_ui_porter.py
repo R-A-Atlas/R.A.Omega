@@ -75,6 +75,10 @@ def test_e4_chat_modes_and_settings_present():
     assert "atlas_voice_dictation" in content, "voice dictation preference missing"
     assert "atlas_citation_preference" in content, "citation preference missing"
     assert "atlas_compliance_level" in content, "compliance disclaimer preference missing"
+    assert "queryBody.report_depth" in content, "report depth not sent to /query"
+    assert "queryBody.citation_preference" in content, "citation preference not sent to /query"
+    assert "queryBody.compliance_level" in content, "compliance level not sent to /query"
+    assert "form.append('report_depth'" in content, "report depth not sent to /voice/query"
     assert "Finance Dashboard" in content, "chat/dashboard split link missing"
 
 
