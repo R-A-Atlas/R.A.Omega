@@ -60,6 +60,7 @@ from __future__ import annotations
 
 import hashlib
 import asyncio
+import hmac
 import json
 import re
 import logging
@@ -89,7 +90,7 @@ try:
     from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Query, Depends, UploadFile, File, Form, Header, Body
     from fastapi.exceptions import RequestValidationError
     from fastapi.middleware.cors import CORSMiddleware
-    from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response
+    from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response, RedirectResponse
     from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
     from pydantic import BaseModel, Field
 except ImportError:
@@ -129,6 +130,15 @@ except ImportError:
 
 RATE_LIMIT_UI_MESSAGE = "API Rate Limit Exceeded - Please wait 60 seconds"
 research_jobs.configure_store(BASE_DIR / "data_cache" / "research_jobs.json")
+
+PLAN_DAILY_QUERY_CAPS = {
+    "free": 5,
+    "starter": 25,
+    "pro": 250,
+    "business": 1000,
+    "enterprise": 100000,
+    "developer": 100000,
+}
 
 CORS_ORIGINS = [
     "http://localhost:3000",
@@ -278,7 +288,19 @@ class UserPreferencesRequest(BaseModel):
     memory_enabled: Optional[bool] = None
     notifications_enabled: Optional[bool] = None
     accent_color: Optional[str] = Field(default=None, max_length=40)
+    subscription_tier: Optional[str] = Field(
+        default=None,
+        pattern="^(free|starter|pro|business|enterprise|developer)$",
+    )
+    subscription_status: Optional[str] = Field(default=None, max_length=40)
+    stripe_customer_id: Optional[str] = Field(default=None, max_length=120)
     extra_json: Optional[dict[str, Any]] = None
+
+
+class BillingCheckoutRequest(BaseModel):
+    plan: str = Field(pattern="^(starter|pro|business|enterprise)$")
+    success_url: str = Field(..., min_length=8, max_length=500)
+    cancel_url: str = Field(..., min_length=8, max_length=500)
 
 
 class PositionRequest(BaseModel):
@@ -341,11 +363,15 @@ class TtsRequest(BaseModel):
 _bearer_scheme = HTTPBearer(auto_error=False)
 
 
+def _auth_disabled() -> bool:
+    return os.environ.get("ATLAS_DISABLE_AUTH", "").lower() == "true"
+
+
 def get_current_user(
     creds: Annotated[Optional[HTTPAuthorizationCredentials], Depends(_bearer_scheme)],
 ) -> str:
     """Validate Supabase JWT from Authorization: Bearer and return auth.users.id as str."""
-    if os.environ.get("ATLAS_DISABLE_AUTH", "").lower() == "true":
+    if _auth_disabled():
         return "test_user_local"
     if creds is None or not creds.credentials or not str(creds.credentials).strip():
         raise HTTPException(status_code=401, detail="Missing Authorization Bearer token")
@@ -967,6 +993,132 @@ def _log_dev_api_billing(dev_user_id: str, endpoint: str, query_len: int = 0) ->
         log.warning("[dev_api] billing log failed: %s", e)
 
 
+def _request_has_browser_session(request: Request) -> bool:
+    if _auth_disabled():
+        return True
+    auth = (request.headers.get("authorization") or "").strip()
+    if auth.lower().startswith("bearer ") and len(auth) > 16:
+        return True
+    token = (request.cookies.get("atlas_access_token") or "").strip()
+    return bool(token)
+
+
+def _subscription_tier_for_user(user_id: str) -> str:
+    if user_id == "test_user_local" or not user_id:
+        return "developer"
+    default_tier = (os.environ.get("ATLAS_DEFAULT_SUBSCRIPTION_TIER") or "free").strip().lower()
+    try:
+        prefs = atlas_db.get_user_preferences(user_id)
+    except Exception as e:
+        log.debug("[tier] user preference lookup failed: %s", e)
+        return default_tier
+    tier = str(prefs.get("subscription_tier") or "").strip().lower()
+    if not tier:
+        extra = prefs.get("extra_json") if isinstance(prefs.get("extra_json"), dict) else {}
+        tier = str(extra.get("subscription_tier") or extra.get("tier") or "").strip().lower()
+    return tier or default_tier
+
+
+def _daily_cap_for_tier(tier: str) -> int:
+    env_key = f"ATLAS_TIER_{str(tier or '').upper()}_DAILY_QUERIES"
+    raw = os.environ.get(env_key)
+    if raw:
+        try:
+            return max(0, int(raw))
+        except ValueError:
+            pass
+    return PLAN_DAILY_QUERY_CAPS.get((tier or "free").lower(), PLAN_DAILY_QUERY_CAPS["free"])
+
+
+def _enforce_query_tier_gate(user_id: str, req: "QueryRequest") -> dict[str, Any]:
+    """Return tier metadata or raise 402/429 before expensive query execution."""
+    if _auth_disabled() or user_id == "test_user_local":
+        return {"tier": "developer", "daily_cap": None, "used_today": 0, "remaining_today": None}
+    tier = _subscription_tier_for_user(user_id)
+    cap = _daily_cap_for_tier(tier)
+    if cap <= 0:
+        raise HTTPException(
+            status_code=402,
+            detail="Your R.A. Omega plan is inactive. Update billing to continue.",
+        )
+    try:
+        used = atlas_db.count_queries_today(user_id)
+    except Exception as e:
+        log.warning("[tier] count_queries_today failed: %s", e)
+        used = 0
+    if used >= cap:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "error": "daily_query_limit_reached",
+                "tier": tier,
+                "daily_cap": cap,
+                "used_today": used,
+                "upgrade_hint": "Upgrade to Pro or Business for a higher daily research limit.",
+            },
+        )
+    return {
+        "tier": tier,
+        "daily_cap": cap,
+        "used_today": used,
+        "remaining_today": max(cap - used - 1, 0),
+        "research_mode": getattr(req, "research_mode", "normal"),
+    }
+
+
+def _stripe_secret_key() -> str:
+    return (os.environ.get("STRIPE_SECRET_KEY") or "").strip()
+
+
+def _stripe_price_for_plan(plan: str) -> str:
+    key = f"STRIPE_PRICE_{plan.upper()}"
+    return (os.environ.get(key) or "").strip()
+
+
+def _verify_stripe_signature(payload: bytes, signature_header: str, secret: str) -> None:
+    parts: dict[str, list[str]] = {}
+    for item in (signature_header or "").split(","):
+        if "=" not in item:
+            continue
+        k, v = item.split("=", 1)
+        parts.setdefault(k, []).append(v)
+    ts = (parts.get("t") or [""])[0]
+    sigs = parts.get("v1") or []
+    if not ts or not sigs:
+        raise HTTPException(status_code=400, detail="Missing Stripe signature parts")
+    signed = ts.encode("utf-8") + b"." + payload
+    expected = hmac.new(secret.encode("utf-8"), signed, hashlib.sha256).hexdigest()
+    if not any(hmac.compare_digest(expected, sig) for sig in sigs):
+        raise HTTPException(status_code=400, detail="Invalid Stripe signature")
+
+
+def _apply_billing_event(event: dict[str, Any]) -> dict[str, Any]:
+    typ = str(event.get("type") or "")
+    obj = ((event.get("data") or {}).get("object") or {}) if isinstance(event.get("data"), dict) else {}
+    if not isinstance(obj, dict):
+        return {"handled": False, "reason": "missing_object"}
+    metadata = obj.get("metadata") if isinstance(obj.get("metadata"), dict) else {}
+    user_id = str(metadata.get("user_id") or obj.get("client_reference_id") or "").strip()
+    plan = str(metadata.get("plan") or "").strip().lower()
+    if typ in {"checkout.session.completed", "customer.subscription.created", "customer.subscription.updated"}:
+        if not user_id:
+            return {"handled": False, "reason": "missing_user_id"}
+        updates = {
+            "subscription_tier": plan or "pro",
+            "subscription_status": str(obj.get("status") or "active"),
+            "stripe_customer_id": str(obj.get("customer") or ""),
+        }
+        atlas_db.update_user_preferences(user_id, updates)
+        return {"handled": True, "user_id": user_id, "tier": updates["subscription_tier"]}
+    if typ in {"customer.subscription.deleted", "customer.subscription.paused"} and user_id:
+        atlas_db.update_user_preferences(
+            user_id,
+            {"subscription_tier": "free", "subscription_status": str(obj.get("status") or "inactive")},
+        )
+        return {"handled": True, "user_id": user_id, "tier": "free"}
+    return {"handled": False, "reason": f"ignored:{typ}"}
+
+
 def _transcribe_whisper_openai(content: bytes, filename: str) -> str:
     import requests
 
@@ -1158,6 +1310,7 @@ def dispatch_query_request(
         raise HTTPException(status_code=400, detail="query cannot be empty")
 
     q_store = req.query.strip()
+    tier_usage = _enforce_query_tier_gate(user_id, req)
     route_input = q_store
     mode = getattr(req, "research_mode", "normal") or "normal"
     route_decision = decide_route(
@@ -1372,6 +1525,7 @@ def dispatch_query_request(
             "risk_profile": req.risk_profile,
             "market_focus": req.market_focus,
         }
+        shaped["_tier_usage"] = tier_usage
         shaped["_route_decision"] = route_decision.to_dict()
         shaped = _attach_market_intelligence_if_relevant(shaped, q_store, route_decision)
         activity = _build_research_activity_payload(q_store, route_decision)
@@ -1706,8 +1860,10 @@ def serve_dashboard_v4():
 @app.get("/ra-omega")
 @app.get("/option1")
 @app.get("/atlas_option1.html")
-def serve_atlas_option1_chat():
+def serve_atlas_option1_chat(request: Request):
     """Main R.A. Omega chat UI - same origin as API for POST /query and /omega."""
+    if not _request_has_browser_session(request):
+        return RedirectResponse(url="/auth", status_code=302)
     if not RA_OMEGA_APP.is_file():
         raise HTTPException(
             status_code=404,
@@ -1772,6 +1928,61 @@ def get_user_preferences_api(user_id: AtlasUserId):
 def update_user_preferences_api(req: UserPreferencesRequest, user_id: AtlasUserId):
     updates = req.model_dump(exclude_unset=True)
     return {"ok": True, "preferences": atlas_db.update_user_preferences(user_id, updates)}
+
+
+@app.post("/billing/checkout")
+def create_billing_checkout(req: BillingCheckoutRequest, user_id: AtlasUserId):
+    """Create a Stripe Checkout session for hosted subscription plans."""
+    import requests
+
+    secret = _stripe_secret_key()
+    price_id = _stripe_price_for_plan(req.plan)
+    if not secret or not price_id:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Billing is not configured for plan '{req.plan}'",
+        )
+    try:
+        resp = requests.post(
+            "https://api.stripe.com/v1/checkout/sessions",
+            auth=(secret, ""),
+            data={
+                "mode": "subscription",
+                "line_items[0][price]": price_id,
+                "line_items[0][quantity]": "1",
+                "success_url": req.success_url,
+                "cancel_url": req.cancel_url,
+                "client_reference_id": user_id,
+                "metadata[user_id]": user_id,
+                "metadata[plan]": req.plan,
+                "subscription_data[metadata][user_id]": user_id,
+                "subscription_data[metadata][plan]": req.plan,
+            },
+            timeout=30,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        log.warning("[billing] checkout failed: %s", e)
+        raise HTTPException(status_code=502, detail=f"Stripe checkout failed: {e}") from e
+    return {"ok": True, "checkout_session_id": data.get("id"), "url": data.get("url")}
+
+
+@app.post("/billing/webhook")
+async def stripe_billing_webhook(request: Request):
+    """Stripe webhook for subscription tier activation/deactivation."""
+    payload = await request.body()
+    secret = (os.environ.get("STRIPE_WEBHOOK_SECRET") or "").strip()
+    if secret:
+        _verify_stripe_signature(payload, request.headers.get("stripe-signature") or "", secret)
+    elif os.environ.get("ATLAS_ALLOW_UNSIGNED_STRIPE_WEBHOOK", "").lower() != "true":
+        raise HTTPException(status_code=503, detail="Stripe webhook secret is not configured")
+    try:
+        event = json.loads(payload.decode("utf-8"))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid Stripe webhook JSON: {e}") from e
+    result = _apply_billing_event(event)
+    return {"ok": True, **result}
 
 
 @app.get("/jobs/{job_id}")

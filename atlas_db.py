@@ -250,6 +250,10 @@ _DEFAULT_USER_PREFERENCES: dict[str, Any] = {
     "memory_enabled": True,
     "notifications_enabled": False,
     "accent_color": "blue",
+    "subscription_tier": "free",
+    "subscription_status": "active",
+    "stripe_customer_id": "",
+    "current_period_end": None,
     "extra_json": {},
 }
 
@@ -267,6 +271,9 @@ def _clean_user_preferences(raw: dict[str, Any] | None) -> dict[str, Any]:
         "market_focus": 80,
         "source_strictness": 40,
         "accent_color": 40,
+        "subscription_tier": 40,
+        "subscription_status": 40,
+        "stripe_customer_id": 120,
     }.items():
         out[key] = str(out.get(key) or _DEFAULT_USER_PREFERENCES[key]).strip()[:max_len]
     out["memory_enabled"] = bool(out.get("memory_enabled"))
@@ -462,6 +469,33 @@ def get_user_preferences(user_id: str) -> dict[str, Any]:
         "created_at": rows[0].get("created_at"),
         "updated_at": rows[0].get("updated_at"),
     }
+
+
+def count_queries_today(user_id: str) -> int:
+    """Count persisted query reports for the current UTC day."""
+    if user_id == TEST_USER_LOCAL or not _is_uuidish(user_id):
+        today = datetime.now(timezone.utc).date().isoformat()
+        return sum(
+            1
+            for row in _mock_query_reports.get(user_id, [])
+            if str(row.get("created_at") or "").startswith(today)
+        )
+    client = get_supabase_client()
+    if not client:
+        return 0
+    start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    try:
+        resp = (
+            client.table(_QUERIES_TABLE)
+            .select("id", count="exact")
+            .eq("user_id", user_id)
+            .gte("created_at", start.isoformat())
+            .execute()
+        )
+        return int(getattr(resp, "count", None) or len(resp.data or []))
+    except Exception as e:
+        log.warning("[atlas_db] count_queries_today: %s", e)
+        return 0
 
 
 def update_user_preferences(user_id: str, updates: dict[str, Any]) -> dict[str, Any]:

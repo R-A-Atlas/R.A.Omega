@@ -85,12 +85,7 @@ def test_export_pdf_endpoint_returns_file_with_fallback(monkeypatch):
     assert r.content.startswith(b"%PDF")
 
 
-def test_pdf_requires_weasyprint_gtk(tmp_path: Path):
-    try:
-        import weasyprint  # noqa: F401
-    except Exception:
-        pytest.skip("WeasyPrint not importable (GTK/Pango required on Windows)")
-
+def test_pdf_export_works_without_weasyprint_native_stack(tmp_path: Path):
     from atlas_export.pdf_render import write_query_envelope_pdf
 
     d = {
@@ -99,11 +94,9 @@ def test_pdf_requires_weasyprint_gtk(tmp_path: Path):
         "final_report": {"ticker": "NVDA", "tldr": "x"},
         "tldr": "T",
     }
-    try:
-        p = write_query_envelope_pdf(d, tmp_path / "n.pdf")
-    except OSError:
-        pytest.skip("WeasyPrint native libs not available (install GTK on Windows)")
+    p = write_query_envelope_pdf(d, tmp_path / "n.pdf")
     assert p.is_file()
+    assert p.read_bytes().startswith(b"%PDF")
 
 
 def test_tts_no_provider_returns_503(monkeypatch):

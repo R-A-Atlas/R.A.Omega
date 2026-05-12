@@ -141,6 +141,11 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
     memory_enabled BOOLEAN NOT NULL DEFAULT true,
     notifications_enabled BOOLEAN NOT NULL DEFAULT false,
     accent_color TEXT NOT NULL DEFAULT 'blue',
+    subscription_tier TEXT NOT NULL DEFAULT 'free'
+        CHECK (subscription_tier IN ('free', 'starter', 'pro', 'business', 'enterprise', 'developer')),
+    subscription_status TEXT NOT NULL DEFAULT 'active',
+    stripe_customer_id TEXT,
+    current_period_end TIMESTAMPTZ,
     extra_json JSONB NOT NULL DEFAULT '{}'::jsonb,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -224,6 +229,11 @@ CREATE TABLE IF NOT EXISTS public.user_preferences (
     memory_enabled BOOLEAN NOT NULL DEFAULT true,
     notifications_enabled BOOLEAN NOT NULL DEFAULT false,
     accent_color TEXT NOT NULL DEFAULT 'blue',
+    subscription_tier TEXT NOT NULL DEFAULT 'free'
+        CHECK (subscription_tier IN ('free', 'starter', 'pro', 'business', 'enterprise', 'developer')),
+    subscription_status TEXT NOT NULL DEFAULT 'active',
+    stripe_customer_id TEXT,
+    current_period_end TIMESTAMPTZ,
     extra_json JSONB NOT NULL DEFAULT '{}'::jsonb,
     updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -265,6 +275,30 @@ ALTER TABLE public.user_preferences ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "user_preferences_owner" ON public.user_preferences;
 CREATE POLICY "user_preferences_owner" ON public.user_preferences
     FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
+
+-- Migration: subscription tier fields for hosted query gating
+-- Date: 2026-05-12
+-- Agent: E5 DB Architect
+-- Run in: Supabase SQL Editor -> New Query
+
+ALTER TABLE public.user_preferences
+    ADD COLUMN IF NOT EXISTS subscription_tier TEXT NOT NULL DEFAULT 'free',
+    ADD COLUMN IF NOT EXISTS subscription_status TEXT NOT NULL DEFAULT 'active',
+    ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT,
+    ADD COLUMN IF NOT EXISTS current_period_end TIMESTAMPTZ;
+
+ALTER TABLE public.user_preferences
+    DROP CONSTRAINT IF EXISTS user_preferences_subscription_tier_check;
+
+ALTER TABLE public.user_preferences
+    ADD CONSTRAINT user_preferences_subscription_tier_check
+    CHECK (subscription_tier IN ('free', 'starter', 'pro', 'business', 'enterprise', 'developer'));
+
+COMMENT ON COLUMN public.user_preferences.subscription_tier IS
+    'Hosted R.A. Omega plan tier used by API query gating.';
+
+COMMENT ON COLUMN public.user_preferences.subscription_status IS
+    'Billing/subscription status from the payment provider.';
 
 -- ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 -- Confirm after running (paste in SQL Editor):

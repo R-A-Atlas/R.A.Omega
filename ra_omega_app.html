@@ -3597,6 +3597,9 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                     className="text-[11px] font-mono px-2 py-1 rounded border border-borderSubtle hover:border-red-500/50 hover:text-red-400 transition-colors"
                                     onClick={() => {
                                         localStorage.removeItem('atlas_access_token');
+                                        localStorage.removeItem('ATLAS_TEST_JWT');
+                                        localStorage.removeItem('atlas_active_session_id');
+                                        document.cookie = 'atlas_access_token=; Path=/; SameSite=Lax; Max-Age=0';
                                         window.location.href = '/auth';
                                     }}
                                 >

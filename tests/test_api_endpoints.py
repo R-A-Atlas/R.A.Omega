@@ -462,6 +462,72 @@ def test_user_preferences_round_trip(client: TestClient) -> None:
     assert prefs["notifications_enabled"] is True
 
 
+def test_query_tier_gate_blocks_over_daily_cap(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient,
+) -> None:
+    uid = "00000000-0000-0000-0000-000000000001"
+    monkeypatch.setenv("ATLAS_DISABLE_AUTH", "false")
+    monkeypatch.setattr(api_server.atlas_db, "get_user_preferences", lambda _uid: {"subscription_tier": "free"})
+    monkeypatch.setattr(api_server.atlas_db, "count_queries_today", lambda _uid: 5)
+    api_server.app.dependency_overrides[api_server.get_current_user] = lambda: uid
+    try:
+        r = client.post("/query", json={"query": "Analyze NVDA"}, headers={"Authorization": "Bearer test"})
+    finally:
+        api_server.app.dependency_overrides.pop(api_server.get_current_user, None)
+        monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
+    assert r.status_code == 429
+    body = r.json()["detail"]
+    assert body["error"] == "daily_query_limit_reached"
+    assert body["tier"] == "free"
+
+
+def test_option1_redirects_without_cookie_when_auth_enabled(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient,
+) -> None:
+    monkeypatch.setenv("ATLAS_DISABLE_AUTH", "false")
+    r = client.get("/option1", follow_redirects=False)
+    monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
+    assert r.status_code == 302
+    assert "/auth" in r.headers["location"]
+
+
+def test_billing_checkout_returns_503_when_not_configured(client: TestClient) -> None:
+    r = client.post(
+        "/billing/checkout",
+        json={
+            "plan": "pro",
+            "success_url": "https://example.com/success",
+            "cancel_url": "https://example.com/cancel",
+        },
+    )
+    assert r.status_code == 503
+
+
+def test_billing_webhook_updates_subscription_without_network(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient,
+) -> None:
+    monkeypatch.setenv("ATLAS_ALLOW_UNSIGNED_STRIPE_WEBHOOK", "true")
+    r = client.post(
+        "/billing/webhook",
+        json={
+            "type": "checkout.session.completed",
+            "data": {
+                "object": {
+                    "client_reference_id": "test_user_local",
+                    "customer": "cus_test",
+                    "status": "active",
+                    "metadata": {"user_id": "test_user_local", "plan": "pro"},
+                }
+            },
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["handled"] is True
+    prefs = client.get("/user/preferences").json()["preferences"]
+    assert prefs["subscription_tier"] == "pro"
+    assert prefs["subscription_status"] == "active"
+
+
 def test_api_v1_query_503_when_keys_not_configured(
     monkeypatch: pytest.MonkeyPatch, client: TestClient,
 ) -> None:

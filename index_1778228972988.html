@@ -315,6 +315,17 @@
 
             const switchTab = (t) => { setTab(t); setError(''); setSuccess(''); };
 
+            const storeSession = (session) => {
+                if (!session || !session.access_token) return;
+                localStorage.setItem('atlas_access_token', session.access_token);
+                const maxAge = session.expires_in || 3600;
+                document.cookie =
+                    'atlas_access_token=' +
+                    encodeURIComponent(session.access_token) +
+                    '; Path=/; SameSite=Lax; Max-Age=' +
+                    String(maxAge);
+            };
+
             const signIn = async () => {
                 setError(''); setSuccess('');
                 if (!sb)       { setError('Auth not configured.'); return; }
@@ -323,7 +334,7 @@
                 const { data, error: err } = await sb.auth.signInWithPassword({ email, password });
                 setLoading(false);
                 if (err) { setError(err.message); return; }
-                localStorage.setItem('atlas_access_token', data.session.access_token);
+                storeSession(data.session);
                 window.location.href = '/option1';
             };
 
@@ -338,7 +349,7 @@
                 setLoading(false);
                 if (err) { setError(err.message); return; }
                 if (data.session) {
-                    localStorage.setItem('atlas_access_token', data.session.access_token);
+                    storeSession(data.session);
                     window.location.href = '/option1';
                 } else {
                     setSuccess('Check your email for a confirmation link, then sign in.');

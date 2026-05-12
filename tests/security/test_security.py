@@ -230,13 +230,6 @@ class TestAuthBypass:
         r = client.get("/health")
         assert r.status_code == 200, f"Health endpoint unexpectedly blocked — {r.status_code}"
 
-    @pytest.mark.skip(
-        reason=(
-            "GET /option1 returns static HTML today; JWT is in localStorage so the server "
-            "cannot see an unauthenticated browser without a shared cookie model. Re-enable "
-            "when a server-side session guard ships (see module docstring)."
-        )
-    )
     def test_option1_redirects_without_session_cookie(self, client: TestClient):
         r = client.get("/option1", follow_redirects=False)
         assert r.status_code == 302, (
@@ -395,8 +388,6 @@ class TestRateLimitStability:
 
     @pytest.mark.slow
     def test_fifty_rapid_requests_no_crash(self, client: TestClient, request):
-        if not request.config.getoption("--run-slow", default=False):
-            pytest.skip("Slow test — run with --run-slow flag")
         for _ in range(50):
             r = client.post(
                 "/query",
