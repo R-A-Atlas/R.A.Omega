@@ -16,21 +16,21 @@
             theme: {
                 extend: {
                     colors: {
-                        base: '#0B0D10',
-                        surface: '#111419',
-                        surfaceHover: '#1A1F27',
+                        base: '#0B1020',
+                        surface: '#101827',
+                        surfaceHover: '#172235',
                         borderSubtle: 'rgba(220, 226, 235, 0.11)',
                         borderStrong: 'rgba(220, 226, 235, 0.20)',
                         textMuted: 'rgba(157, 169, 183, 0.78)',
                         textMain: '#F4F7FB',
                         accent: {
-                            indigo: '#5B9DFF',
+                            indigo: '#18C6C8',
                             violet: '#7C8AA0',
-                            emerald: '#22C55E'
+                            emerald: '#2ED47A'
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Space Grotesk', 'Inter', 'sans-serif'],
                         mono: ['JetBrains Mono', 'monospace'],
                     },
                     animation: {
@@ -50,17 +50,17 @@
     </script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
         
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0B0D10;
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            background-color: #0B1020;
             color: #F4F7FB;
             margin: 0;
             overflow: hidden;
             background-image:
-                radial-gradient(circle at 48% -8%, rgba(91, 157, 255, 0.13) 0%, rgba(11, 13, 16, 0) 42%),
-                linear-gradient(180deg, #101319 0%, #0B0D10 48%, #0E1116 100%);
+                radial-gradient(circle at 50% -12%, rgba(24, 198, 200, 0.12) 0%, rgba(11, 16, 32, 0) 40%),
+                linear-gradient(180deg, #111A2C 0%, #0B1020 48%, #0C1324 100%);
         }
 
         /* Minimalist Scrollbar */
@@ -69,11 +69,11 @@
         ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.2); }
 
-        ::selection { background-color: rgba(26, 110, 240, 0.35); color: white; }
+        ::selection { background-color: rgba(24, 198, 200, 0.32); color: white; }
 
         /* Structural Panel Class */
         .panel {
-            background-color: rgba(17, 20, 25, 0.94);
+            background-color: rgba(16, 24, 39, 0.94);
             border: 1px solid rgba(220, 226, 235, 0.11);
             border-radius: 14px;
             box-shadow: 0 18px 50px rgba(0, 0, 0, 0.36);
@@ -92,22 +92,22 @@
         }
 
         .input-bar {
-            background-color: rgba(17, 20, 25, 0.98);
+            background-color: rgba(16, 24, 39, 0.98);
             border: 1px solid rgba(220, 226, 235, 0.15);
             transition: all 0.2s ease;
         }
         
         .input-bar:focus-within {
-            border-color: rgba(91, 157, 255, 0.68);
-            box-shadow: 0 0 0 1px rgba(91, 157, 255, 0.28), 0 18px 40px -18px rgba(91, 157, 255, 0.24);
-            background-color: #0B0D10;
+            border-color: rgba(24, 198, 200, 0.68);
+            box-shadow: 0 0 0 1px rgba(24, 198, 200, 0.26), 0 18px 40px -18px rgba(24, 198, 200, 0.24);
+            background-color: #0B1020;
         }
 
         input:focus { outline: none; }
 
         /* Code Block Styling */
         .code-block {
-            background-color: #07090C;
+            background-color: #070B14;
             border: 1px solid rgba(220,226,235,0.08);
             border-radius: 8px;
         }
@@ -166,7 +166,7 @@
                         {/* Inner Hexagon */}
                         <polygon points="20,8 30.4,14 30.4,26 20,32 9.6,26 9.6,14" className={`transition-all duration-500 ${isProcessing ? 'animate-pulse' : ''}`} />
                         {/* Core Node */}
-                        <circle cx="20" cy="20" r="3" fill="currentColor" className={`${isProcessing ? 'shadow-[0_0_10px_#1A6EF0]' : ''}`} />
+                        <circle cx="20" cy="20" r="3" fill="currentColor" className={`${isProcessing ? 'shadow-[0_0_10px_#18C6C8]' : ''}`} />
                         {/* Connecting Lines */}
                         <line x1="20" y1="20" x2="20" y2="8" opacity="0.5" />
                         <line x1="20" y1="20" x2="30.4" y2="26" opacity="0.5" />
@@ -909,7 +909,7 @@ ${extendedBlock || ''}
                             const isBusy = !!(processingBySession && processingBySession[sidKey]);
                             const timeLabel = sessionTimeLabel(s);
                             return (
-                                <div key={s.id} className={`group relative rounded-lg border ${isActive ? 'bg-surfaceHover border-accent-indigo/35 shadow-[inset_2px_0_0_rgba(26,110,240,0.8)]' : 'border-transparent hover:bg-surfaceHover hover:border-borderSubtle'} transition-colors`}>
+                                <div key={s.id} className={`group relative rounded-lg border ${isActive ? 'bg-surfaceHover border-accent-indigo/35 shadow-[inset_2px_0_0_rgba(24,198,200,0.8)]' : 'border-transparent hover:bg-surfaceHover hover:border-borderSubtle'} transition-colors`}>
                                     <button
                                         type="button"
                                         onClick={() => onSelectSession(s.id)}
@@ -969,6 +969,14 @@ ${extendedBlock || ''}
                     </div>
 
                     <div className="pt-3 border-t border-borderSubtle mt-auto shrink-0 space-y-1">
+                        <a
+                            href="/v4"
+                            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-textMuted hover:text-textMain hover:bg-surfaceHover transition-colors"
+                            title="Finance dashboard"
+                        >
+                            <Icon name="LayoutDashboard" size={15} />
+                            <span>Finance Dashboard</span>
+                        </a>
                         <button
                             type="button"
                             className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-textMuted hover:text-textMain hover:bg-surfaceHover transition-colors"
@@ -1581,7 +1589,7 @@ body{padding:36px 32px 60px;max-width:1100px;margin:0 auto}
 <!-- Header -->
 <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:32px;padding-bottom:20px;border-bottom:1px solid rgba(240,246,252,0.12)">
   <div>
-    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.22em;color:#5B9DFF;margin-bottom:4px">R.A. OMEGA</div>
+    <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;letter-spacing:0.22em;color:#18C6C8;margin-bottom:4px">R.A. OMEGA</div>
     <div style="font-size:24px;font-weight:700;letter-spacing:-0.02em;color:#E6EDF3">${esc(fr.company_name || ticker)} <span style="color:rgba(255,255,255,0.45);font-size:18px;font-weight:400">${esc(ticker)}</span></div>
     <div style="font-size:13px;color:rgba(255,255,255,0.45);margin-top:4px;font-family:'JetBrains Mono',monospace">${esc(fr.sector || 'Equity Analysis')} · ${esc(new Date().toLocaleDateString())}</div>
   </div>
@@ -1956,10 +1964,48 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             );
         }
 
+        function hasStructuredFinanceSections(data) {
+            if (!data || typeof data !== 'object') return false;
+            const fr = data.final_report && typeof data.final_report === 'object' ? data.final_report : {};
+            const pq = data.parsed_query && typeof data.parsed_query === 'object' ? data.parsed_query : {};
+            const route = String((data._route_decision && data._route_decision.route_band) || '').toLowerCase();
+            const agentIds =
+                data._active_agents && Array.isArray(data._active_agents.agent_ids)
+                    ? data._active_agents.agent_ids
+                    : [];
+            const structuredKeys = [
+                'ticker',
+                'overall_rating',
+                'primary_recommendation',
+                'trade_plan',
+                'price_levels',
+                'catalysts_timeline',
+                'key_risks',
+                'hidden_angles',
+                'scenarios',
+                'execution_rules',
+                'failure_modes',
+                'risks_and_tripwires',
+                'bull_thesis',
+                'bear_thesis',
+            ];
+            if (structuredKeys.some((key) => {
+                const v = data[key] != null ? data[key] : fr[key];
+                return Array.isArray(v) ? v.length > 0 : !!v;
+            })) return true;
+            const qt = String(pq.query_type || pq.intent_route || '').toUpperCase();
+            if (/MARKET|STOCK|CRYPTO|OPTIONS|PORTFOLIO|MACRO|DEBT|TAX|REAL_ESTATE|BUSINESS/.test(qt) && agentIds.length > 0) return true;
+            return ['focused_analysis', 'market_snapshot', 'deep_research'].includes(route) && agentIds.length > 0;
+        }
+
+        function shouldRenderStructuredResponse(data) {
+            return !isPlainChatResponse(data) && hasStructuredFinanceSections(data);
+        }
+
         function logFromQueryResponse(data) {
-            return isPlainChatResponse(data)
-                ? { content: formatQueryResponse(data) }
-                : { content: formatQueryResponse(data), rawData: data };
+            return shouldRenderStructuredResponse(data)
+                ? { content: formatQueryResponse(data), rawData: data }
+                : { content: formatQueryResponse(data) };
         }
 
         function buildPendingResearchActivity(query, mode) {
@@ -2039,9 +2085,14 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const [riskProfile, setRiskProfile] = React.useState('balanced');
             const [marketFocus, setMarketFocus] = React.useState('US equities');
             const [sourceStrictness, setSourceStrictness] = React.useState('balanced');
+            const [reportDepth, setReportDepth] = React.useState('standard');
+            const [cardDensity, setCardDensity] = React.useState('comfortable');
+            const [voiceDictation, setVoiceDictation] = React.useState(true);
+            const [citationPreference, setCitationPreference] = React.useState('balanced');
+            const [complianceLevel, setComplianceLevel] = React.useState('standard');
             const [memoryEnabled, setMemoryEnabled] = React.useState(true);
             const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
-            const [accentColor, setAccentColor] = React.useState('blue');
+            const [accentColor, setAccentColor] = React.useState('teal');
 
             React.useEffect(() => {
                 if (!open) return;
@@ -2057,9 +2108,14 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     setRiskProfile(localStorage.getItem('atlas_risk_profile') || 'balanced');
                     setMarketFocus(localStorage.getItem('atlas_market_focus') || 'US equities');
                     setSourceStrictness(localStorage.getItem('atlas_source_strictness') || 'balanced');
+                    setReportDepth(localStorage.getItem('atlas_report_depth') || 'standard');
+                    setCardDensity(localStorage.getItem('atlas_card_density') || 'comfortable');
+                    setVoiceDictation(localStorage.getItem('atlas_voice_dictation') !== 'false');
+                    setCitationPreference(localStorage.getItem('atlas_citation_preference') || 'balanced');
+                    setComplianceLevel(localStorage.getItem('atlas_compliance_level') || 'standard');
                     setMemoryEnabled(localStorage.getItem('atlas_memory_enabled') !== 'false');
                     setNotificationsEnabled(localStorage.getItem('atlas_notifications_enabled') === 'true');
-                    setAccentColor(localStorage.getItem('atlas_accent_color') || 'blue');
+                    setAccentColor(localStorage.getItem('atlas_accent_color') || 'teal');
                 } catch (_) {
                     setDisplayName('');
                     setTimeoutMin('15');
@@ -2069,9 +2125,14 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     setRiskProfile('balanced');
                     setMarketFocus('US equities');
                     setSourceStrictness('balanced');
+                    setReportDepth('standard');
+                    setCardDensity('comfortable');
+                    setVoiceDictation(true);
+                    setCitationPreference('balanced');
+                    setComplianceLevel('standard');
                     setMemoryEnabled(true);
                     setNotificationsEnabled(false);
-                    setAccentColor('blue');
+                    setAccentColor('teal');
                 }
                 let cancelled = false;
                 (async () => {
@@ -2091,7 +2152,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         setSourceStrictness(p.source_strictness || 'balanced');
                         setMemoryEnabled(p.memory_enabled !== false);
                         setNotificationsEnabled(p.notifications_enabled === true);
-                        setAccentColor(p.accent_color || 'blue');
+                        setAccentColor(p.accent_color || 'teal');
                     } catch (_) {}
                 })();
                 return () => {
@@ -2121,7 +2182,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     source_strictness: sourceStrictness || 'balanced',
                     memory_enabled: !!memoryEnabled,
                     notifications_enabled: !!notificationsEnabled,
-                    accent_color: accentColor || 'blue',
+                    accent_color: accentColor || 'teal',
                 };
                 try {
                     if (d) localStorage.setItem('atlas_display_name', d);
@@ -2140,9 +2201,14 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     localStorage.setItem('atlas_risk_profile', riskProfile || 'balanced');
                     localStorage.setItem('atlas_market_focus', (marketFocus || '').trim().slice(0, 80));
                     localStorage.setItem('atlas_source_strictness', sourceStrictness || 'balanced');
+                    localStorage.setItem('atlas_report_depth', reportDepth || 'standard');
+                    localStorage.setItem('atlas_card_density', cardDensity || 'comfortable');
+                    localStorage.setItem('atlas_voice_dictation', voiceDictation ? 'true' : 'false');
+                    localStorage.setItem('atlas_citation_preference', citationPreference || 'balanced');
+                    localStorage.setItem('atlas_compliance_level', complianceLevel || 'standard');
                     localStorage.setItem('atlas_memory_enabled', memoryEnabled ? 'true' : 'false');
                     localStorage.setItem('atlas_notifications_enabled', notificationsEnabled ? 'true' : 'false');
-                    localStorage.setItem('atlas_accent_color', accentColor || 'blue');
+                    localStorage.setItem('atlas_accent_color', accentColor || 'teal');
                 } catch (_) {}
                 try {
                     await fetch(apiBase() + '/user/preferences', {
@@ -2241,10 +2307,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                         { value: 'system', label: 'System' },
                                     ])}
                                     {selectRow('Accent color', accentColor, setAccentColor, [
-                                        { value: 'blue', label: 'Omega blue' },
-                                        { value: 'green', label: 'Market green' },
-                                        { value: 'gold', label: 'Signal gold' },
+                                        { value: 'teal', label: 'Quantum teal' },
+                                        { value: 'green', label: 'Signal emerald' },
+                                        { value: 'gold', label: 'Warning amber' },
                                     ])}
+                                    {selectRow('Card density', cardDensity, setCardDensity, [
+                                        { value: 'compact', label: 'Compact - dense desk view' },
+                                        { value: 'comfortable', label: 'Comfortable - default chat view' },
+                                        { value: 'expanded', label: 'Expanded - more spacing' },
+                                    ])}
+                                    {toggleRow('Enable dictation', 'Show the microphone control in the composer for voice queries.', voiceDictation, setVoiceDictation)}
                                     {toggleRow('Notifications', 'Allow completed report notices and saved research updates when browser support is enabled.', notificationsEnabled, setNotificationsEnabled)}
                                     <div>
                                         <label className="block text-[10px] font-mono uppercase tracking-wider text-textMuted mb-1.5">Query timeout (minutes)</label>
@@ -2308,10 +2380,25 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                         { value: 'web', label: 'Web search - source checked' },
                                         { value: 'deep', label: 'Deep research - full 10-loop' },
                                     ])}
+                                    {selectRow('Preferred report depth', reportDepth, setReportDepth, [
+                                        { value: 'brief', label: 'Brief - answer first' },
+                                        { value: 'standard', label: 'Standard - balanced analysis' },
+                                        { value: 'full', label: 'Full - decision memo' },
+                                    ])}
                                     {selectRow('Source strictness', sourceStrictness, setSourceStrictness, [
                                         { value: 'balanced', label: 'Balanced' },
                                         { value: 'strict', label: 'Prefer primary sources' },
                                         { value: 'speed', label: 'Prefer speed' },
+                                    ])}
+                                    {selectRow('Citation preference', citationPreference, setCitationPreference, [
+                                        { value: 'balanced', label: 'Cite when it matters' },
+                                        { value: 'always', label: 'Always show sources' },
+                                        { value: 'minimal', label: 'Minimal citations' },
+                                    ])}
+                                    {selectRow('Compliance disclaimer level', complianceLevel, setComplianceLevel, [
+                                        { value: 'light', label: 'Light - compact reminder' },
+                                        { value: 'standard', label: 'Standard - default guardrails' },
+                                        { value: 'strict', label: 'Strict - regulated context' },
                                     ])}
                                     <div className="rounded-lg border border-accent-indigo/25 bg-accent-indigo/10 px-3 py-3 text-[12px] text-textMuted leading-relaxed">
                                         Normal mode is the default for chat, file-style requests, and quick decisions. Deep research only runs when selected from the composer or saved here.
@@ -3341,7 +3428,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const liveCost = activeIsProcessing ? '~$0.008 (est.)' : lastTotals.costStr;
 
             const lastResearchMeta = useMemo(() => {
-                const real = [...logs].reverse().find((m) => m && m.rawData && !isPlainChatResponse(m.rawData));
+                const real = [...logs].reverse().find((m) => m && m.rawData && shouldRenderStructuredResponse(m.rawData));
                 const raw = real && real.rawData ? real.rawData : null;
                 const pending = activeSessionId ? researchActivityBySession[String(activeSessionId)] : null;
                 return {
@@ -3353,6 +3440,9 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const activeSession = sessions.find((s) => String(s.id) === String(activeSessionId));
             const headerChatTitle = activeSession?.title || (activeSessionId ? 'Chat' : 'New chat');
             const headerTopicBadge = activeSession?.context_topic || (activeSessionId ? 'Active' : 'Message to start');
+            const voiceDictationEnabled = (() => {
+                try { return localStorage.getItem('atlas_voice_dictation') !== 'false'; } catch (_) { return true; }
+            })();
 
             const otherProcessingIds = Object.keys(processingBySession).filter(
                 (k) => processingBySession[k] && String(k) !== String(activeSessionId || '')
@@ -3466,7 +3556,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                             <div className="flex h-full flex-col items-center gap-2">
                                 <button
                                     type="button"
-                                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-indigo/90 to-accent-indigo/35 flex items-center justify-center text-white shadow-[0_0_18px_rgba(26,110,240,0.35)]"
+                                    className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-indigo/90 to-accent-indigo/35 flex items-center justify-center text-white shadow-[0_0_18px_rgba(24,198,200,0.35)]"
                                     title="Expand sidebar"
                                     onClick={() => setSidebarCollapsed(false)}
                                 >
@@ -3676,7 +3766,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                             </div>
                                             
                                             {/* Message Text */}
-                                            {log.rawData && !isPlainChatResponse(log.rawData) ? (
+                                            {log.rawData && shouldRenderStructuredResponse(log.rawData) ? (
                                                 <>
                                                     <ExportBar data={log.rawData} />
                                                     <StructuredResponse data={log.rawData} />
@@ -3753,8 +3843,19 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                                     </button>
                                                     {toolsOpen && (
                                                         <div className="absolute bottom-full left-0 mb-2 w-72 rounded-2xl border border-borderSubtle bg-surface shadow-2xl p-2 z-40">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => setToolsOpen(false)}
+                                                                className="w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-textMuted hover:bg-surfaceHover hover:text-textMain transition-colors"
+                                                            >
+                                                                <Icon name="Paperclip" size={16} />
+                                                                <span className="min-w-0">
+                                                                    <span className="block text-sm font-medium">Add files</span>
+                                                                    <span className="block text-[11px] leading-snug opacity-75">Upload support is reserved for the document lane.</span>
+                                                                </span>
+                                                            </button>
                                                             {[
-                                                                { mode: 'normal', icon: 'Brain', label: 'Thinking', desc: 'Fast chat with validation.' },
+                                                                { mode: 'normal', icon: 'Brain', label: 'Normal', desc: 'Fast chat with right-sized validation.' },
                                                                 { mode: 'web', icon: 'Globe', label: 'Web search', desc: 'Verify current facts and sources.' },
                                                                 { mode: 'deep', icon: 'SearchCheck', label: 'Deep research', desc: 'Explicit full 10-loop research.' },
                                                             ].map((item) => (
@@ -3789,48 +3890,63 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                                                 <Icon name="Settings" size={16} />
                                                                 <span className="text-sm font-medium">Settings</span>
                                                             </button>
+                                                            <a
+                                                                href="/v4"
+                                                                className="mt-1 w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-textMuted hover:bg-surfaceHover hover:text-textMain transition-colors"
+                                                            >
+                                                                <Icon name="LayoutDashboard" size={16} />
+                                                                <span className="text-sm font-medium">Finance dashboard</span>
+                                                            </a>
                                                         </div>
                                                     )}
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        const next = researchMode === 'deep' ? 'normal' : 'deep';
-                                                        setResearchMode(next);
-                                                        try { localStorage.setItem('atlas_default_research_mode', next); } catch (_) {}
-                                                    }}
-                                                    className={
-                                                        'hidden sm:inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-mono transition-colors ' +
-                                                        (researchMode === 'deep'
-                                                            ? 'border-accent-indigo bg-accent-indigo/18 text-textMain'
-                                                            : researchMode === 'web'
-                                                              ? 'border-cyan-400/35 bg-cyan-400/10 text-cyan-100'
-                                                              : 'border-borderSubtle text-textMuted hover:text-textMain')
-                                                    }
-                                                >
-                                                    <Icon name={researchMode === 'deep' ? 'SearchCheck' : researchMode === 'web' ? 'Globe' : 'Brain'} size={13} />
-                                                    {researchMode === 'deep' ? 'Deep research' : researchMode === 'web' ? 'Web search' : 'Normal'}
-                                                </button>
+                                                <div className="hidden sm:inline-flex items-center rounded-full border border-borderSubtle bg-base/35 p-0.5">
+                                                    {[
+                                                        { mode: 'normal', icon: 'Brain', label: 'Normal' },
+                                                        { mode: 'web', icon: 'Globe', label: 'Web' },
+                                                        { mode: 'deep', icon: 'SearchCheck', label: 'Deep' },
+                                                    ].map((item) => (
+                                                        <button
+                                                            key={item.mode}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setResearchMode(item.mode);
+                                                                try { localStorage.setItem('atlas_default_research_mode', item.mode); } catch (_) {}
+                                                            }}
+                                                            className={
+                                                                'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-mono transition-colors ' +
+                                                                (researchMode === item.mode
+                                                                    ? 'bg-accent-indigo/20 text-textMain'
+                                                                    : 'text-textMuted hover:text-textMain')
+                                                            }
+                                                        >
+                                                            <Icon name={item.icon} size={13} />
+                                                            {item.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             <div className="flex items-center gap-2">
                                                 <span className="hidden sm:inline text-[11px] font-mono text-textMuted">Enter to send</span>
-                                                <button
-                                                    type="button"
-                                                    onClick={onVoiceToggle}
-                                                    disabled={voiceBusy && !voiceRecording}
-                                                    title={voiceRecording ? 'Stop recording and send' : voiceBusy ? 'Processing voice' : 'Record voice query'}
-                                                    aria-label={voiceRecording ? 'Stop recording and send' : voiceBusy ? 'Processing voice' : 'Record voice query'}
-                                                    className={`p-1.5 rounded transition-all ${
-                                                        voiceRecording
-                                                            ? 'bg-red-500/18 text-red-200 ring-1 ring-red-400/45 animate-pulse'
-                                                            : voiceBusy
-                                                              ? 'bg-surfaceHover text-textMuted opacity-60 cursor-wait'
-                                                              : 'text-textMuted hover:text-textMain hover:bg-surfaceHover'
-                                                    }`}
-                                                >
-                                                    <Icon name={voiceBusy && !voiceRecording ? 'Loader2' : voiceRecording ? 'Square' : 'Mic'} size={16} className={voiceBusy && !voiceRecording ? 'animate-spin' : ''} />
-                                                </button>
+                                                {voiceDictationEnabled && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={onVoiceToggle}
+                                                        disabled={voiceBusy && !voiceRecording}
+                                                        title={voiceRecording ? 'Stop recording and send' : voiceBusy ? 'Processing voice' : 'Record voice query'}
+                                                        aria-label={voiceRecording ? 'Stop recording and send' : voiceBusy ? 'Processing voice' : 'Record voice query'}
+                                                        className={`p-1.5 rounded transition-all ${
+                                                            voiceRecording
+                                                                ? 'bg-red-500/18 text-red-200 ring-1 ring-red-400/45 animate-pulse'
+                                                                : voiceBusy
+                                                                  ? 'bg-surfaceHover text-textMuted opacity-60 cursor-wait'
+                                                                  : 'text-textMuted hover:text-textMain hover:bg-surfaceHover'
+                                                        }`}
+                                                    >
+                                                        <Icon name={voiceBusy && !voiceRecording ? 'Loader2' : voiceRecording ? 'Square' : 'Mic'} size={16} className={voiceBusy && !voiceRecording ? 'animate-spin' : ''} />
+                                                    </button>
+                                                )}
                                                 <button
                                                     type="submit"
                                                     disabled={!inputValue.trim() || !!activeIsProcessing}

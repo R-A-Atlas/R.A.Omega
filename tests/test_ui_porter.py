@@ -70,14 +70,22 @@ def test_e4_chat_modes_and_settings_present():
     assert "Web search" in content, "Web search composer action missing"
     assert "atlas_answer_style" in content, "answer style personalization missing"
     assert "atlas_risk_profile" in content, "risk profile personalization missing"
+    assert "atlas_report_depth" in content, "report depth personalization missing"
+    assert "atlas_card_density" in content, "card density personalization missing"
+    assert "atlas_voice_dictation" in content, "voice dictation preference missing"
+    assert "atlas_citation_preference" in content, "citation preference missing"
+    assert "atlas_compliance_level" in content, "compliance disclaimer preference missing"
+    assert "Finance Dashboard" in content, "chat/dashboard split link missing"
 
 
 def test_e4_fast_chat_renders_plain_text():
     """Conversation/zero-loop replies must not render through report cards."""
     content = APP_HTML.read_text(encoding="utf-8")
     assert "function isPlainChatResponse" in content, "plain chat detector missing"
+    assert "function shouldRenderStructuredResponse" in content, "structured response gate missing"
+    assert "function hasStructuredFinanceSections" in content, "finance structure detector missing"
     assert "function logFromQueryResponse" in content, "response log shaper missing"
-    assert "log.rawData && !isPlainChatResponse(log.rawData)" in content, (
+    assert "log.rawData && shouldRenderStructuredResponse(log.rawData)" in content, (
         "fast chat should bypass StructuredResponse"
     )
     assert "if (isPlainChatResponse(data))" in content, "plain chat formatter should dedupe response text"
