@@ -113,24 +113,24 @@
 ## Division 9-Voice
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| V1 | Voice Input Whisper | atlas_agents/voice/input/ | POST /voice/query endpoint | PENDING |
-| V2 | Voice Output TTS | atlas_agents/voice/output/ | Audio stream in browser | PENDING |
-| V3 | Conversational Memory Agent | atlas_agents/voice/memory/ | Loop 5 preference profile | PENDING |
-| V4 | Alert Voice Notifier | atlas_agents/voice/notifier/ | Twilio voice call | PENDING |
-| V5 | Meeting Prep Agent | atlas_agents/voice/meeting_prep/ | atlas_vault/03-Outputs/Reports/meeting_prep_*.html | PENDING |
-| V6 | NL Report Editor | atlas_agents/voice/report_editor/ | Updated HTML report | PENDING |
+| V1 | Voice Input Whisper | atlas_agents/voice/input/ | POST /voice/query endpoint | BUILT+VERIFIED |
+| V2 | Voice Output TTS | atlas_agents/voice/output/ | Audio stream in browser | BUILT+VERIFIED |
+| V3 | Conversational Memory Agent | atlas_agents/voice/memory/ | Loop 5 preference profile | BUILT+VERIFIED |
+| V4 | Alert Voice Notifier | atlas_agents/voice/notifier/ | Twilio voice call | BUILT+VERIFIED |
+| V5 | Meeting Prep Agent | atlas_agents/voice/meeting_prep/ | atlas_vault/03-Outputs/Reports/meeting_prep_*.html | BUILT+VERIFIED |
+| V6 | NL Report Editor | atlas_agents/voice/report_editor/ | Updated HTML report | BUILT+VERIFIED |
 
 ## Division 10-Documents
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| DOC1 | Infographic Agent | atlas_agents/documents/infographic/ | atlas_vault/03-Outputs/Charts/*.png | PENDING |
+| DOC1 | Infographic Agent | atlas_agents/documents/infographic/ | atlas_vault/03-Outputs/Charts/infographic_latest.svg | BUILT+VERIFIED |
 | DOC2 | PDF Report Agent | atlas_agents/documents/pdf/ | atlas_vault/03-Outputs/Reports/*.pdf | BUILT |
-| DOC3 | PowerPoint Agent | atlas_agents/documents/powerpoint/ | atlas_vault/03-Outputs/Decks/*.pptx | PENDING |
+| DOC3 | PowerPoint Agent | atlas_agents/documents/powerpoint/ | atlas_vault/03-Outputs/Decks/*.pptx | BUILT+VERIFIED |
 | DOC4 | Excel Model Agent | atlas_agents/documents/excel/ | atlas_vault/03-Outputs/Reports/*.xlsx | BUILT |
-| DOC5 | Email Digest Agent | atlas_agents/documents/email_digest/ | Daily email to user | PENDING |
-| DOC6 | Comparison Report Agent | atlas_agents/documents/comparison/ | Multi-ticker HTML report | PENDING |
-| DOC7 | Portfolio Report Agent | atlas_agents/documents/portfolio_report/ | atlas_vault/03-Outputs/Reports/portfolio_*.pdf | PENDING |
-| DOC8 | Watchlist Alert Report | atlas_agents/documents/watchlist_alert/ | HTML card + Supabase log | PENDING |
+| DOC5 | Email Digest Agent | atlas_agents/documents/email_digest/ | atlas_vault/03-Outputs/Reports/email_digest_latest.txt | BUILT+VERIFIED |
+| DOC6 | Comparison Report Agent | atlas_agents/documents/comparison/ | Multi-ticker HTML report | BUILT+VERIFIED |
+| DOC7 | Portfolio Report Agent | atlas_agents/documents/portfolio_report/ | atlas_vault/03-Outputs/Reports/portfolio_latest.json | BUILT+VERIFIED |
+| DOC8 | Watchlist Alert Report | atlas_agents/documents/watchlist_alert/ | HTML card + Supabase log | BUILT+VERIFIED |
 
 ## Division 11-Intelligence
 | ID | Name | Directory | Output | Status |
