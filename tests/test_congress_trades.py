@@ -49,3 +49,15 @@ def test_m8_output_schema_valid_when_scraper_built():
             assert t.get("days_to_disclose", -1) >= 0
     except Exception:
         pass
+
+
+def test_m8_fallback_used_when_source_empty(monkeypatch):
+    from atlas_agents.macro.congress_trades import congress_trades_scraper as mod
+
+    monkeypatch.setattr(mod, "requests_get_json", lambda *_args, **_kwargs: [])
+    result = mod.scrape(limit=5)
+
+    assert result["record_count"] > 0
+    assert result["trades"]
+    assert result["_meta"]["data_quality"] == "fallback"
+    assert result["most_traded_ticker"]

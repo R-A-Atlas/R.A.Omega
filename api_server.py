@@ -515,6 +515,100 @@ def _ensure_query_ui_envelope(result: Any, query_text: str) -> dict:
     return out
 
 
+def _extract_response_tickers(shaped: dict, query_text: str) -> list[str]:
+    """Best-effort ticker extraction for lightweight market context attachment."""
+    found: list[str] = []
+    seen: set[str] = set()
+
+    def add(raw: Any) -> None:
+        sym = str(raw or "").strip().upper()
+        if not re.fullmatch(r"[A-Z]{1,5}", sym):
+            return
+        if sym in _CHAT_FALSE_POSITIVE_TICKERS or sym in {"CEO", "CFO", "SEC", "IRS", "USA", "USD"}:
+            return
+        if sym not in seen:
+            seen.add(sym)
+            found.append(sym)
+
+    pq = shaped.get("parsed_query") if isinstance(shaped.get("parsed_query"), dict) else {}
+    fr = shaped.get("final_report") if isinstance(shaped.get("final_report"), dict) else {}
+    for src in (pq.get("tickers"), pq.get("symbols")):
+        if isinstance(src, list):
+            for item in src:
+                add(item)
+    for key in ("ticker", "symbol"):
+        add(pq.get(key))
+        add(fr.get(key))
+    for m in re.finditer(r"\b[A-Z]{1,5}\b", query_text or ""):
+        add(m.group(0))
+    return found[:8]
+
+
+def _attach_market_intelligence_if_relevant(
+    shaped: dict,
+    query_text: str,
+    route_decision: Optional[RouteDecision],
+) -> dict:
+    """Attach compact D2/D3/D4 cache context for ticker finance responses.
+
+    This is deliberately metadata, not prose. It keeps normal chat fast and plain
+    while giving the UI/export layer a reliable source-backed market context block
+    for ticker questions.
+    """
+    if not isinstance(shaped, dict) or is_plain_chat_response_for_api(shaped):
+        return shaped
+    route = route_decision.route_band if route_decision else ""
+    if route == "quick_chat":
+        return shaped
+    tickers = _extract_response_tickers(shaped, query_text)
+    if not tickers:
+        return shaped
+    try:
+        from atlas_omega import UserContext, build_market_intelligence_context
+
+        bundle = build_market_intelligence_context(
+            query_text,
+            UserContext(tickers=tickers),
+            include_full=route in {"deep_research", "market_snapshot"},
+        )
+    except Exception as e:
+        log.debug("[market_intelligence] attach failed: %s", e)
+        return shaped
+    shaped["_market_intelligence"] = {
+        "snapshot": bundle.get("snapshot"),
+        "generated_at": bundle.get("generated_at"),
+        "tickers": tickers,
+        "record_counts": bundle.get("record_counts") or {},
+        "ticker_slices": bundle.get("ticker_slices") or {},
+        "quality": bundle.get("quality") or {},
+    }
+    audit = shaped.get("audit_notes")
+    if not isinstance(audit, list):
+        audit = []
+    audit.append("Attached D2/D3/D4 market intelligence cache slices for ticker context.")
+    shaped["audit_notes"] = audit
+    return shaped
+
+
+def is_plain_chat_response_for_api(data: Any) -> bool:
+    if not isinstance(data, dict):
+        return False
+    pq = data.get("parsed_query") if isinstance(data.get("parsed_query"), dict) else {}
+    timing = data.get("timing") if isinstance(data.get("timing"), dict) else {}
+    loops = timing.get("loops")
+    try:
+        loops_n = float(loops)
+    except (TypeError, ValueError):
+        loops_n = None
+    return bool(
+        pq.get("_chat_mode") is True
+        or timing.get("_chat_mode") is True
+        or pq.get("intent_route") == "CONVERSATION"
+        or pq.get("query_type") == "CONVERSATION"
+        or loops_n == 0
+    )
+
+
 # Short conversational / meta messages skip the 10-loop pipeline (and Omega) so the UI
 # responds immediately; research-style phrasing and structured queries still route fully.
 _CHAT_FALSE_POSITIVE_TICKERS = frozenset(
@@ -1279,6 +1373,7 @@ def dispatch_query_request(
             "market_focus": req.market_focus,
         }
         shaped["_route_decision"] = route_decision.to_dict()
+        shaped = _attach_market_intelligence_if_relevant(shaped, q_store, route_decision)
         activity = _build_research_activity_payload(q_store, route_decision)
         if job:
             updated_job = research_jobs.update_job(

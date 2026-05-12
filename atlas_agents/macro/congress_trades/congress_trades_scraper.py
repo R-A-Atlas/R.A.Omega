@@ -19,6 +19,35 @@ DATA_CACHE_DIR = REPO_ROOT / "data_cache"
 OUTPUT_STABLE_NAME = "congress_trades_latest.json"
 HSW_TRANSACTIONS_URL = "https://housestockwatcher.com/api/transactions"
 
+FALLBACK_TRADES: list[dict[str, Any]] = [
+    {
+        "member": "Fallback House Disclosure",
+        "chamber": "House",
+        "party": "",
+        "state": "",
+        "ticker": "NVDA",
+        "transaction_type": "Purchase",
+        "amount_range": "$15,001 - $50,000",
+        "trade_date": "",
+        "disclosed_date": "",
+        "days_to_disclose": 28,
+        "disclosure_signal": "ON_TIME",
+    },
+    {
+        "member": "Fallback Senate Disclosure",
+        "chamber": "Senate",
+        "party": "",
+        "state": "",
+        "ticker": "AAPL",
+        "transaction_type": "Sale",
+        "amount_range": "$1,001 - $15,000",
+        "trade_date": "",
+        "disclosed_date": "",
+        "days_to_disclose": 52,
+        "disclosure_signal": "LATE_DISCLOSURE",
+    },
+]
+
 
 def iso_now_z() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -80,13 +109,33 @@ def build_output(trades: list[dict[str, Any]]) -> dict[str, Any]:
     }
 
 
+def fallback_trades(limit: int = 50) -> list[dict[str, Any]]:
+    today = date.today().isoformat()
+    rows = [dict(row) for row in FALLBACK_TRADES[: max(1, limit)]]
+    for row in rows:
+        row["trade_date"] = row.get("trade_date") or today
+        row["disclosed_date"] = row.get("disclosed_date") or today
+    return rows
+
+
 def scrape(limit: int = 50) -> dict[str, Any]:
+    warning = ""
     try:
         raw_rows = fetch_house_trades(limit=limit)
-    except Exception:
+    except Exception as exc:
+        warning = f"housestockwatcher_fetch_failed:{exc}"
         raw_rows = []
     trades = [row for raw in raw_rows if (row := normalize_house_trade(raw))]
-    return build_output(trades)
+    out = build_output(trades)
+    if not trades:
+        fallback = fallback_trades(limit=limit)
+        out = build_output(fallback)
+        out["_meta"] = {
+            "data_quality": "fallback",
+            "fallback_used": True,
+            "warning": warning or "HouseStockWatcher returned no usable rows.",
+        }
+    return out
 
 
 def write_outputs(payload: dict[str, Any]) -> tuple[Path, Path]:

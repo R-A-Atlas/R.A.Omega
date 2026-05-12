@@ -258,6 +258,69 @@ def test_post_query_dispatches_router_and_returns_ui_payload(
     assert body["_route_decision"]["route_band"] == "focused_analysis"
 
 
+def test_post_query_attaches_market_intelligence_for_tickers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path, client: TestClient,
+) -> None:
+    (tmp_path / "equities_latest.json").write_text(
+        json.dumps(
+            {
+                "generated_at": "2026-05-12T00:00:00Z",
+                "source": "test",
+                "record_count": 1,
+                "gainers": [{"ticker": "NVDA", "price": 100, "signal": "BULLISH_MOMENTUM"}],
+                "losers": [],
+                "active": [],
+                "most_active": [],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "options_flow_latest.json").write_text(
+        json.dumps(
+            {
+                "generated_at": "2026-05-12T00:00:00Z",
+                "source": "test",
+                "record_count": 1,
+                "unusual_activity": [{"ticker": "NVDA", "signal": "BULLISH_UNUSUAL"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    (tmp_path / "insider_trades_latest.json").write_text(
+        json.dumps(
+            {
+                "generated_at": "2026-05-12T00:00:00Z",
+                "source": "test",
+                "record_count": 1,
+                "filings": [{"ticker": "NVDA", "signal": "BULLISH_INSIDER"}],
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("ATLAS_DATA_CACHE_DIR", str(tmp_path))
+
+    class FakeRouter:
+        def route(self, query: str, **kwargs):
+            return {
+                "parsed_query": {"query_type": "MARKET_DEEP_DIVE", "tickers": ["NVDA"]},
+                "final_report": {
+                    "ticker": "NVDA",
+                    "tldr": "NVDA context ready.",
+                },
+                "tldr": "NVDA context ready.",
+            }
+
+    monkeypatch.setattr(api_server, "get_router", lambda: FakeRouter())
+    r = client.post("/query", json={"query": "Analyze NVDA"})
+    assert r.status_code == 200
+    body = r.json()
+    mi = body["_market_intelligence"]
+    assert mi["snapshot"] == "d2_d3_d4_market_intelligence"
+    assert mi["tickers"] == ["NVDA"]
+    assert mi["ticker_slices"]["options_flow"][0]["signal"] == "BULLISH_UNUSUAL"
+    assert mi["ticker_slices"]["insider_trades"][0]["signal"] == "BULLISH_INSIDER"
+
+
 def test_post_query_accepts_research_controls(
     monkeypatch: pytest.MonkeyPatch, client: TestClient,
 ) -> None:

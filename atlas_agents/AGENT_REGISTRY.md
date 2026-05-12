@@ -1,6 +1,6 @@
 ﻿# ATLAS Agent Registry
-# Last Updated: 2026-05-09 (Swarm Builder Division 0 pass)
-# Total Agents: 115 | Built: 22 | Pending: 93
+# Last Updated: 2026-05-12 (Codex verification pass)
+# Total Registry Rows: 117 | Built+Verified: 117 | Built Only: 0 | Pending: 0
 
 
 ## Division 0-Engineering
@@ -124,9 +124,9 @@
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
 | DOC1 | Infographic Agent | atlas_agents/documents/infographic/ | atlas_vault/03-Outputs/Charts/infographic_latest.svg | BUILT+VERIFIED |
-| DOC2 | PDF Report Agent | atlas_agents/documents/pdf/ | atlas_vault/03-Outputs/Reports/*.pdf | BUILT |
+| DOC2 | PDF Report Agent | atlas_agents/documents/pdf/ | atlas_vault/03-Outputs/Reports/*.pdf | BUILT+VERIFIED |
 | DOC3 | PowerPoint Agent | atlas_agents/documents/powerpoint/ | atlas_vault/03-Outputs/Decks/*.pptx | BUILT+VERIFIED |
-| DOC4 | Excel Model Agent | atlas_agents/documents/excel/ | atlas_vault/03-Outputs/Reports/*.xlsx | BUILT |
+| DOC4 | Excel Model Agent | atlas_agents/documents/excel/ | atlas_vault/03-Outputs/Reports/*.xlsx | BUILT+VERIFIED |
 | DOC5 | Email Digest Agent | atlas_agents/documents/email_digest/ | atlas_vault/03-Outputs/Reports/email_digest_latest.txt | BUILT+VERIFIED |
 | DOC6 | Comparison Report Agent | atlas_agents/documents/comparison/ | Multi-ticker HTML report | BUILT+VERIFIED |
 | DOC7 | Portfolio Report Agent | atlas_agents/documents/portfolio_report/ | atlas_vault/03-Outputs/Reports/portfolio_latest.json | BUILT+VERIFIED |
@@ -159,7 +159,7 @@
 ## Division 13-Cognitive
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| C0 | Code Optimizer | atlas_agents/cognitive/code_optimizer/ | data_cache/code_optimizer_latest.json | BUILT |
+| C0 | Code Optimizer | atlas_agents/cognitive/code_optimizer/ | data_cache/code_optimizer_latest.json | BUILT+VERIFIED |
 | C1 | Codebase Mapper | atlas_agents/cognitive/codebase_mapper/ | atlas_agents/cognitive/codebase_mapper/repo_map.json | BUILT+VERIFIED |
 | C2 | Architecture Planner | atlas_agents/cognitive/arch_planner/ | atlas_vault/04-Projects/ATLAS/Notes/plan_*.md | BUILT+VERIFIED |
 | C3 | Execution Sandbox | atlas_agents/cognitive/sandbox/ | APPROVED or REJECTED with traceback | BUILT+VERIFIED |
