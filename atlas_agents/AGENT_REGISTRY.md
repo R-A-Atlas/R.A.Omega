@@ -57,22 +57,22 @@
 ## Division 4-Legal
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| L1 | Federal Tax Code Bot | atlas_agents/legal/federal_tax/ | data_cache/federal_tax_latest.json | PENDING |
-| L2 | State Tax Monitor | atlas_agents/legal/state_tax/ | data_cache/state_tax_latest.json | PENDING |
-| L3 | Bankruptcy Parser | atlas_agents/legal/bankruptcy/ | data_cache/bankruptcy_latest.json | PENDING |
-| L4 | SEC EDGAR Bot | atlas_agents/legal/sec_edgar/ | data_cache/sec_filings_latest.json | PENDING |
-| L5 | Consumer Protection Watch | atlas_agents/legal/consumer_protection/ | data_cache/consumer_alerts_latest.json | PENDING |
-| L6 | Labor Law Monitor | atlas_agents/legal/labor_law/ | data_cache/labor_law_latest.json | PENDING |
+| L1 | Federal Tax Code Bot | atlas_agents/legal/federal_tax/ | data_cache/federal_tax_latest.json | BUILT+VERIFIED |
+| L2 | State Tax Monitor | atlas_agents/legal/state_tax/ | data_cache/state_tax_latest.json | BUILT+VERIFIED |
+| L3 | Bankruptcy Parser | atlas_agents/legal/bankruptcy/ | data_cache/bankruptcy_latest.json | BUILT+VERIFIED |
+| L4 | SEC EDGAR Bot | atlas_agents/legal/sec_edgar/ | data_cache/sec_filings_latest.json | BUILT+VERIFIED |
+| L5 | Consumer Protection Watch | atlas_agents/legal/consumer_protection/ | data_cache/consumer_alerts_latest.json | BUILT+VERIFIED |
+| L6 | Labor Law Monitor | atlas_agents/legal/labor_law/ | data_cache/labor_law_latest.json | BUILT+VERIFIED |
 
 ## Division 5-Business
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| B1 | SBA Grant Loan Finder | atlas_agents/business/sba/ | data_cache/sba_latest.json | PENDING |
-| B2 | B2B SaaS Metrics Bot | atlas_agents/business/saas_metrics/ | data_cache/saas_metrics_latest.json | PENDING |
-| B3 | Ecommerce Trends Bot | atlas_agents/business/ecommerce/ | data_cache/ecommerce_latest.json | PENDING |
-| B4 | Freelance Rate Indexer | atlas_agents/business/freelance_rates/ | data_cache/freelance_rates_latest.json | PENDING |
-| B5 | Franchise Evaluator | atlas_agents/business/franchise/ | data_cache/franchise_latest.json | PENDING |
-| B6 | VC Deal Flow Monitor | atlas_agents/business/vc_deals/ | data_cache/vc_deals_latest.json | PENDING |
+| B1 | SBA Grant Loan Finder | atlas_agents/business/sba/ | data_cache/sba_latest.json | BUILT+VERIFIED |
+| B2 | B2B SaaS Metrics Bot | atlas_agents/business/saas_metrics/ | data_cache/saas_metrics_latest.json | BUILT+VERIFIED |
+| B3 | Ecommerce Trends Bot | atlas_agents/business/ecommerce/ | data_cache/ecommerce_latest.json | BUILT+VERIFIED |
+| B4 | Freelance Rate Indexer | atlas_agents/business/freelance_rates/ | data_cache/freelance_rates_latest.json | BUILT+VERIFIED |
+| B5 | Franchise Evaluator | atlas_agents/business/franchise/ | data_cache/franchise_latest.json | BUILT+VERIFIED |
+| B6 | VC Deal Flow Monitor | atlas_agents/business/vc_deals/ | data_cache/vc_deals_latest.json | BUILT+VERIFIED |
 
 ## Division 6-Alternative
 | ID | Name | Directory | Output | Status |
