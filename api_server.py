@@ -29,7 +29,7 @@ Endpoints (research + query pipeline + portfolio require Authorization: Bearer <
     GET  /, /auth, /login — Zenith landing (Supabase sign in / sign up)
     GET  /app            — Main R.A. Omega chat UI (stable product route)
     GET  /option1        — Legacy alias for the same chat UI
-    GET  /v4             — Optional atlas_dashboard_v4.html (advanced dashboard)
+    GET  /dashboard, /v4 — Finance dashboard (advanced dashboard)
     GET  /atlas_dashboard_v2.html — Legacy v2 UI only
     GET  /history/reports   — Query-report history (for dashboard)
     DELETE /history/{report_id} — Remove one saved query report
@@ -1874,6 +1874,7 @@ def serve_home():
 
 
 @app.get("/v4")
+@app.get("/dashboard")
 @app.get("/atlas_dashboard_v4.html")
 def serve_dashboard_v4():
     if not ATLAS_DASHBOARD_V4.is_file():

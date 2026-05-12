@@ -81,6 +81,13 @@ def test_main_chat_routes_return_html(client: TestClient, path: str) -> None:
     assert "R.A. Omega" in r.text
 
 
+@pytest.mark.parametrize("path", ["/dashboard", "/v4", "/atlas_dashboard_v4.html"])
+def test_finance_dashboard_routes_return_html(client: TestClient, path: str) -> None:
+    r = client.get(path)
+    assert r.status_code == 200
+    assert "text/html" in r.headers.get("content-type", "")
+
+
 def test_regime_endpoint_returns_json(client: TestClient) -> None:
     r = client.get("/regime")
     assert r.status_code == 200
