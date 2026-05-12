@@ -107,6 +107,7 @@ ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 sys.path.insert(0, str(BASE_DIR))
 
 import atlas_db  # noqa: E402
+import agent_audit  # noqa: E402
 import omega_config  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
@@ -2157,6 +2158,12 @@ def rag_vector_status(_user: AtlasUserId):
     except Exception as e:
         log.warning("/rag/status failed: %s", e)
         raise HTTPException(503, detail=str(e)) from e
+
+
+@app.get("/agents/status")
+def agents_status(_user: AtlasUserId):
+    """Filesystem-backed status of all R.A. Omega agent prompt directories."""
+    return agent_audit.collect_agent_audit()
 
 
 @app.get("/health")
