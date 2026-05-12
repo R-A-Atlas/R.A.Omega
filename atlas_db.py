@@ -48,12 +48,13 @@ Auth users live in auth.users (Supabase-managed).
 from __future__ import annotations
 
 import logging
-import os
 import uuid
 from datetime import datetime, timezone
 from typing import Any, Optional
 
 from dotenv import load_dotenv
+
+import omega_config
 
 load_dotenv()
 
@@ -78,7 +79,7 @@ _supabase_client: Any = None
 
 
 def is_configured() -> bool:
-    return bool(os.environ.get("SUPABASE_URL", "").strip() and os.environ.get("SUPABASE_KEY", "").strip())
+    return omega_config.supabase_config().configured
 
 
 def get_supabase_client():
@@ -92,8 +93,9 @@ def get_supabase_client():
         try:
             from supabase import create_client
 
-            url = os.environ["SUPABASE_URL"].strip()
-            key = os.environ["SUPABASE_KEY"].strip()
+            cfg = omega_config.supabase_config()
+            url = cfg.url
+            key = cfg.service_key
             _supabase_client = create_client(url, key)
             log.info("Supabase client initialized")
         except Exception as e:

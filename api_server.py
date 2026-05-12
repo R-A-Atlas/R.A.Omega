@@ -107,6 +107,7 @@ ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 sys.path.insert(0, str(BASE_DIR))
 
 import atlas_db  # noqa: E402
+import omega_config  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -150,11 +151,7 @@ CORS_ORIGINS = [
     "http://localhost:8765",
     "http://127.0.0.1:8765",
 ]
-_extra_cors = os.environ.get("ATLAS_CORS_ORIGINS", "")
-if _extra_cors.strip():
-    CORS_ORIGINS.extend(
-        x.strip() for x in _extra_cors.split(",") if x.strip()
-    )
+CORS_ORIGINS.extend(omega_config.cors_origins())
 
 
 # ── Lazy imports (don't crash if modules missing) ─────────────────────────────
@@ -375,7 +372,7 @@ _bearer_scheme = HTTPBearer(auto_error=False)
 
 
 def _auth_disabled() -> bool:
-    return os.environ.get("ATLAS_DISABLE_AUTH", "").lower() == "true"
+    return omega_config.auth_disabled()
 
 
 def get_current_user(
@@ -417,16 +414,12 @@ def get_dev_api_user(
     """
     Validate developer API key from header. Returns synthetic user id for persistence-skipped dev calls.
     """
-    raw = (
-        os.environ.get("ATLAS_DEV_API_KEYS", "").strip()
-        or os.environ.get("ATLAS_DEV_API_KEY", "").strip()
-    )
-    if not raw:
+    allowed = set(omega_config.developer_api_keys())
+    if not allowed:
         raise HTTPException(
             status_code=503,
             detail="Developer API keys not configured (set ATLAS_DEV_API_KEY or ATLAS_DEV_API_KEYS)",
         )
-    allowed = {k.strip() for k in raw.split(",") if k.strip()}
     key = (x_atlas_dev_key or "").strip()
     if not key or key not in allowed:
         raise HTTPException(status_code=401, detail="Invalid or missing X-ATLAS-DEV-KEY")
@@ -1021,7 +1014,7 @@ def _request_has_browser_session(request: Request) -> bool:
 def _subscription_tier_for_user(user_id: str) -> str:
     if user_id == "test_user_local" or not user_id:
         return "developer"
-    default_tier = (os.environ.get("ATLAS_DEFAULT_SUBSCRIPTION_TIER") or "free").strip().lower()
+    default_tier = omega_config.default_subscription_tier()
     try:
         prefs = atlas_db.get_user_preferences(user_id)
     except Exception as e:
@@ -1035,14 +1028,8 @@ def _subscription_tier_for_user(user_id: str) -> str:
 
 
 def _daily_cap_for_tier(tier: str) -> int:
-    env_key = f"ATLAS_TIER_{str(tier or '').upper()}_DAILY_QUERIES"
-    raw = os.environ.get(env_key)
-    if raw:
-        try:
-            return max(0, int(raw))
-        except ValueError:
-            pass
-    return PLAN_DAILY_QUERY_CAPS.get((tier or "free").lower(), PLAN_DAILY_QUERY_CAPS["free"])
+    default = PLAN_DAILY_QUERY_CAPS.get((tier or "free").lower(), PLAN_DAILY_QUERY_CAPS["free"])
+    return max(0, omega_config.tier_daily_limit(tier, default))
 
 
 def _enforce_query_tier_gate(user_id: str, req: "QueryRequest") -> dict[str, Any]:
@@ -1082,12 +1069,11 @@ def _enforce_query_tier_gate(user_id: str, req: "QueryRequest") -> dict[str, Any
 
 
 def _stripe_secret_key() -> str:
-    return (os.environ.get("STRIPE_SECRET_KEY") or "").strip()
+    return omega_config.stripe_secret_key()
 
 
 def _stripe_price_for_plan(plan: str) -> str:
-    key = f"STRIPE_PRICE_{plan.upper()}"
-    return (os.environ.get(key) or "").strip()
+    return omega_config.stripe_price_for_plan(plan)
 
 
 def _verify_stripe_signature(payload: bytes, signature_header: str, secret: str) -> None:
@@ -1137,14 +1123,14 @@ def _apply_billing_event(event: dict[str, Any]) -> dict[str, Any]:
 def _transcribe_whisper_openai(content: bytes, filename: str) -> str:
     import requests
 
-    key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    key = omega_config.openai_api_key()
     if not key:
         raise HTTPException(
             status_code=503,
             detail="OPENAI_API_KEY not configured for voice transcription",
         )
     url = "https://api.openai.com/v1/audio/transcriptions"
-    model = (os.environ.get("OPENAI_WHISPER_MODEL") or "whisper-1").strip()
+    model = omega_config.openai_whisper_model()
     fn = filename or "audio.webm"
     files = {"file": (fn, content)}
     data = {"model": model}
@@ -1175,14 +1161,14 @@ def _transcribe_whisper_openai(content: bytes, filename: str) -> str:
 def _tts_openai_bytes(text: str, voice: Optional[str]) -> bytes:
     import requests
 
-    key = (os.environ.get("OPENAI_API_KEY") or "").strip()
+    key = omega_config.openai_api_key()
     if not key:
         raise HTTPException(
             status_code=503,
             detail="OPENAI_API_KEY not configured for TTS",
         )
-    vid = (voice or os.environ.get("OPENAI_TTS_VOICE") or "alloy").strip()
-    model = (os.environ.get("OPENAI_TTS_MODEL") or "tts-1").strip()
+    vid = omega_config.openai_tts_voice(voice)
+    model = omega_config.openai_tts_model()
     url = "https://api.openai.com/v1/audio/speech"
     payload = {"model": model, "input": text[:24_000], "voice": vid}
     try:
@@ -1204,13 +1190,13 @@ def _tts_openai_bytes(text: str, voice: Optional[str]) -> bytes:
 def _tts_elevenlabs_bytes(text: str, voice: Optional[str]) -> bytes:
     import requests
 
-    key = (os.environ.get("ELEVENLABS_API_KEY") or "").strip()
+    key = omega_config.elevenlabs_api_key()
     if not key:
         raise HTTPException(
             status_code=503,
             detail="ELEVENLABS_API_KEY not configured for TTS",
         )
-    vid = (voice or os.environ.get("ELEVENLABS_VOICE_ID") or "").strip()
+    vid = omega_config.elevenlabs_voice_id(voice)
     if not vid:
         raise HTTPException(
             status_code=503,
@@ -1251,7 +1237,7 @@ def _build_compare_query(tickers: list[str]) -> str:
 
 
 def _gemini_nl_edit_report_json(result_json: dict, instruction: str) -> dict:
-    key = (os.environ.get("GOOGLE_API_KEY") or "").strip()
+    key = omega_config.google_api_key()
     if not key:
         raise HTTPException(
             status_code=503,
@@ -1284,7 +1270,7 @@ CURRENT REPORT JSON:
         api_key=key,
         http_options=gtypes.HttpOptions(timeout=GEMINI_HTTP_TIMEOUT_MS),
     )
-    model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+    model = omega_config.gemini_model()
     wait_for_slot("report_edit")
     try:
         resp = client.models.generate_content(
@@ -1847,13 +1833,7 @@ def _dashboard_html_response(path: Path) -> FileResponse | HTMLResponse:
     if path.name != "atlas_dashboard_v4.html":
         return FileResponse(path, media_type="text/html; charset=utf-8")
     raw = path.read_text(encoding="utf-8")
-    pub = {
-        "url": os.environ.get("SUPABASE_URL", "").strip(),
-        "anonKey": (
-            os.environ.get("SUPABASE_ANON_KEY", "").strip()
-            or os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY", "").strip()
-        ),
-    }
+    pub = omega_config.supabase_config().public
     inject = f"<script>window.__ATLAS_SB_CONFIG__={json.dumps(pub)};</script>\n"
     if "</head>" in raw:
         html = raw.replace("</head>", inject + "</head>", 1)
@@ -1979,13 +1959,7 @@ def _zenith_landing_response() -> HTMLResponse:
     if not ATLAS_ZENITH_LANDING.is_file():
         return HTMLResponse("<h1>Landing page not found</h1>", status_code=404)
     html = ATLAS_ZENITH_LANDING.read_text(encoding="utf-8")
-    cfg = {
-        "url": os.environ.get("SUPABASE_URL", "").strip(),
-        "anonKey": (
-            os.environ.get("SUPABASE_ANON_KEY", "").strip()
-            or os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY", "").strip()
-        ),
-    }
+    cfg = omega_config.supabase_config().public
     injection = f"<script>window.__ATLAS_SB_CONFIG__ = {json.dumps(cfg)};</script>"
     html = html.replace("</head>", injection + "\n</head>", 1)
     return HTMLResponse(html, media_type="text/html; charset=utf-8")
@@ -2130,10 +2104,10 @@ def create_billing_checkout(req: BillingCheckoutRequest, user_id: AtlasUserId):
 async def stripe_billing_webhook(request: Request):
     """Stripe webhook for subscription tier activation/deactivation."""
     payload = await request.body()
-    secret = (os.environ.get("STRIPE_WEBHOOK_SECRET") or "").strip()
+    secret = omega_config.stripe_webhook_secret()
     if secret:
         _verify_stripe_signature(payload, request.headers.get("stripe-signature") or "", secret)
-    elif os.environ.get("ATLAS_ALLOW_UNSIGNED_STRIPE_WEBHOOK", "").lower() != "true":
+    elif not omega_config.allow_unsigned_stripe_webhook():
         raise HTTPException(status_code=503, detail="Stripe webhook secret is not configured")
     try:
         event = json.loads(payload.decode("utf-8"))
@@ -2391,8 +2365,8 @@ def tts_speak(req: TtsRequest, user_id: AtlasUserId):
     if prov not in ("", "openai", "elevenlabs", "auto"):
         raise HTTPException(status_code=400, detail='provider must be "openai", "elevenlabs", or omitted')
 
-    oai = bool((os.environ.get("OPENAI_API_KEY") or "").strip())
-    el = bool((os.environ.get("ELEVENLABS_API_KEY") or "").strip())
+    oai = bool(omega_config.openai_api_key())
+    el = bool(omega_config.elevenlabs_api_key())
 
     if prov == "openai":
         raw = _tts_openai_bytes(text, req.voice)
