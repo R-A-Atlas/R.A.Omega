@@ -196,6 +196,8 @@ def scrape(*, count_per_bucket: int = 25) -> dict[str, Any]:
         "gainers": buckets["gainers"],
         "losers": buckets["losers"],
         "active": buckets["active"],
+        "most_active": buckets["active"],
+        "most_actives": buckets["active"],
         "combined": combined,
     }
     if warnings:

@@ -57,6 +57,30 @@ FALLBACK_FILINGS: list[dict[str, Any]] = [
         "date": "",
         "signal": "BEARISH_INSIDER",
     },
+    {
+        "ticker": "AAPL",
+        "company_name": "Apple Inc.",
+        "insider_name": "Fallback Director Signal",
+        "role": "Director",
+        "transaction_type": "BUY",
+        "shares": 750.0,
+        "price": 0.0,
+        "total_value": None,
+        "date": "",
+        "signal": "BULLISH_INSIDER",
+    },
+    {
+        "ticker": "MSFT",
+        "company_name": "Microsoft Corporation",
+        "insider_name": "Fallback Officer Signal",
+        "role": "Officer",
+        "transaction_type": "SELL",
+        "shares": 650.0,
+        "price": 0.0,
+        "total_value": None,
+        "date": "",
+        "signal": "BEARISH_INSIDER",
+    },
 ]
 
 
@@ -152,7 +176,11 @@ def scrape(*, top_n: int = 40) -> dict[str, Any]:
             "source": "sec_edgar_form4_atom",
             "record_count": len(rows),
             "filings": rows,
-            "_meta": {"warning": "SEC atom fetch or parse failed — check UA / network"},
+            "_meta": {
+                "data_quality": "fallback",
+                "fallback_used": True,
+                "warning": "SEC atom fetch or parse failed; check UA / network",
+            },
         }
 
     for e in getattr(fed, "entries", [])[:entry_cap]:
@@ -304,7 +332,10 @@ def scrape(*, top_n: int = 40) -> dict[str, Any]:
         out["_meta"] = {
             "data_quality": "fallback",
             "fallback_used": True,
-            "warning": "Zero parsed Form 4 rows — Atom may have rendered without XML body or pacing blocked."
+            "warning": (
+                "Zero parsed Form 4 rows; Atom may have rendered without XML "
+                "body or pacing blocked."
+            ),
         }
     return out
 

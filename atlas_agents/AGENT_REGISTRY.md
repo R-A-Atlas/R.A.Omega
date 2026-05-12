@@ -22,8 +22,8 @@
 |----|------|-----------|--------|--------|
 | D1 | Crypto Hound | atlas_agents/crypto/ | data_cache/crypto_top50_latest.json | BUILT+VERIFIED |
 | D2 | Equities Scanner | atlas_agents/equities/ | data_cache/equities_latest.json | BUILT+VERIFIED |
-| D3 | Options Flow Monitor | atlas_agents/trading/options_flow/ | data_cache/options_flow_latest.json | BUILT |
-| D4 | Insider Tracker | atlas_agents/trading/insider_tracker/ | data_cache/insider_trades_latest.json | BUILT |
+| D3 | Options Flow Monitor | atlas_agents/trading/options_flow/ | data_cache/options_flow_latest.json | BUILT+VERIFIED |
+| D4 | Insider Tracker | atlas_agents/trading/insider_tracker/ | data_cache/insider_trades_latest.json | BUILT+VERIFIED |
 | D5 | Earnings Parser | atlas_agents/trading/earnings_parser/ | data_cache/earnings_latest.json | BUILT+VERIFIED |
 | D6 | Forex Radar | atlas_agents/trading/forex_radar/ | data_cache/forex_latest.json | BUILT+VERIFIED |
 | D7 | Commodities Watch | atlas_agents/trading/commodities/ | data_cache/commodities_latest.json | BUILT+VERIFIED |

@@ -2,7 +2,9 @@
 Unusual options activity snapshot -> data_cache/options_flow_latest.json.
 
 Attempts Cboe market statistics HTML parse (public, delayed). If no rows pass
-the volume/OI > 3 rule, returns an empty list with an explicit _meta.warning.
+the volume/OI > 3 rule, emits deterministic fallback rows with explicit
+metadata so Omega keeps a non-empty options context without presenting fallback
+rows as live market data.
 """
 
 from __future__ import annotations
@@ -60,6 +62,26 @@ FALLBACK_UNUSUAL_ACTIVITY: list[dict[str, Any]] = [
         "open_interest": 4000,
         "volume_oi_ratio": 4.5,
         "signal": "BEARISH_UNUSUAL",
+    },
+    {
+        "ticker": "AAPL",
+        "expiry": "",
+        "strike": 0.0,
+        "type": "CALL",
+        "volume": 8400,
+        "open_interest": 2100,
+        "volume_oi_ratio": 4.0,
+        "signal": "BULLISH_UNUSUAL",
+    },
+    {
+        "ticker": "AMD",
+        "expiry": "",
+        "strike": 0.0,
+        "type": "CALL",
+        "volume": 7600,
+        "open_interest": 1900,
+        "volume_oi_ratio": 4.0,
+        "signal": "BULLISH_UNUSUAL",
     },
 ]
 
@@ -179,8 +201,8 @@ def scrape(*, top_n: int = 25) -> dict[str, Any]:
         used_fallback = True
     if not unusual and not warning:
         warning = (
-            "No rows passed volume/OI>3 from public Cboe statistics page — "
-            "layout may have changed or table empty."
+            "No rows passed volume/OI>3 from public Cboe statistics page; "
+            "layout may have changed or table was empty."
         )
 
     out: dict[str, Any] = {
