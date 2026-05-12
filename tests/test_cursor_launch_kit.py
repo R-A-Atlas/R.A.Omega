@@ -16,9 +16,13 @@ def test_cursor_cloud_launch_kit_has_25_agents():
 def test_auth_and_landing_are_ra_omega_branded():
     auth = (ROOT / "auth.html").read_text(encoding="utf-8")
     landing = (ROOT / "index_1778228972988.html").read_text(encoding="utf-8")
+    legacy_landing = (ROOT / "index_1778307874705.html").read_text(encoding="utf-8")
     assert "R.A. OMEGA_" in auth
     assert "R.A. OMEGA" in landing
     assert "ATLAS<span" not in landing
     assert '<div class="brand-name">ATLAS_' not in auth
     assert "#18C6C8" in auth
     assert "#18C6C8" in landing
+    assert "FINANCIAL INTELLIGENCE AT SCALE" not in legacy_landing
+    assert "#0044FF" not in legacy_landing
+    assert 'window.location.replace("/")' in legacy_landing

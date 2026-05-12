@@ -12,7 +12,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;700&family=Syncopate:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -34,7 +34,7 @@
         }
 
         .font-cinematic {
-            font-family: 'Syncopate', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
         }
 
         #webgl-canvas {
@@ -71,9 +71,10 @@
             backdrop-filter: blur(28px);
             -webkit-backdrop-filter: blur(28px);
             border: 1px solid rgba(255, 255, 255, 0.10);
-            border-radius: 14px;
+            border-radius: 10px;
             padding: 2rem;
-            width: 320px;
+            width: min(360px, calc(100vw - 2rem));
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
         }
 
         .auth-input {
@@ -107,6 +108,13 @@
         }
         .auth-btn:hover { background: #20D8DA; }
         .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .auth-note {
+            color: rgba(255,255,255,0.42);
+            font-size: 0.76rem;
+            line-height: 1.5;
+            margin-top: 0.95rem;
+        }
 
         .auth-tab {
             flex: 1;
@@ -144,6 +152,40 @@
             font-size: 0.72rem;
             color: rgba(255,255,255,0.5);
             white-space: nowrap;
+        }
+
+        @media (max-width: 900px) {
+            body {
+                overflow-y: auto;
+                height: auto;
+                min-height: 100vh;
+            }
+            .ui-layer {
+                position: relative;
+                min-height: 100vh;
+                padding: 1.25rem !important;
+            }
+            .desktop-status {
+                display: none !important;
+            }
+            .hero-row {
+                flex-direction: column;
+                align-items: stretch !important;
+                justify-content: center !important;
+                gap: 2rem;
+            }
+            .hero-copy {
+                max-width: none !important;
+            }
+            .bottom-strip {
+                flex-direction: column;
+                align-items: flex-start !important;
+                gap: 1.25rem;
+            }
+            .bottom-metrics {
+                flex-wrap: wrap;
+                gap: 1.25rem !important;
+            }
         }
 
         .feature-dot {
@@ -188,7 +230,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        /* ─── 3D Wave Background ─── */
+        /* 3D wave background */
         const TopologicalOcean = () => {
             const mountRef = useRef(null);
 
@@ -296,7 +338,7 @@
             return <div ref={mountRef} id="webgl-canvas" />;
         };
 
-        /* ─── Auth Panel ─── */
+        /* Auth panel */
         const AuthPanel = () => {
             const [tab, setTab]         = useState('signin');
             const [email, setEmail]     = useState('');
@@ -362,11 +404,11 @@
                 <div className="auth-card interactive">
                     {/* Brand */}
                     <div style={{ marginBottom: '1.4rem' }}>
-                        <div className="font-cinematic" style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '0.12em', color: '#18C6C8' }}>
+                        <div className="font-cinematic" style={{ fontSize: '1.18rem', fontWeight: 700, letterSpacing: '0.08em', color: '#18C6C8' }}>
                             R.A. OMEGA<span style={{ color: '#2ED47A' }}>_</span>
                         </div>
                         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                            AI Finance Model
+                            Finance Intelligence Network
                         </div>
                     </div>
 
@@ -398,24 +440,27 @@
 
                     <div style={{ marginBottom: tab === 'signup' ? '0.75rem' : '0' }}>
                         <label style={{ display: 'block', fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Password</label>
-                        <input className="auth-input" type="password" value={password} onChange={e => setPass(e.target.value)} onKeyDown={onKey} placeholder="••••••••" autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} />
+                        <input className="auth-input" type="password" value={password} onChange={e => setPass(e.target.value)} onKeyDown={onKey} placeholder="Password" autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} />
                     </div>
 
                     {tab === 'signup' && (
                         <div>
                             <label style={{ display: 'block', fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Confirm Password</label>
-                            <input className="auth-input" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={onKey} placeholder="••••••••" autoComplete="new-password" />
+                            <input className="auth-input" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={onKey} placeholder="Confirm password" autoComplete="new-password" />
                         </div>
                     )}
 
                     <button className="auth-btn" onClick={tab === 'signin' ? signIn : signUp} disabled={loading}>
-                        {loading ? 'Please wait…' : (tab === 'signin' ? 'Sign In →' : 'Create Account →')}
+                        {loading ? 'Please wait...' : (tab === 'signin' ? 'Sign In ->' : 'Create Account ->')}
                     </button>
+                    <p className="auth-note">
+                        Chat stays the primary workspace. Dashboards, scanners, reports, and portfolio tools open after sign-in.
+                    </p>
                 </div>
             );
         };
 
-        /* ─── Root App ─── */
+        /* Root app */
         const App = () => {
             const features = [
                 'Normal Chat',
@@ -445,8 +490,8 @@
                                 </p>
                             </div>
 
-                            {/* Status indicators — purely decorative */}
-                            <div className="flex gap-6" style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
+                            {/* Status indicators */}
+                            <div className="desktop-status flex gap-6" style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                                 <div className="flex flex-col items-end gap-1">
                                     <span style={{ color: 'rgba(255,255,255,0.3)' }}>Engine</span>
                                     <span style={{ color: '#18C6C8' }}>ONLINE</span>
@@ -458,21 +503,21 @@
                             </div>
                         </div>
 
-                        {/* Middle — Hero copy left, Auth card right */}
-                        <div className="flex-1 flex items-center justify-between w-full" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
+                        {/* Hero copy left, auth card right */}
+                        <div className="hero-row flex-1 flex items-center justify-between w-full" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
 
                             {/* Left: Hero copy */}
-                            <div className="interactive" style={{ maxWidth: '480px' }}>
+                            <div className="hero-copy interactive" style={{ maxWidth: '520px' }}>
                                 <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#18C6C8', marginBottom: '1rem' }}>
                                     Finance-first intelligence
                                 </div>
-                                <h2 className="font-cinematic" style={{ fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em', marginBottom: '1.2rem' }}>
-                                    EVERY SIGNAL.<br />
+                                <h2 className="font-cinematic" style={{ fontSize: 'clamp(2rem, 4vw, 4.2rem)', fontWeight: 700, lineHeight: 0.98, letterSpacing: '0', marginBottom: '1.2rem' }}>
+                                    117 SPECIALISTS.<br />
                                     ONE ANSWER.<br />
                                     <span style={{ color: '#18C6C8' }}>R.A. OMEGA</span>
                                 </h2>
                                 <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: '380px', marginBottom: '1.8rem' }}>
-                                    Ask naturally. R.A. Omega activates the right finance specialists, checks the evidence, and returns a right-sized answer for markets, debt, taxes, real estate, and business.
+                                    Ask naturally. R.A. Omega routes the question, activates the right finance agents, checks the evidence, and answers at the depth the task deserves.
                                 </p>
 
                                 {/* Feature pills */}
@@ -493,13 +538,13 @@
 
                         </div>
 
-                        {/* Bottom bar — purely decorative data strip */}
-                        <div className="w-full flex justify-between items-end">
-                            <div style={{ display: 'flex', gap: '2.5rem' }}>
+                        {/* Bottom data strip */}
+                        <div className="bottom-strip w-full flex justify-between items-end">
+                            <div className="bottom-metrics" style={{ display: 'flex', gap: '2.5rem' }}>
                                 {[
-                                    ['Queries Processed', '10k+'],
-                                    ['Avg Analysis Time', '< 3 min'],
-                                    ['Cost Per Query', '~$0.02'],
+                                    ['Agent Network', '117 online'],
+                                    ['Default Mode', 'Normal chat'],
+                                    ['Research Mode', '10-loop capable'],
                                 ].map(([label, val]) => (
                                     <div key={label} className="flex flex-col gap-1">
                                         <span className="status-label">{label}</span>
