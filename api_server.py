@@ -109,7 +109,7 @@ sys.path.insert(0, str(BASE_DIR))
 import atlas_db  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
-from orchestration.agent_packets import build_specialist_packets  # noqa: E402
+from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
 from orchestration import research_jobs  # noqa: E402
 from orchestration.web_sources import discover_sources, sources_prompt_block  # noqa: E402
 
@@ -1320,6 +1320,8 @@ def dispatch_query_request(
         forced_mode=mode,
         web_search=bool(getattr(req, "web_search", False)),
     )
+    activation = activate_specialists(q_store, route_decision)
+    specialist_packets = build_specialist_packets(activation)
     job: Optional[dict] = None
     if req.research_job_id:
         job = research_jobs.get_job(req.research_job_id, user_id=user_id)
@@ -1432,6 +1434,9 @@ def dispatch_query_request(
     )
     if route_decision.compliance_flags:
         request_hints.append("Compliance flags: " + ", ".join(route_decision.compliance_flags) + ".")
+    packet_block = specialist_packets_prompt_block(specialist_packets)
+    if packet_block:
+        route_input = f"{packet_block}\n\n{route_input}"
     if request_hints:
         route_input = "[Request controls]\n- " + "\n- ".join(request_hints) + f"\n\n{route_input}"
 
@@ -1529,9 +1534,8 @@ def dispatch_query_request(
         }
         shaped["_tier_usage"] = tier_usage
         shaped["_route_decision"] = route_decision.to_dict()
-        activation = activate_specialists(q_store, route_decision)
         shaped["_active_agents"] = activation.to_dict()
-        shaped["_specialist_packets"] = build_specialist_packets(activation)
+        shaped["_specialist_packets"] = specialist_packets
         shaped = _attach_market_intelligence_if_relevant(shaped, q_store, route_decision)
         activity = _build_research_activity_payload(q_store, route_decision)
         if job:

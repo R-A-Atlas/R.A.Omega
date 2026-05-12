@@ -1,7 +1,7 @@
 import json
 
 from orchestration.agent_graph import activate_specialists
-from orchestration.agent_packets import build_specialist_packets
+from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block
 from orchestration.router_policy import decide_route
 
 
@@ -43,6 +43,12 @@ def test_specialist_packets_load_active_agent_caches(tmp_path, monkeypatch):
     assert packets["packets"]["options_flow"]["summary"]["unusual_activity"][0]["ticker"] == "NVDA"
     assert "D8" in packets["errors"]  # dark pool cache was not created in this tmp cache.
 
+    block = specialist_packets_prompt_block(packets)
+    assert "[Active specialist packets]" in block
+    assert "data_quality=fallback" in block
+    assert "NVDA" in block
+    assert '"packet_count"' in block
+
 
 def test_specialist_packets_quick_chat_empty():
     decision = decide_route("hi")
@@ -52,3 +58,4 @@ def test_specialist_packets_quick_chat_empty():
     assert packets["packet_count"] == 0
     assert packets["packets"] == {}
     assert packets["errors"] == {}
+    assert specialist_packets_prompt_block(packets) == ""

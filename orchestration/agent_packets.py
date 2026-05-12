@@ -39,6 +39,39 @@ def build_specialist_packets(activation: AgentActivation) -> dict[str, Any]:
     }
 
 
+def specialist_packets_prompt_block(
+    packets: dict[str, Any],
+    *,
+    max_chars: int = 12000,
+) -> str:
+    packet_count = int(packets.get("packet_count") or 0)
+    if packet_count <= 0:
+        return ""
+    compact = {
+        "route": packets.get("route"),
+        "agent_ids": packets.get("agent_ids") or [],
+        "packet_count": packet_count,
+        "errors": packets.get("errors") or {},
+        "packets": packets.get("packets") or {},
+    }
+    payload = json.dumps(compact, ensure_ascii=True, sort_keys=True, separators=(",", ":"))
+    prefix = (
+        "[Active specialist packets]\n"
+        "R.A. Omega activated these specialists for this query. Use these packets as "
+        "source-backed context.\n"
+        "Rules:\n"
+        "- Treat data_quality=fallback as fallback, not live.\n"
+        "- Use only facts present in packets or other provided DATA.\n"
+        "- If an active packet is missing or errored, say that data slot is unavailable "
+        "instead of inventing it.\n"
+        "JSON:\n"
+    )
+    block = prefix + payload
+    if len(block) > max_chars:
+        return block[: max_chars - len("...[truncated]")] + "...[truncated]"
+    return block
+
+
 def _packet_for_agent(agent: SpecialistAgent) -> tuple[dict[str, Any], str | None]:
     base = {
         "agent_id": agent.agent_id,
@@ -104,4 +137,4 @@ def _scalar(value: Any) -> Any:
     return str(value)[:MAX_TEXT_CHARS]
 
 
-__all__ = ["build_specialist_packets", "data_cache_root"]
+__all__ = ["build_specialist_packets", "data_cache_root", "specialist_packets_prompt_block"]
