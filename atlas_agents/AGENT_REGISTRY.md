@@ -6,16 +6,16 @@
 ## Division 0-Engineering
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| E1 | Skill Scripter | atlas_agents/engineering/skill_scripter/ | atlas_vault/02-Wiki/Skills/ | BUILT |
+| E1 | Skill Scripter | atlas_agents/engineering/skill_scripter/ | atlas_vault/02-Wiki/Skills/ | BUILT+VERIFIED |
 | E2 | Refactorer DRY Agent | atlas_agents/engineering/refactorer/ | atlas_core/utils/agent_utils.py | BUILT+VERIFIED |
-| E3 | API Integrator | atlas_agents/engineering/api_integrator/ | atlas_core/connectors/ | BUILT |
-| E4 | UI UX Porter | atlas_agents/engineering/ui_porter/ | ra_omega_app.html | BUILT |
-| E5 | DB Architect | atlas_agents/engineering/db_architect/ | schema.sql | BUILT |
-| E6 | Red Teamer | atlas_agents/engineering/red_teamer/ | tests/security/ | BUILT |
+| E3 | API Integrator | atlas_agents/engineering/api_integrator/ | atlas_core/connectors/ | BUILT+VERIFIED |
+| E4 | UI UX Porter | atlas_agents/engineering/ui_porter/ | ra_omega_app.html | BUILT+VERIFIED |
+| E5 | DB Architect | atlas_agents/engineering/db_architect/ | schema.sql | BUILT+VERIFIED |
+| E6 | Red Teamer | atlas_agents/engineering/red_teamer/ | tests/security/ | BUILT+VERIFIED |
 | E7 | Unit Tester | atlas_agents/engineering/unit_tester/ | tests/ | BUILT+VERIFIED |
-| E8 | Data Validator | atlas_agents/engineering/data_validator/ | data_cache/ (read) | BUILT |
-| E9 | Dependency Watcher | atlas_agents/engineering/dep_watcher/ | requirements.txt | BUILT |
-| E10 | Eval Scorer | atlas_agents/engineering/eval_scorer/ | tests/evals/ | BUILT |
+| E8 | Data Validator | atlas_agents/engineering/data_validator/ | data_cache/ (read) | BUILT+VERIFIED |
+| E9 | Dependency Watcher | atlas_agents/engineering/dep_watcher/ | requirements.txt | BUILT+VERIFIED |
+| E10 | Eval Scorer | atlas_agents/engineering/eval_scorer/ | tests/evals/ | BUILT+VERIFIED |
 
 ## Division 1-Trading
 | ID | Name | Directory | Output | Status |
@@ -147,36 +147,36 @@
 ## Division 12-Platform
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| P1 | Broker Integration Agent | atlas_agents/platform/broker/ | positions_cache.json (live) | PENDING |
-| P2 | Discord Bot Agent | atlas_agents/platform/discord/ | Discord channel posts | PENDING |
-| P3 | Telegram Alert Agent | atlas_agents/platform/telegram/ | Telegram messages | PENDING |
-| P4 | Webhook Publisher Agent | atlas_agents/platform/webhooks/ | User-defined webhook URL | PENDING |
-| P5 | White Label Agent | atlas_agents/platform/white_label/ | Rebranded HTML/PDF | PENDING |
-| P6 | API Gateway Agent | atlas_agents/platform/api_gateway/ | POST /api/v1/query | PENDING |
-| P7 | Compliance Archive Agent | atlas_agents/platform/compliance/ | Supabase compliance_archive table | PENDING |
-| P8 | Self Improvement Agent | atlas_agents/platform/self_improvement/ | atlas_vault/04-Projects/ATLAS/Notes/improvement_*.md | PENDING |
+| P1 | Broker Integration Agent | atlas_agents/platform/broker/ | positions_cache.json (live) | BUILT+VERIFIED |
+| P2 | Discord Bot Agent | atlas_agents/platform/discord/ | Discord channel posts | BUILT+VERIFIED |
+| P3 | Telegram Alert Agent | atlas_agents/platform/telegram/ | Telegram messages | BUILT+VERIFIED |
+| P4 | Webhook Publisher Agent | atlas_agents/platform/webhooks/ | User-defined webhook URL | BUILT+VERIFIED |
+| P5 | White Label Agent | atlas_agents/platform/white_label/ | Rebranded HTML/PDF | BUILT+VERIFIED |
+| P6 | API Gateway Agent | atlas_agents/platform/api_gateway/ | POST /api/v1/query | BUILT+VERIFIED |
+| P7 | Compliance Archive Agent | atlas_agents/platform/compliance/ | Supabase compliance_archive table | BUILT+VERIFIED |
+| P8 | Self Improvement Agent | atlas_agents/platform/self_improvement/ | atlas_vault/04-Projects/ATLAS/Notes/improvement_*.md | BUILT+VERIFIED |
 
 ## Division 13-Cognitive
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
 | C0 | Code Optimizer | atlas_agents/cognitive/code_optimizer/ | data_cache/code_optimizer_latest.json | BUILT |
-| C1 | Codebase Mapper | atlas_agents/cognitive/codebase_mapper/ | atlas_agents/cognitive/codebase_mapper/repo_map.json | PENDING |
-| C2 | Architecture Planner | atlas_agents/cognitive/arch_planner/ | atlas_vault/04-Projects/ATLAS/Notes/plan_*.md | PENDING |
-| C3 | Execution Sandbox | atlas_agents/cognitive/sandbox/ | APPROVED or REJECTED with traceback | PENDING |
-| C4 | Reflection Correction Engine | atlas_agents/cognitive/reflection/ | atlas_vault/04-Projects/ATLAS/Notes/corrections_*.md | PENDING |
-| C5 | Static Linter Security Scanner | atlas_agents/cognitive/linter/ | CLEAN or violations list | PENDING |
-| C6 | Diff Synthesizer | atlas_agents/cognitive/diff_synthesizer/ | Unified diff output | PENDING |
-| C7 | Tree of Thoughts Arbiter | atlas_agents/cognitive/tot_arbiter/ | bull/bear/arbiter conclusion JSON | PENDING |
-| C8 | Evals Benchmarking Supervisor | atlas_agents/cognitive/eval_supervisor/ | atlas_vault/04-Projects/ATLAS/Notes/nightly_eval_*.md | PENDING |
+| C1 | Codebase Mapper | atlas_agents/cognitive/codebase_mapper/ | atlas_agents/cognitive/codebase_mapper/repo_map.json | BUILT+VERIFIED |
+| C2 | Architecture Planner | atlas_agents/cognitive/arch_planner/ | atlas_vault/04-Projects/ATLAS/Notes/plan_*.md | BUILT+VERIFIED |
+| C3 | Execution Sandbox | atlas_agents/cognitive/sandbox/ | APPROVED or REJECTED with traceback | BUILT+VERIFIED |
+| C4 | Reflection Correction Engine | atlas_agents/cognitive/reflection/ | atlas_vault/04-Projects/ATLAS/Notes/corrections_*.md | BUILT+VERIFIED |
+| C5 | Static Linter Security Scanner | atlas_agents/cognitive/linter/ | CLEAN or violations list | BUILT+VERIFIED |
+| C6 | Diff Synthesizer | atlas_agents/cognitive/diff_synthesizer/ | Unified diff output | BUILT+VERIFIED |
+| C7 | Tree of Thoughts Arbiter | atlas_agents/cognitive/tot_arbiter/ | bull/bear/arbiter conclusion JSON | BUILT+VERIFIED |
+| C8 | Evals Benchmarking Supervisor | atlas_agents/cognitive/eval_supervisor/ | atlas_vault/04-Projects/ATLAS/Notes/nightly_eval_*.md | BUILT+VERIFIED |
 
 ## Division 14-Compute
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| CR1 | Context Cacher | atlas_agents/compute/context_cacher/ | 90% API cost reduction | PENDING |
-| CR2 | Compute Router | atlas_agents/compute/router/ | Model routing logic | PENDING |
-| CR3 | Local Scaffolding Ollama | atlas_agents/compute/local_scaffold/ | Empty files and folders | PENDING |
-| CR4 | Local File Creator | atlas_agents/compute/local_file_creator/ | Written files on disk | PENDING |
-| CR5 | Local Syntax Checker | atlas_agents/compute/local_syntax/ | CLEAN or error list | PENDING |
-| CR6 | Local Documentation Writer | atlas_agents/compute/local_docs/ | Docstrings and README files | PENDING |
-| CR7 | Local Test Runner | atlas_agents/compute/local_test_runner/ | test_results_*.json | PENDING |
+| CR1 | Context Cacher | atlas_agents/compute/context_cacher/ | 90% API cost reduction | BUILT+VERIFIED |
+| CR2 | Compute Router | atlas_agents/compute/router/ | Model routing logic | BUILT+VERIFIED |
+| CR3 | Local Scaffolding Ollama | atlas_agents/compute/local_scaffold/ | Empty files and folders | BUILT+VERIFIED |
+| CR4 | Local File Creator | atlas_agents/compute/local_file_creator/ | Written files on disk | BUILT+VERIFIED |
+| CR5 | Local Syntax Checker | atlas_agents/compute/local_syntax/ | CLEAN or error list | BUILT+VERIFIED |
+| CR6 | Local Documentation Writer | atlas_agents/compute/local_docs/ | Docstrings and README files | BUILT+VERIFIED |
+| CR7 | Local Test Runner | atlas_agents/compute/local_test_runner/ | test_results_*.json | BUILT+VERIFIED |
 
