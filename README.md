@@ -7,7 +7,8 @@ The main local product surface is:
 - API server: `api_server.py`
 - Primary chat UI: `http://127.0.0.1:8000/app`
 - Legacy chat alias: `http://127.0.0.1:8000/option1`
-- Optional dashboard: `http://127.0.0.1:8000/v4`
+- Finance dashboard: `http://127.0.0.1:8000/dashboard`
+- Pricing page: `http://127.0.0.1:8000/pricing`
 
 ## Current Status
 
@@ -66,13 +67,19 @@ Run the full suite:
 python -m pytest tests/ -q
 ```
 
-Known local result from the current source:
+Run the production health loop:
 
-```text
-878 passed, 55 skipped, 2 warnings
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\omega_health.ps1
 ```
 
-The warnings are Supabase package deprecation warnings for `timeout` and `verify`. The skips are intentional for optional external dependencies, slow checks, future scraper placeholders, and Windows-specific export runtime conditions.
+Run the full health loop:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\omega_health.ps1 -Full
+```
+
+Known local result from the current source: the full suite passes with 974+ tests.
 
 ## Environment
 
@@ -99,6 +106,10 @@ powershell -ExecutionPolicy Bypass -File .\create_safe_zip.ps1
 
 That script excludes `.env`, `.git`, caches, local databases, reports, generated exports, and existing ZIP files.
 
+## Deployment
+
+See `DEPLOYMENT.md` for Railway/Render setup, Supabase migration steps, Stripe webhook configuration, production environment variables, and post-deploy smoke checks.
+
 ## Main Files
 
 - `api_server.py` - FastAPI app, API endpoints, auth dependency, UI routes.
@@ -118,4 +129,4 @@ See `ROADMAP.md` for the full implementation sequence.
 2. Add a single app config layer for model/provider settings instead of spreading provider behavior across scripts.
 3. Complete voice input UX: recording state, transcript preview, send/cancel behavior, and graceful errors when `OPENAI_API_KEY` is missing.
 4. Tighten hosted auth/session flow with Supabase and keep `ATLAS_DISABLE_AUTH=true` local-only.
-5. Add deployment instructions once the hosting target is chosen.
+5. Keep deployment config and production smoke checks current as the hosted target is finalized.
