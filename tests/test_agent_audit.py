@@ -20,6 +20,8 @@ def test_agent_audit_summary_is_consistent():
     )
     assert "trading" in report["divisions"]
     assert "wealth" in report["divisions"]
+    assert summary["prompt_only"] == 0
+    assert summary["with_logic"] == summary["total_agents"]
 
 
 def test_agent_audit_detects_prompt_only_agent(tmp_path: Path):

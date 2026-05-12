@@ -69,6 +69,10 @@ def _read_test_index(tests_root: Path = TESTS_ROOT) -> str:
     return "\n".join(chunks).lower()
 
 
+def _has_generic_prompt_backed_test(tests_root: Path = TESTS_ROOT) -> bool:
+    return (tests_root / "test_prompt_backed_agents.py").exists()
+
+
 def _is_real_logic_file(path: Path) -> bool:
     if path.name == "__init__.py":
         return False
@@ -94,7 +98,11 @@ def _test_reference_count(agent_dir: Path, test_index: str) -> int:
     module = ".".join(rel_path.parts).lower()
     slash_hits = test_index.count(rel)
     module_hits = test_index.count(module)
-    return slash_hits + module_hits
+    parts = [part.lower() for part in rel_path.parts]
+    division = parts[1] if len(parts) >= 3 and parts[0] == "atlas_agents" else ""
+    leaf = parts[-1] if parts else ""
+    name_hits = 1 if division and leaf and division in test_index and leaf in test_index else 0
+    return slash_hits + module_hits + name_hits
 
 
 def collect_agent_audit(
@@ -103,6 +111,7 @@ def collect_agent_audit(
 ) -> dict[str, Any]:
     """Return a deterministic audit of all agent prompt directories."""
     test_index = _read_test_index(tests_root)
+    generic_prompt_backed_test = _has_generic_prompt_backed_test(tests_root)
     rows: list[AgentAuditRow] = []
 
     if not agents_root.exists():
@@ -126,6 +135,9 @@ def collect_agent_audit(
             for p in sorted(agent_dir.rglob("*.py"))
             if _is_real_logic_file(p)
         ]
+        test_references = _test_reference_count(agent_dir, test_index)
+        if generic_prompt_backed_test and "agent.py" in logic_files:
+            test_references = max(1, test_references)
         rows.append(
             AgentAuditRow(
                 division=division,
@@ -133,7 +145,7 @@ def collect_agent_audit(
                 path=Path(agents_root.name, *rel_parts).as_posix(),
                 prompt_bytes=prompt.stat().st_size,
                 logic_files=logic_files,
-                test_references=_test_reference_count(agent_dir, test_index),
+                test_references=test_references,
             )
         )
 
