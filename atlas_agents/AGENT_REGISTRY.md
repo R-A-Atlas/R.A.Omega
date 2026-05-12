@@ -77,11 +77,11 @@
 ## Division 6-Alternative
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| A1 | Watch Market Bot | atlas_agents/alternative/watches/ | data_cache/watches_latest.json | PENDING |
-| A2 | Art Auction Tracker | atlas_agents/alternative/art/ | data_cache/art_latest.json | PENDING |
-| A3 | Collectibles Cards Scraper | atlas_agents/alternative/collectibles/ | data_cache/collectibles_latest.json | PENDING |
-| A4 | P2P Lending Bot | atlas_agents/alternative/p2p_lending/ | data_cache/p2p_latest.json | PENDING |
-| A5 | Physical Metals Bot | atlas_agents/alternative/metals/ | data_cache/metals_latest.json | PENDING |
+| A1 | Watch Market Bot | atlas_agents/alternative/watches/ | data_cache/watches_latest.json | BUILT+VERIFIED |
+| A2 | Art Auction Tracker | atlas_agents/alternative/art/ | data_cache/art_latest.json | BUILT+VERIFIED |
+| A3 | Collectibles Cards Scraper | atlas_agents/alternative/collectibles/ | data_cache/collectibles_latest.json | BUILT+VERIFIED |
+| A4 | P2P Lending Bot | atlas_agents/alternative/p2p_lending/ | data_cache/p2p_latest.json | BUILT+VERIFIED |
+| A5 | Physical Metals Bot | atlas_agents/alternative/metals/ | data_cache/metals_latest.json | BUILT+VERIFIED |
 
 ## Division 7-Macro
 | ID | Name | Directory | Output | Status |
@@ -99,16 +99,16 @@
 ## Division 8-Growth
 | ID | Name | Directory | Output | Status |
 |----|------|-----------|--------|--------|
-| G1 | Lead Generation Scraper | atlas_agents/growth/lead_gen/ | data_cache/leads_latest.json | PENDING |
-| G2 | CRM Sync Agent | atlas_agents/growth/crm_sync/ | Supabase direct | PENDING |
-| G3 | Competitor Ad Spy | atlas_agents/growth/ad_spy/ | data_cache/competitor_ads_latest.json | PENDING |
-| G4 | SEO Keyword Tracker | atlas_agents/growth/seo/ | data_cache/seo_keywords_latest.json | PENDING |
-| G5 | Social Sentiment Analyzer | atlas_agents/growth/sentiment/ | data_cache/sentiment_latest.json | PENDING |
-| G6 | Content Repurposer Bot | atlas_agents/growth/content/ | atlas_vault/03-Outputs/Content/ | PENDING |
-| G7 | Email Deliverability Monitor | atlas_agents/growth/email_health/ | data_cache/email_health_latest.json | PENDING |
-| G8 | Engagement Rater | atlas_agents/growth/engagement/ | data_cache/engagement_latest.json | PENDING |
-| G9 | Review Aggregator | atlas_agents/growth/reviews/ | data_cache/reviews_latest.json | PENDING |
-| G10 | ROAS Optimizer | atlas_agents/growth/roas/ | data_cache/roas_latest.json | PENDING |
+| G1 | Lead Generation Scraper | atlas_agents/growth/lead_gen/ | data_cache/leads_latest.json | BUILT+VERIFIED |
+| G2 | CRM Sync Agent | atlas_agents/growth/crm_sync/ | data_cache/crm_sync_latest.json | BUILT+VERIFIED |
+| G3 | Competitor Ad Spy | atlas_agents/growth/ad_spy/ | data_cache/competitor_ads_latest.json | BUILT+VERIFIED |
+| G4 | SEO Keyword Tracker | atlas_agents/growth/seo/ | data_cache/seo_keywords_latest.json | BUILT+VERIFIED |
+| G5 | Social Sentiment Analyzer | atlas_agents/growth/sentiment/ | data_cache/sentiment_latest.json | BUILT+VERIFIED |
+| G6 | Content Repurposer Bot | atlas_agents/growth/content/ | atlas_vault/03-Outputs/Content/content_repurpose_latest.json | BUILT+VERIFIED |
+| G7 | Email Deliverability Monitor | atlas_agents/growth/email_health/ | data_cache/email_health_latest.json | BUILT+VERIFIED |
+| G8 | Engagement Rater | atlas_agents/growth/engagement/ | data_cache/engagement_latest.json | BUILT+VERIFIED |
+| G9 | Review Aggregator | atlas_agents/growth/reviews/ | data_cache/reviews_latest.json | BUILT+VERIFIED |
+| G10 | ROAS Optimizer | atlas_agents/growth/roas/ | data_cache/roas_latest.json | BUILT+VERIFIED |
 
 ## Division 9-Voice
 | ID | Name | Directory | Output | Status |
