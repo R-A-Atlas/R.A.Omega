@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATLAS — Institutional Financial Intelligence</title>
+    <title>R.A. Omega - Financial Intelligence</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -16,9 +16,9 @@
 
     <style>
         :root {
-            --cobalt: #0044FF;
-            --cerulean: #00AFFF;
-            --void: #020203;
+            --cobalt: #18C6C8;
+            --cerulean: #2ED47A;
+            --void: #0B1020;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,7 +49,7 @@
         .vignette {
             position: fixed;
             inset: 0;
-            background: radial-gradient(circle at 50% 40%, transparent 20%, #020203 100%);
+            background: radial-gradient(circle at 50% 40%, transparent 20%, #0B1020 100%);
             z-index: 1;
             pointer-events: none;
         }
@@ -88,13 +88,13 @@
             outline: none;
             transition: border-color 0.15s;
         }
-        .auth-input:focus { border-color: #0044FF; }
+        .auth-input:focus { border-color: #18C6C8; }
         .auth-input::placeholder { color: rgba(255,255,255,0.25); }
 
         .auth-btn {
             width: 100%;
             padding: 0.65rem;
-            background: #0044FF;
+            background: #18C6C8;
             color: #fff;
             border: none;
             border-radius: 7px;
@@ -105,7 +105,7 @@
             margin-top: 1.1rem;
             transition: background 0.15s, opacity 0.15s;
         }
-        .auth-btn:hover { background: #1a5fff; }
+        .auth-btn:hover { background: #20D8DA; }
         .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
         .auth-tab {
@@ -174,7 +174,7 @@
             theme: {
                 extend: {
                     colors: {
-                        zenith: { cobalt: '#0044FF', cerulean: '#00AFFF', void: '#020203' }
+                        zenith: { cobalt: '#18C6C8', cerulean: '#2ED47A', void: '#0B1020' }
                     }
                 }
             }
@@ -362,11 +362,11 @@
                 <div className="auth-card interactive">
                     {/* Brand */}
                     <div style={{ marginBottom: '1.4rem' }}>
-                        <div className="font-cinematic" style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '0.15em', color: '#0044FF' }}>
-                            ATLAS<span style={{ color: '#00AFFF' }}>_</span>
+                        <div className="font-cinematic" style={{ fontSize: '1.15rem', fontWeight: 700, letterSpacing: '0.12em', color: '#18C6C8' }}>
+                            R.A. OMEGA<span style={{ color: '#2ED47A' }}>_</span>
                         </div>
                         <div style={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', marginTop: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                            Institutional Financial Intelligence
+                            AI Finance Model
                         </div>
                     </div>
 
@@ -375,7 +375,7 @@
                         {[['signin','Sign In'],['signup','Create Account']].map(([t, label]) => (
                             <button key={t} className="auth-tab" onClick={() => switchTab(t)} style={{
                                 color: tab === t ? '#fff' : 'rgba(255,255,255,0.35)',
-                                borderBottomColor: tab === t ? '#0044FF' : 'transparent',
+                                borderBottomColor: tab === t ? '#18C6C8' : 'transparent',
                             }}>{label}</button>
                         ))}
                     </div>
@@ -385,7 +385,7 @@
 
                     {/* Success */}
                     {success && (
-                        <div style={{ background: 'rgba(0,175,255,0.08)', border: '1px solid rgba(0,175,255,0.2)', color: '#00AFFF', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.75rem', marginBottom: '0.875rem' }}>
+                        <div style={{ background: 'rgba(24,198,200,0.08)', border: '1px solid rgba(24,198,200,0.22)', color: '#18C6C8', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.75rem', marginBottom: '0.875rem' }}>
                             {success}
                         </div>
                     )}
@@ -418,11 +418,11 @@
         /* ─── Root App ─── */
         const App = () => {
             const features = [
-                '10-Loop Intelligence Engine',
-                'Real-Time Data Synthesis',
-                'Options & Equity Analysis',
-                'Portfolio Personalization',
-                'Institutional-Grade Reports',
+                'Normal Chat',
+                'Web Search',
+                'Deep Research',
+                'Specialist Agent Routing',
+                'Client-Ready Reports',
             ];
 
             return (
@@ -438,10 +438,10 @@
                         <div className="flex justify-between items-start w-full">
                             <div>
                                 <h1 className="font-cinematic" style={{ fontSize: '1.5rem', letterSpacing: '0.3em', fontWeight: 700, lineHeight: 1 }}>
-                                    ATLAS<span style={{ color: '#0044FF' }}>_</span>
+                                    R.A. OMEGA<span style={{ color: '#18C6C8' }}>_</span>
                                 </h1>
                                 <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.65rem', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: '0.5rem' }}>
-                                    Zenith Topology • Active
+                                    Intelligence Network Active
                                 </p>
                             </div>
 
@@ -449,7 +449,7 @@
                             <div className="flex gap-6" style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                                 <div className="flex flex-col items-end gap-1">
                                     <span style={{ color: 'rgba(255,255,255,0.3)' }}>Engine</span>
-                                    <span style={{ color: '#00AFFF' }}>ONLINE</span>
+                                    <span style={{ color: '#18C6C8' }}>ONLINE</span>
                                 </div>
                                 <div className="flex flex-col items-end gap-1">
                                     <span style={{ color: 'rgba(255,255,255,0.3)' }}>Data Sync</span>
@@ -463,16 +463,16 @@
 
                             {/* Left: Hero copy */}
                             <div className="interactive" style={{ maxWidth: '480px' }}>
-                                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#00AFFF', marginBottom: '1rem' }}>
-                                    Institutional-grade analysis
+                                <div style={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.2em', color: '#18C6C8', marginBottom: '1rem' }}>
+                                    Finance-first intelligence
                                 </div>
                                 <h2 className="font-cinematic" style={{ fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', fontWeight: 700, lineHeight: 1.1, letterSpacing: '-0.01em', marginBottom: '1.2rem' }}>
-                                    FINANCIAL<br />
-                                    INTELLIGENCE<br />
-                                    <span style={{ color: '#0044FF' }}>AT SCALE</span>
+                                    EVERY SIGNAL.<br />
+                                    ONE ANSWER.<br />
+                                    <span style={{ color: '#18C6C8' }}>R.A. OMEGA</span>
                                 </h2>
                                 <p style={{ color: 'rgba(255,255,255,0.45)', fontSize: '0.9rem', lineHeight: 1.65, maxWidth: '380px', marginBottom: '1.8rem' }}>
-                                    10-loop AI engine. Real market data. Hedge-fund analysis for every trader — in under 3 minutes, for cents.
+                                    Ask naturally. R.A. Omega activates the right finance specialists, checks the evidence, and returns a right-sized answer for markets, debt, taxes, real estate, and business.
                                 </p>
 
                                 {/* Feature pills */}
@@ -508,7 +508,7 @@
                                 ))}
                             </div>
                             <div className="status-label" style={{ textAlign: 'right' }}>
-                                ATLAS v2.0 — All Systems Nominal
+                                R.A. Omega - Intelligence Network Online
                             </div>
                         </div>
 
