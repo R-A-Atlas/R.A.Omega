@@ -81,6 +81,7 @@ def test_e4_chat_modes_and_settings_present():
     assert "form.append('report_depth'" in content, "report depth not sent to /voice/query"
     assert "Finance Dashboard" in content, "chat/dashboard split link missing"
     assert 'href="/dashboard"' in content, "dashboard link should use stable /dashboard route"
+    assert 'href="/pricing"' in content, "pricing link missing"
 
 
 def test_e4_fast_chat_renders_plain_text():

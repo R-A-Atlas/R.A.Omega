@@ -1851,6 +1851,118 @@ def _dashboard_html_response(path: Path) -> FileResponse | HTMLResponse:
     return HTMLResponse(html, media_type="text/html; charset=utf-8")
 
 
+def _pricing_html_response() -> HTMLResponse:
+    """Self-contained pricing page with Stripe Checkout hooks."""
+    html = """<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R.A. Omega - Pricing</title>
+  <style>
+    :root { --base:#0B1020; --surface:#101827; --line:rgba(220,226,235,.12); --text:#F4F7FB; --muted:rgba(157,169,183,.78); --teal:#18C6C8; --emerald:#2ED47A; --amber:#FBBF24; }
+    * { box-sizing:border-box; }
+    body { margin:0; min-height:100vh; background:radial-gradient(circle at 50% -10%, rgba(24,198,200,.14), transparent 42%), var(--base); color:var(--text); font-family:Inter, ui-sans-serif, system-ui, sans-serif; }
+    main { width:min(1120px, calc(100vw - 32px)); margin:0 auto; padding:42px 0 56px; }
+    nav { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:64px; }
+    .brand { font-weight:800; letter-spacing:.16em; color:var(--teal); }
+    a { color:inherit; text-decoration:none; }
+    .navlink { color:var(--muted); border:1px solid var(--line); padding:9px 12px; border-radius:8px; font-size:13px; }
+    h1 { font-size:clamp(34px, 5vw, 68px); line-height:.98; margin:0; letter-spacing:-.03em; max-width:780px; }
+    .lead { margin:18px 0 34px; max-width:680px; color:var(--muted); line-height:1.65; font-size:17px; }
+    .plans { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:14px; }
+    .plan { border:1px solid var(--line); background:rgba(16,24,39,.78); border-radius:12px; padding:22px; min-height:315px; display:flex; flex-direction:column; }
+    .plan.featured { border-color:rgba(24,198,200,.55); box-shadow:0 0 0 1px rgba(24,198,200,.18), 0 24px 80px rgba(0,0,0,.28); }
+    .name { font-size:15px; color:var(--teal); font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .price { font-size:34px; font-weight:800; margin:18px 0 2px; }
+    .price span { color:var(--muted); font-size:14px; font-weight:500; }
+    .cap { color:var(--muted); font-size:13px; min-height:38px; }
+    ul { padding-left:18px; color:var(--muted); line-height:1.7; font-size:14px; margin:18px 0 22px; }
+    button { margin-top:auto; width:100%; border:0; border-radius:8px; padding:12px 14px; background:var(--teal); color:#041015; font-weight:800; cursor:pointer; }
+    button.secondary { background:transparent; color:var(--text); border:1px solid var(--line); }
+    button:disabled { opacity:.55; cursor:wait; }
+    #status { margin-top:18px; min-height:22px; color:var(--amber); font-size:14px; }
+    @media (max-width: 900px) { .plans { grid-template-columns:1fr 1fr; } }
+    @media (max-width: 560px) { main { padding-top:24px; } nav { margin-bottom:36px; } .plans { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <main>
+    <nav>
+      <div class="brand">R.A. OMEGA_</div>
+      <div>
+        <a class="navlink" href="/app">Chat</a>
+        <a class="navlink" href="/dashboard">Dashboard</a>
+      </div>
+    </nav>
+    <h1>Pick your level of intelligence.</h1>
+    <p class="lead">Start with normal chat, then upgrade when you need more reports, deeper research, exports, and business-grade usage. R.A. Omega keeps the main chat fast and only runs the heavy research lane when you choose it.</p>
+    <section class="plans">
+      <article class="plan">
+        <div class="name">Free</div>
+        <div class="price">$0 <span>/mo</span></div>
+        <div class="cap">Starter access for testing the product.</div>
+        <ul><li>3 queries per day</li><li>Normal chat</li><li>Basic finance answers</li></ul>
+        <button class="secondary" onclick="location.href='/app'">Start free</button>
+      </article>
+      <article class="plan featured">
+        <div class="name">Pro</div>
+        <div class="price">$49 <span>/mo</span></div>
+        <div class="cap">For active retail investors and traders.</div>
+        <ul><li>Higher daily query cap</li><li>Web search and deep research</li><li>Saved sessions and reports</li></ul>
+        <button onclick="checkout('pro')">Upgrade to Pro</button>
+      </article>
+      <article class="plan">
+        <div class="name">Business</div>
+        <div class="price">$149 <span>/mo</span></div>
+        <div class="cap">For operators, advisors, and small teams.</div>
+        <ul><li>Business-grade cap</li><li>PDF, Excel, and client-ready exports</li><li>Priority research workflows</li></ul>
+        <button onclick="checkout('business')">Upgrade to Business</button>
+      </article>
+      <article class="plan">
+        <div class="name">Developer</div>
+        <div class="price">$0.10 <span>/call</span></div>
+        <div class="cap">API access for builders and integrations.</div>
+        <ul><li>Billable API route</li><li>Usage metadata</li><li>Integration-ready output</li></ul>
+        <button class="secondary" onclick="location.href='/docs'">View API docs</button>
+      </article>
+    </section>
+    <div id="status"></div>
+  </main>
+  <script>
+    function authHeaders() {
+      const token = localStorage.getItem('atlas_access_token') || localStorage.getItem('ATLAS_TEST_JWT') || '';
+      const h = {'Content-Type':'application/json'};
+      if (token) h.Authorization = 'Bearer ' + token;
+      return h;
+    }
+    async function checkout(plan) {
+      const status = document.getElementById('status');
+      status.textContent = 'Creating Stripe checkout...';
+      try {
+        const r = await fetch('/billing/checkout', {
+          method:'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({
+            plan,
+            success_url: location.origin + '/app?billing=success',
+            cancel_url: location.origin + '/pricing?billing=cancelled'
+          })
+        });
+        const data = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(data.detail || data.message || 'Checkout failed');
+        if (data.url) location.href = data.url;
+        else status.textContent = 'Checkout created, but Stripe did not return a URL.';
+      } catch (e) {
+        status.textContent = String(e.message || e);
+      }
+    }
+  </script>
+</body>
+</html>"""
+    return HTMLResponse(html, media_type="text/html; charset=utf-8")
+
+
 def _zenith_landing_response() -> HTMLResponse:
     """Zenith sign-in landing (3D background + AuthPanel); injects Supabase anon config."""
     if not ATLAS_ZENITH_LANDING.is_file():
@@ -1871,6 +1983,11 @@ def _zenith_landing_response() -> HTMLResponse:
 @app.get("/")
 def serve_home():
     return _zenith_landing_response()
+
+
+@app.get("/pricing")
+def serve_pricing():
+    return _pricing_html_response()
 
 
 @app.get("/v4")

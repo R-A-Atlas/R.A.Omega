@@ -88,6 +88,16 @@ def test_finance_dashboard_routes_return_html(client: TestClient, path: str) -> 
     assert "text/html" in r.headers.get("content-type", "")
 
 
+def test_pricing_route_returns_checkout_page(client: TestClient) -> None:
+    r = client.get("/pricing")
+    assert r.status_code == 200
+    assert "text/html" in r.headers.get("content-type", "")
+    assert "Pick your level of intelligence." in r.text
+    assert "checkout('pro')" in r.text
+    assert "/billing/checkout" in r.text
+    assert "R.A. OMEGA_" in r.text
+
+
 def test_regime_endpoint_returns_json(client: TestClient) -> None:
     r = client.get("/regime")
     assert r.status_code == 200
