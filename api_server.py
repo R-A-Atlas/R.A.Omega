@@ -108,6 +108,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 import atlas_db  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
+from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration import research_jobs  # noqa: E402
 from orchestration.web_sources import discover_sources, sources_prompt_block  # noqa: E402
 
@@ -1527,6 +1528,8 @@ def dispatch_query_request(
         }
         shaped["_tier_usage"] = tier_usage
         shaped["_route_decision"] = route_decision.to_dict()
+        activation = activate_specialists(q_store, route_decision)
+        shaped["_active_agents"] = activation.to_dict()
         shaped = _attach_market_intelligence_if_relevant(shaped, q_store, route_decision)
         activity = _build_research_activity_payload(q_store, route_decision)
         if job:
