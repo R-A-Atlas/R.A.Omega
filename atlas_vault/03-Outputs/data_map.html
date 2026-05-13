@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>R.A. Omega Data Map</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0B1020;
+      --panel: #111827;
+      --line: #263244;
+      --text: #F8FAFC;
+      --muted: #94A3B8;
+      --teal: #18C6C8;
+      --green: #2ED47A;
+      --amber: #F5B84B;
+    }
+    body { margin: 0; background: var(--bg); color: var(--text); font-family: Inter, Arial, sans-serif; }
+    main { max-width: 1240px; margin: 0 auto; padding: 40px 24px 72px; }
+    h1 { font-family: "Space Grotesk", Inter, sans-serif; font-size: 42px; margin: 0 0 8px; letter-spacing: 0; }
+    h2 { font-size: 18px; letter-spacing: .12em; text-transform: uppercase; margin: 0; }
+    p { color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 28px 0; }
+    .metric { border: 1px solid var(--line); background: var(--panel); padding: 18px; border-radius: 8px; }
+    .metric strong { display: block; font-size: 28px; color: var(--teal); }
+    section { margin-top: 32px; border: 1px solid var(--line); background: rgba(17,24,39,.72); border-radius: 8px; overflow: hidden; }
+    .section-head { padding: 20px; border-bottom: 1px solid var(--line); }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 11px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+    th { color: var(--teal); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; }
+    tr:last-child td { border-bottom: 0; }
+    td { color: #D7DEE9; }
+    @media (max-width: 760px) {
+      .metrics { grid-template-columns: 1fr; }
+      table { display: block; overflow-x: auto; white-space: nowrap; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>R.A. Omega Data Map</h1>
+    <p>Generated 2026-05-13 01:42:00Z. This map shows the pantry, prep table, and plate for the active intelligence layer.</p>
+    <div class="metrics">
+      <div class="metric"><strong>64</strong><span>raw cache files</span></div>
+      <div class="metric"><strong>64</strong><span>summary files</span></div>
+      <div class="metric"><strong>5</strong><span>critical paths</span></div>
+    </div>
+    
+    <section>
+      <div class="section-head">
+        <h2>Pantry</h2>
+        <p>All data-cache inputs and freshness timestamps.</p>
+      </div>
+      <table>
+        <thead><tr><th>Cache</th><th>Agent</th><th>Freshness</th><th>Records</th><th>Summary</th><th>Status</th></tr></thead>
+        <tbody><tr><td>art_latest.json</td><td>Art</td><td>2026-05-12T01:37:29Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>auto_loans_latest.json</td><td>Auto Loans</td><td>2026-05-12T00:28:12Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>bankruptcy_latest.json</td><td>Bankruptcy</td><td>2026-05-12T00:50:13Z</td><td></td><td>yes</td><td>ok</td></tr>
+<tr><td>climate_risk_latest.json</td><td>Climate Risk</td><td>2026-05-11T07:06:59Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>code_optimizer_latest.json</td><td>Code Optimizer</td><td>2026-05-13T01:32:45Z</td><td></td><td>yes</td><td>ok</td></tr>
+<tr><td>col_latest.json</td><td>Col</td><td>2026-05-12T00:28:17Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>collectibles_latest.json</td><td>Collectibles</td><td>2026-05-12T01:37:30Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>commercial_latest.json</td><td>Commercial</td><td>2026-05-12T00:28:14Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>commodities_latest.json</td><td>Commodities</td><td>2026-05-11T07:07:12Z</td><td>7</td><td>yes</td><td>ok</td></tr>
+<tr><td>competitor_ads_latest.json</td><td>Competitor Ads</td><td>2026-05-12T01:37:30Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>congress_trades_latest.json</td><td>Congress Trades</td><td>2026-05-12T03:09:05Z</td><td>2</td><td>yes</td><td>ok</td></tr>
+<tr><td>consumer_alerts_latest.json</td><td>Consumer Alerts</td><td>2026-05-12T00:50:14Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>correlation_latest.json</td><td>Correlation</td><td>2026-05-12T00:34:31Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>credit_cards_latest.json</td><td>Credit Cards</td><td>2026-05-12T00:28:11Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>crm_sync_latest.json</td><td>Crm Sync</td><td>2026-05-12T01:37:29Z</td><td></td><td>yes</td><td>ok</td></tr>
+<tr><td>dark_pool_latest.json</td><td>Dark Pool</td><td>2026-05-13T01:33:31Z</td><td>40</td><td>yes</td><td>ok</td></tr>
+<tr><td>earnings_latest.json</td><td>Earnings</td><td>2026-05-11T07:07:14Z</td><td>1</td><td>yes</td><td>ok</td></tr>
+<tr><td>earnings_season_brief_latest.json</td><td>Earnings Season Brief</td><td>2026-05-12T00:34:31Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>ecommerce_latest.json</td><td>Ecommerce</td><td>2026-05-12T00:50:13Z</td><td>8</td><td>yes</td><td>ok</td></tr>
+<tr><td>email_health_latest.json</td><td>Email Health</td><td>2026-05-12T01:37:32Z</td><td></td><td>yes</td><td>ok</td></tr>
+<tr><td>energy_latest.json</td><td>Energy</td><td>2026-05-11T07:06:58Z</td><td>7</td><td>yes</td><td>ok</td></tr>
+<tr><td>engagement_latest.json</td><td>Engagement</td><td>2026-05-12T01:37:32Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>equities_latest.json</td><td>Equities</td><td>2026-05-12T02:29:11Z</td><td>69</td><td>yes</td><td>ok</td></tr>
+<tr><td>federal_tax_latest.json</td><td>Federal Tax</td><td>2026-05-12T00:50:12Z</td><td>7</td><td>yes</td><td>ok</td></tr>
+<tr><td>forex_latest.json</td><td>Forex</td><td>2026-05-11T07:06:50Z</td><td>8</td><td>yes</td><td>ok</td></tr>
+<tr><td>franchise_latest.json</td><td>Franchise</td><td>2026-05-12T00:50:14Z</td><td>7</td><td>yes</td><td>ok</td></tr>
+<tr><td>freelance_rates_latest.json</td><td>Freelance Rates</td><td>2026-05-12T00:50:14Z</td><td>10</td><td>yes</td><td>ok</td></tr>
+<tr><td>global_liquidity_latest.json</td><td>Global Liquidity</td><td>2026-05-13T01:34:46Z</td><td>12</td><td>yes</td><td>ok</td></tr>
+<tr><td>hysa_latest.json</td><td>Hysa</td><td>2026-05-12T00:28:14Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>insider_trades_latest.json</td><td>Insider Trades</td><td>2026-05-12T02:31:05Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>insurance_latest.json</td><td>Insurance</td><td>2026-05-12T00:28:18Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>jobs_latest.json</td><td>Jobs</td><td>2026-05-11T07:06:51Z</td><td>9</td><td>yes</td><td>ok</td></tr>
+<tr><td>labor_law_latest.json</td><td>Labor Law</td><td>2026-05-12T00:50:15Z</td><td>51</td><td>yes</td><td>ok</td></tr>
+<tr><td>leads_latest.json</td><td>Leads</td><td>2026-05-12T01:37:29Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>metals_latest.json</td><td>Metals</td><td>2026-05-12T01:37:31Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>mortgage_rates_latest.json</td><td>Mortgage Rates</td><td>2026-05-12T00:28:17Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>news_catalysts_latest.json</td><td>News Catalysts</td><td>2026-05-12T00:34:31Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>options_flow_latest.json</td><td>Options Flow</td><td>2026-05-12T02:29:13Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>p2p_latest.json</td><td>P2P</td><td>2026-05-12T01:37:30Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>penny_stocks_latest.json</td><td>Penny Stocks</td><td>2026-05-11T07:07:14Z</td><td>1</td><td>yes</td><td>ok</td></tr>
+<tr><td>personal_loans_latest.json</td><td>Personal Loans</td><td>2026-05-12T00:28:16Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>regime_change_latest.json</td><td>Regime Change</td><td>2026-05-12T00:34:31Z</td><td></td><td>yes</td><td>ok</td></tr>
+<tr><td>reits_latest.json</td><td>Reits</td><td>2026-05-12T00:28:16Z</td><td>10</td><td>yes</td><td>ok</td></tr>
+<tr><td>rental_yield_latest.json</td><td>Rental Yield</td><td>2026-05-12T00:28:12Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>residential_latest.json</td><td>Residential</td><td>2026-05-12T00:28:11Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>retirement_limits_latest.json</td><td>Retirement Limits</td><td>2026-05-12T00:28:15Z</td><td>1</td><td>yes</td><td>ok</td></tr>
+<tr><td>reviews_latest.json</td><td>Reviews</td><td>2026-05-12T01:37:32Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>risk_budget_latest.json</td><td>Risk Budget</td><td>2026-05-12T00:34:31Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>roas_latest.json</td><td>Roas</td><td>2026-05-12T01:37:33Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>saas_metrics_latest.json</td><td>Saas Metrics</td><td>2026-05-12T00:50:12Z</td><td>6</td><td>yes</td><td>ok</td></tr>
+<tr><td>sba_latest.json</td><td>Sba</td><td>2026-05-12T00:50:12Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>sec_filings_latest.json</td><td>Sec Filings</td><td>2026-05-12T00:50:14Z</td><td>2</td><td>yes</td><td>ok</td></tr>
+<tr><td>sector_rotation_latest.json</td><td>Sector Rotation</td><td>2026-05-13T01:32:48Z</td><td>10</td><td>yes</td><td>ok</td></tr>
+<tr><td>sentiment_divergence_latest.json</td><td>Sentiment Divergence</td><td>2026-05-12T00:34:31Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>sentiment_latest.json</td><td>Sentiment</td><td>2026-05-12T01:37:31Z</td><td>3</td><td>yes</td><td>ok</td></tr>
+<tr><td>seo_keywords_latest.json</td><td>Seo Keywords</td><td>2026-05-12T01:37:30Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>state_tax_latest.json</td><td>State Tax</td><td>2026-05-12T00:50:12Z</td><td>10</td><td>yes</td><td>ok</td></tr>
+<tr><td>str_latest.json</td><td>Str</td><td>2026-05-12T00:28:13Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>student_debt_latest.json</td><td>Student Debt</td><td>2026-05-12T00:28:13Z</td><td>5</td><td>yes</td><td>ok</td></tr>
+<tr><td>supply_chain_latest.json</td><td>Supply Chain</td><td>2026-05-11T07:06:50Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>tariffs_latest.json</td><td>Tariffs</td><td>2026-05-11T07:06:50Z</td><td>4</td><td>yes</td><td>ok</td></tr>
+<tr><td>vc_deals_latest.json</td><td>Vc Deals</td><td>2026-05-12T00:50:15Z</td><td>6</td><td>yes</td><td>ok</td></tr>
+<tr><td>watches_latest.json</td><td>Watches</td><td>2026-05-12T01:37:29Z</td><td>8</td><td>yes</td><td>ok</td></tr>
+<tr><td>zoning_latest.json</td><td>Zoning</td><td>2026-05-12T00:28:15Z</td><td>5</td><td>yes</td><td>ok</td></tr></tbody>
+      </table>
+    </section>
+    
+    
+    <section>
+      <div class="section-head">
+        <h2>Prep Table</h2>
+        <p>Compact summary files used by Omega before raw cache fallback.</p>
+      </div>
+      <table>
+        <thead><tr><th>Summary</th><th>Source</th><th>Signal</th><th>Records</th><th>Keys</th><th>Status</th></tr></thead>
+        <tbody><tr><td>art_summary.json</td><td>art_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>auto_loans_summary.json</td><td>auto_loans_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>bankruptcy_summary.json</td><td>bankruptcy_latest.json</td><td>NEUTRAL</td><td></td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>climate_risk_summary.json</td><td>climate_risk_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>code_optimizer_summary.json</td><td>code_optimizer_latest.json</td><td>NEUTRAL</td><td></td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>col_summary.json</td><td>col_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>collectibles_summary.json</td><td>collectibles_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>commercial_summary.json</td><td>commercial_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>commodities_summary.json</td><td>commodities_latest.json</td><td>NEUTRAL</td><td>7</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>competitor_ads_summary.json</td><td>competitor_ads_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>congress_trades_summary.json</td><td></td><td></td><td></td><td>generated_at, most_bought_tickers, most_sold_tickers, net_sentiment, notable_trade</td><td>ready</td></tr>
+<tr><td>consumer_alerts_summary.json</td><td>consumer_alerts_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>correlation_summary.json</td><td>correlation_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>credit_cards_summary.json</td><td>credit_cards_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>crm_sync_summary.json</td><td>crm_sync_latest.json</td><td>NEUTRAL</td><td></td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>dark_pool_summary.json</td><td>dark_pool_latest.json</td><td>NEUTRAL</td><td>40</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>earnings_season_brief_summary.json</td><td>earnings_season_brief_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>earnings_summary.json</td><td>earnings_latest.json</td><td>NEUTRAL</td><td>1</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>ecommerce_summary.json</td><td>ecommerce_latest.json</td><td>NEUTRAL</td><td>8</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>email_health_summary.json</td><td>email_health_latest.json</td><td>NEUTRAL</td><td></td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>energy_summary.json</td><td>energy_latest.json</td><td>NEUTRAL</td><td>7</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>engagement_summary.json</td><td>engagement_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>equities_summary.json</td><td></td><td>NEUTRAL</td><td></td><td>breadth_signal, cold_sector, generated_at, hot_sector, most_active, top_gainer, top_loser</td><td>ready</td></tr>
+<tr><td>federal_tax_summary.json</td><td>federal_tax_latest.json</td><td>NEUTRAL</td><td>7</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>forex_summary.json</td><td>forex_latest.json</td><td>NEUTRAL</td><td>8</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>franchise_summary.json</td><td>franchise_latest.json</td><td>NEUTRAL</td><td>7</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>freelance_rates_summary.json</td><td>freelance_rates_latest.json</td><td>NEUTRAL</td><td>10</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>global_liquidity_summary.json</td><td>global_liquidity_latest.json</td><td>NEUTRAL</td><td>12</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>hysa_summary.json</td><td>hysa_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>insider_trades_summary.json</td><td>insider_trades_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>insurance_summary.json</td><td>insurance_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>jobs_summary.json</td><td>jobs_latest.json</td><td>NEUTRAL</td><td>9</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>labor_law_summary.json</td><td>labor_law_latest.json</td><td>NEUTRAL</td><td>51</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>leads_summary.json</td><td>leads_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>metals_summary.json</td><td>metals_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>mortgage_rates_summary.json</td><td>mortgage_rates_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>news_catalysts_summary.json</td><td>news_catalysts_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>options_flow_summary.json</td><td></td><td>NEUTRAL</td><td></td><td>generated_at, put_call_ratio_signal, top_conviction_ticker, unusual_calls, unusual_puts</td><td>ready</td></tr>
+<tr><td>p2p_summary.json</td><td>p2p_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>penny_stocks_summary.json</td><td>penny_stocks_latest.json</td><td>BULLISH</td><td>1</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>personal_loans_summary.json</td><td>personal_loans_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>regime_change_summary.json</td><td>regime_change_latest.json</td><td>NEUTRAL</td><td></td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>reits_summary.json</td><td>reits_latest.json</td><td>NEUTRAL</td><td>10</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>rental_yield_summary.json</td><td>rental_yield_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>residential_summary.json</td><td>residential_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>retirement_limits_summary.json</td><td>retirement_limits_latest.json</td><td>NEUTRAL</td><td>1</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>reviews_summary.json</td><td>reviews_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>risk_budget_summary.json</td><td>risk_budget_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>roas_summary.json</td><td>roas_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>saas_metrics_summary.json</td><td>saas_metrics_latest.json</td><td>NEUTRAL</td><td>6</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>sba_summary.json</td><td>sba_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>sec_filings_summary.json</td><td>sec_filings_latest.json</td><td>NEUTRAL</td><td>2</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>sector_rotation_summary.json</td><td>sector_rotation_latest.json</td><td>NEUTRAL</td><td>10</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>sentiment_divergence_summary.json</td><td>sentiment_divergence_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>sentiment_summary.json</td><td>sentiment_latest.json</td><td>NEUTRAL</td><td>3</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>seo_keywords_summary.json</td><td>seo_keywords_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>state_tax_summary.json</td><td>state_tax_latest.json</td><td>NEUTRAL</td><td>10</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>str_summary.json</td><td>str_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>student_debt_summary.json</td><td>student_debt_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>supply_chain_summary.json</td><td>supply_chain_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>tariffs_summary.json</td><td>tariffs_latest.json</td><td>NEUTRAL</td><td>4</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>vc_deals_summary.json</td><td>vc_deals_latest.json</td><td>NEUTRAL</td><td>6</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>watches_summary.json</td><td>watches_latest.json</td><td>NEUTRAL</td><td>8</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr>
+<tr><td>zoning_summary.json</td><td>zoning_latest.json</td><td>NEUTRAL</td><td>5</td><td>dominant_category, generated_at, important_keys, record_count, signal, source_cache, source_generated_at, top_signal</td><td>ready</td></tr></tbody>
+      </table>
+    </section>
+    
+    
+    <section>
+      <div class="section-head">
+        <h2>Plate</h2>
+        <p>Deterministic workflows available to the agent layer.</p>
+      </div>
+      <table>
+        <thead><tr><th>Path</th><th>Trigger</th><th>Steps</th><th>Status</th></tr></thead>
+        <tbody><tr><td>crypto_query_path.md</td><td>`classify_intent_route()` returns `CRYPTO_MARKET_SCAN`.</td><td>6</td><td>ready</td></tr>
+<tr><td>equity_query_path.md</td><td>`classify_intent_route()` returns an equity, stock research, or market snapshot route.</td><td>6</td><td>ready</td></tr>
+<tr><td>macro_query_path.md</td><td>`classify_intent_route()` returns macro, Fed, CPI, liquidity, jobs, forex, commodities, energy, tariff, or supply-chain context.</td><td>6</td><td>ready</td></tr>
+<tr><td>options_flow_query_path.md</td><td>`classify_intent_route()` returns options flow, unusual activity, derivatives, 0DTE, calls, puts, IV, or gamma-related intent.</td><td>6</td><td>ready</td></tr>
+<tr><td>portfolio_analysis_path.md</td><td>`classify_intent_route()` returns portfolio, allocation, risk, exposure, rebalancing, drawdown, position sizing, or user holdings intent.</td><td>5</td><td>ready</td></tr></tbody>
+      </table>
+    </section>
+    
+    
+    <section>
+      <div class="section-head">
+        <h2>Gap Analysis</h2>
+        <p>Missing or incomplete connective tissue.</p>
+      </div>
+      <table>
+        <thead><tr><th>Gap</th><th>Count</th><th>Items</th></tr></thead>
+        <tbody><tr><td>Caches without summaries</td><td>0</td><td>none</td></tr>
+<tr><td>Summaries without raw cache</td><td>0</td><td>none</td></tr>
+<tr><td>Critical paths defined</td><td>5</td><td>crypto_query_path.md, equity_query_path.md, macro_query_path.md, options_flow_query_path.md, portfolio_analysis_path.md</td></tr></tbody>
+      </table>
+    </section>
+    
+  </main>
+</body>
+</html>
