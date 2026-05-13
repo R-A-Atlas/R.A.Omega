@@ -1,6 +1,6 @@
 {
   "dominant_category": "",
-  "generated_at": "2026-05-13T01:21:13Z",
+  "generated_at": "2026-05-13T01:50:09Z",
   "important_keys": [
     "files_analyzed",
     "generated_at",
@@ -12,7 +12,7 @@
   "record_count": 0,
   "signal": "NEUTRAL",
   "source_cache": "code_optimizer_latest.json",
-  "source_generated_at": "2026-05-13T00:52:12Z",
+  "source_generated_at": "2026-05-13T01:32:45Z",
   "top_signal": {},
   "weakest_signal": {}
 }
