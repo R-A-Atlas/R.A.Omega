@@ -518,6 +518,37 @@ def _graceful_cache_warning(filename: str, error: str) -> str:
     )
 
 
+def _summary_filename_for_cache(filename: str) -> str:
+    if filename.endswith("_latest.json"):
+        return filename.replace("_latest.json", "_summary.json")
+    return filename.replace(".json", "_summary.json")
+
+
+def _summary_snapshot_for_intent(intent: str) -> str:
+    return {
+        DC_INTENT_CRYPTO: "crypto_top50",
+        DC_INTENT_EQUITIES: "equities_screener",
+        DC_INTENT_OPTIONS_FLOW: "options_flow",
+        DC_INTENT_INSIDER: "sec_form4_filings",
+        DC_INTENT_BOND_YIELDS: "bond_yields",
+        DC_INTENT_CPI: "bls_cpi",
+        DC_INTENT_FED_WATCH: "fed_watch_probabilities",
+        DC_INTENT_WATCHES: "luxury_watch_market",
+        DC_INTENT_DARK_POOL: "dark_pool_prints",
+        DC_INTENT_SECTOR_ROTATION: "sector_rotation",
+        DC_INTENT_GLOBAL_LIQUIDITY: "global_liquidity",
+        DC_INTENT_EARNINGS: "earnings_calendar",
+        DC_INTENT_FOREX: "forex_rates",
+        DC_INTENT_COMMODITIES: "commodities",
+        DC_INTENT_SUPPLY_CHAIN: "supply_chain",
+        DC_INTENT_ENERGY: "energy_grid",
+        DC_INTENT_CLIMATE_RISK: "climate_risk",
+        DC_INTENT_TARIFFS: "tariffs",
+        DC_INTENT_JOBS: "jobs",
+        DC_INTENT_CONGRESS_TRADES: "congress_trades",
+    }.get(intent, intent)
+
+
 def _load_cache_files_parallel(
     filenames: list[str],
 ) -> dict[str, tuple[Optional[dict[str, Any]], dict[str, Any]]]:
@@ -741,8 +772,17 @@ def _compact_generic_cache(obj: dict, *, snapshot: str, list_key: str | None = N
 
 def _load_internal_knowledge_payload(
     intent: str,
+    *,
+    prefer_raw: bool = False,
 ) -> tuple[Optional[dict[str, Any]], dict[str, Any]]:
-    meta: dict[str, Any] = {"intent": intent, "file": "", "loaded": False, "error": None}
+    meta: dict[str, Any] = {
+        "intent": intent,
+        "file": "",
+        "loaded": False,
+        "error": None,
+        "cache_layer": "raw" if prefer_raw else "summary",
+        "load_path": "",
+    }
     root = _data_cache_root()
     intent_files: dict[str, str] = {
         DC_INTENT_CRYPTO: "crypto_top50_latest.json",
@@ -771,7 +811,34 @@ def _load_internal_knowledge_payload(
         meta["error"] = "unknown_data_cache_intent"
         return None, meta
     meta["file"] = fname
+    summary_name = _summary_filename_for_cache(fname)
+    summary_path = root / "summaries" / summary_name
+    if not prefer_raw and summary_path.is_file():
+        payload, summary_meta = _read_data_cache_json(f"summaries/{summary_name}")
+        meta.update(
+            {
+                "file": f"summaries/{summary_name}",
+                "loaded": bool(summary_meta.get("loaded")),
+                "error": summary_meta.get("error"),
+                "cache_layer": "summary",
+                "load_path": str(summary_path),
+            }
+        )
+        if payload is not None:
+            payload.setdefault("snapshot", _summary_snapshot_for_intent(intent))
+            if intent == DC_INTENT_WATCHES:
+                payload.setdefault("models", [])
+            payload.setdefault("_cache_layer", "summary")
+            payload.setdefault("_source_cache", fname)
+            meta["asset_rows"] = _ik_row_count(payload)
+            return payload, meta
+    elif not prefer_raw:
+        meta["summary_fallback"] = f"missing_file:{summary_path}"
+
+    meta["file"] = fname
+    meta["cache_layer"] = "raw"
     path = root / fname
+    meta["load_path"] = str(path)
     if not path.is_file():
         meta["error"] = f"missing_file:{path}"
         return None, meta
@@ -1421,6 +1488,7 @@ class OmegaAgent:
         follow_up_context: dict | None = None,
         session_id: str | None = None,
         data_cache_intent: str | None = None,
+        prefer_raw_cache: bool = False,
     ) -> dict:
         start = time.time()
         domain, ctx = self.classifier.classify(user_query)
@@ -1434,7 +1502,10 @@ class OmegaAgent:
         )
         dc_meta: dict[str, Any] = {}
         if data_cache_intent:
-            ik, dc_meta = _load_internal_knowledge_payload(data_cache_intent)
+            ik, dc_meta = _load_internal_knowledge_payload(
+                data_cache_intent,
+                prefer_raw=prefer_raw_cache,
+            )
             if ik is not None:
                 bundle["data"]["internal_knowledge_snapshot"] = ik
             else:
