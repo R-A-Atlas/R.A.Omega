@@ -1,0 +1,25 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "flood_zone_changes",
+    "generated_at",
+    "national_flood_risk_trend",
+    "record_count",
+    "source"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "climate_risk_latest.json",
+  "source_generated_at": "2026-05-11T07:06:59Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

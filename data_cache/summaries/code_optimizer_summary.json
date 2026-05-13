@@ -1,0 +1,18 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "files_analyzed",
+    "generated_at",
+    "reports",
+    "severity_summary",
+    "source",
+    "total_issues"
+  ],
+  "record_count": 0,
+  "signal": "NEUTRAL",
+  "source_cache": "code_optimizer_latest.json",
+  "source_generated_at": "2026-05-13T00:52:12Z",
+  "top_signal": {},
+  "weakest_signal": {}
+}

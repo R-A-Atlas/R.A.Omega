@@ -1,0 +1,23 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "ch11_filings",
+    "ch13_filings",
+    "ch7_filings",
+    "generated_at",
+    "period",
+    "source",
+    "source_url",
+    "top_sectors",
+    "total_filings",
+    "trend_signal",
+    "yoy_change_pct"
+  ],
+  "record_count": 0,
+  "signal": "NEUTRAL",
+  "source_cache": "bankruptcy_latest.json",
+  "source_generated_at": "2026-05-12T00:50:13Z",
+  "top_signal": {},
+  "weakest_signal": {}
+}

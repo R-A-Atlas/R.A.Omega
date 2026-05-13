@@ -1,0 +1,24 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "commodities",
+    "generated_at",
+    "record_count",
+    "source"
+  ],
+  "record_count": 7,
+  "signal": "NEUTRAL",
+  "source_cache": "commodities_latest.json",
+  "source_generated_at": "2026-05-11T07:07:12Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "GC=F",
+    "label": "FLAT"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "GC=F",
+    "label": "FLAT"
+  }
+}

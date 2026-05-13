@@ -1,0 +1,24 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "record_count",
+    "segments",
+    "source"
+  ],
+  "record_count": 4,
+  "signal": "NEUTRAL",
+  "source_cache": "commercial_latest.json",
+  "source_generated_at": "2026-05-12T00:28:14Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "SOFTENING"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "SOFTENING"
+  }
+}

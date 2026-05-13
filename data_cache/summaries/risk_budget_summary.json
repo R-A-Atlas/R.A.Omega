@@ -1,0 +1,26 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "action",
+    "generated_at",
+    "max_single_sleeve_risk",
+    "portfolio_risk_score",
+    "record_count",
+    "sleeves"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "risk_budget_latest.json",
+  "source_generated_at": "2026-05-12T00:34:31Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

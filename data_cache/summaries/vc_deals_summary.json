@@ -1,0 +1,25 @@
+{
+  "dominant_category": "AI/ML",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "deals",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url"
+  ],
+  "record_count": 6,
+  "signal": "NEUTRAL",
+  "source_cache": "vc_deals_latest.json",
+  "source_generated_at": "2026-05-12T00:50:15Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "MEGA_ROUND"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "MEGA_ROUND"
+  }
+}

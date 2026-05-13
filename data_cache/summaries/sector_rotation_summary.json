@@ -1,0 +1,27 @@
+{
+  "dominant_category": "Technology",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "_meta",
+    "generated_at",
+    "lagging_sectors",
+    "leading_sectors",
+    "record_count",
+    "sectors",
+    "source"
+  ],
+  "record_count": 10,
+  "signal": "NEUTRAL",
+  "source_cache": "sector_rotation_latest.json",
+  "source_generated_at": "2026-05-13T00:32:21Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

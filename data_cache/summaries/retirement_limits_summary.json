@@ -1,0 +1,27 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "hsa_family",
+    "hsa_individual",
+    "ira_catch_up_50plus",
+    "ira_limit",
+    "k401_catch_up_50plus",
+    "k401_limit",
+    "record_count",
+    "roth_income_phase_out_married_high",
+    "roth_income_phase_out_married_low",
+    "roth_income_phase_out_single_high",
+    "roth_income_phase_out_single_low",
+    "source",
+    "source_url",
+    "year"
+  ],
+  "record_count": 1,
+  "signal": "NEUTRAL",
+  "source_cache": "retirement_limits_latest.json",
+  "source_generated_at": "2026-05-12T00:28:15Z",
+  "top_signal": {},
+  "weakest_signal": {}
+}

@@ -1,0 +1,26 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "bls_series",
+    "cities",
+    "generated_at",
+    "national_cpi",
+    "record_count",
+    "source"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "col_latest.json",
+  "source_generated_at": "2026-05-12T00:28:17Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "EXPENSIVE"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "EXPENSIVE"
+  }
+}

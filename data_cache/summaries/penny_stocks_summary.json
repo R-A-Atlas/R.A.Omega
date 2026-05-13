@@ -1,0 +1,24 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "record_count",
+    "source",
+    "stocks"
+  ],
+  "record_count": 1,
+  "signal": "BULLISH",
+  "source_cache": "penny_stocks_latest.json",
+  "source_generated_at": "2026-05-11T07:07:14Z",
+  "top_signal": {
+    "change_pct": 4.42623,
+    "id": "BB",
+    "label": "ELEVATED_VOLUME_PENNY"
+  },
+  "weakest_signal": {
+    "change_pct": 4.42623,
+    "id": "BB",
+    "label": "ELEVATED_VOLUME_PENNY"
+  }
+}

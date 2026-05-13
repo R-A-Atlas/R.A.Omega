@@ -1,0 +1,28 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "fred_series",
+    "generated_at",
+    "period",
+    "rates",
+    "record_count",
+    "source",
+    "trend",
+    "wow_change_60mo"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "auto_loans_latest.json",
+  "source_generated_at": "2026-05-12T00:28:12Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

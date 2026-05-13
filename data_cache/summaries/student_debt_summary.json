@@ -1,0 +1,31 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "aid_year",
+    "federal_rate_grad",
+    "federal_rate_plus",
+    "federal_rate_undergrad",
+    "forgiveness_programs",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url",
+    "total_borrowers_millions",
+    "total_debt_billions"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "student_debt_latest.json",
+  "source_generated_at": "2026-05-12T00:28:13Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "PSLF",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "PSLF",
+    "label": ""
+  }
+}

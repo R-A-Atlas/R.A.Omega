@@ -1,0 +1,17 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "leads_failed",
+    "leads_synced",
+    "status",
+    "webhook_url"
+  ],
+  "record_count": 0,
+  "signal": "NEUTRAL",
+  "source_cache": "crm_sync_latest.json",
+  "source_generated_at": "2026-05-12T01:37:29Z",
+  "top_signal": {},
+  "weakest_signal": {}
+}

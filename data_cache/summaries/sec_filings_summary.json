@@ -1,0 +1,25 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "filings",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url"
+  ],
+  "record_count": 2,
+  "signal": "NEUTRAL",
+  "source_cache": "sec_filings_latest.json",
+  "source_generated_at": "2026-05-12T00:50:14Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "TEST",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "TEST",
+    "label": ""
+  }
+}

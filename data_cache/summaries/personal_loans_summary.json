@@ -1,0 +1,25 @@
+{
+  "dominant_category": "Online Lender",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "fred_avg_rate",
+    "generated_at",
+    "loans",
+    "record_count",
+    "source"
+  ],
+  "record_count": 4,
+  "signal": "NEUTRAL",
+  "source_cache": "personal_loans_latest.json",
+  "source_generated_at": "2026-05-12T00:28:16Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "COMPETITIVE"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "COMPETITIVE"
+  }
+}

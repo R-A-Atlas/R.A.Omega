@@ -1,0 +1,25 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "record_count",
+    "roles",
+    "source",
+    "source_urls"
+  ],
+  "record_count": 10,
+  "signal": "NEUTRAL",
+  "source_cache": "freelance_rates_latest.json",
+  "source_generated_at": "2026-05-12T00:50:14Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

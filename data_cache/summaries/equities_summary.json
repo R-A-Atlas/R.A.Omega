@@ -1,0 +1,20 @@
+{
+  "breadth_signal": "NEUTRAL",
+  "cold_sector": "losers",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "hot_sector": "gainers",
+  "most_active": {
+    "ticker": "IREN",
+    "volume": 108393609.0
+  },
+  "top_gainer": {
+    "change_pct": 149.66,
+    "sector": "gainers",
+    "ticker": "LITE"
+  },
+  "top_loser": {
+    "change_pct": 0.0,
+    "sector": "losers",
+    "ticker": "UI"
+  }
+}

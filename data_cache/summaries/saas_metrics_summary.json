@@ -1,0 +1,26 @@
+{
+  "dominant_category": "growth",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "benchmark_year",
+    "benchmarks",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url"
+  ],
+  "record_count": 6,
+  "signal": "NEUTRAL",
+  "source_cache": "saas_metrics_latest.json",
+  "source_generated_at": "2026-05-12T00:50:12Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

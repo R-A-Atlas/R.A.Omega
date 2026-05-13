@@ -1,0 +1,26 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "accounts",
+    "fed_funds_rate",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "hysa_latest.json",
+  "source_generated_at": "2026-05-12T00:28:14Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "TOP_PICK"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "TOP_PICK"
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "dominant_category": "Mining & Logging",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "jobs_added_thousands",
+    "labor_market_signal",
+    "period",
+    "prior_month_revision_thousands",
+    "record_count",
+    "sector_breakdown",
+    "source",
+    "unemployment_rate"
+  ],
+  "record_count": 9,
+  "signal": "NEUTRAL",
+  "source_cache": "jobs_latest.json",
+  "source_generated_at": "2026-05-11T07:06:51Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

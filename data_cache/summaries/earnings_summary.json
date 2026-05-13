@@ -1,0 +1,25 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "record_count",
+    "source",
+    "upcoming",
+    "window_days"
+  ],
+  "record_count": 1,
+  "signal": "NEUTRAL",
+  "source_cache": "earnings_latest.json",
+  "source_generated_at": "2026-05-11T07:07:14Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "NVDA",
+    "label": "CATALYST_UPCOMING"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "NVDA",
+    "label": "CATALYST_UPCOMING"
+  }
+}

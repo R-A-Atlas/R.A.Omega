@@ -1,0 +1,31 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "_meta",
+    "generated_at",
+    "history",
+    "liquidity_regime",
+    "m2_billions_usd",
+    "m2_trillions_usd",
+    "mom_change_pct",
+    "period",
+    "record_count",
+    "source",
+    "yoy_change_pct"
+  ],
+  "record_count": 12,
+  "signal": "NEUTRAL",
+  "source_cache": "global_liquidity_latest.json",
+  "source_generated_at": "2026-05-13T00:33:59Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "pairs",
+    "record_count"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "correlation_latest.json",
+  "source_generated_at": "2026-05-12T00:34:31Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "CROWDED_RISK_ON"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "CROWDED_RISK_ON"
+  }
+}

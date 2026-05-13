@@ -1,0 +1,25 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "_meta",
+    "filings",
+    "generated_at",
+    "record_count",
+    "source"
+  ],
+  "record_count": 4,
+  "signal": "NEUTRAL",
+  "source_cache": "insider_trades_latest.json",
+  "source_generated_at": "2026-05-12T02:31:05Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "NVDA",
+    "label": "BULLISH_INSIDER"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "NVDA",
+    "label": "BULLISH_INSIDER"
+  }
+}

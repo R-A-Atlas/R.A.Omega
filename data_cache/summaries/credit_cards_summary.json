@@ -1,0 +1,25 @@
+{
+  "dominant_category": "Cash Back",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "cards",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url"
+  ],
+  "record_count": 5,
+  "signal": "NEUTRAL",
+  "source_cache": "credit_cards_latest.json",
+  "source_generated_at": "2026-05-12T00:28:11Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "Blue Cash Everyday",
+    "label": "GOOD"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "Blue Cash Everyday",
+    "label": "GOOD"
+  }
+}

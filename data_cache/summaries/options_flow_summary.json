@@ -1,0 +1,29 @@
+{
+  "generated_at": "2026-05-13T01:21:13Z",
+  "put_call_ratio_signal": "NEUTRAL",
+  "top_conviction_ticker": "SPY",
+  "unusual_calls": [
+    {
+      "signal_strength": "BULLISH_UNUSUAL",
+      "ticker": "NVDA"
+    },
+    {
+      "signal_strength": "BULLISH_UNUSUAL",
+      "ticker": "AAPL"
+    },
+    {
+      "signal_strength": "BULLISH_UNUSUAL",
+      "ticker": "AMD"
+    }
+  ],
+  "unusual_puts": [
+    {
+      "signal_strength": "BEARISH_UNUSUAL",
+      "ticker": "TSLA"
+    },
+    {
+      "signal_strength": "BEARISH_UNUSUAL",
+      "ticker": "SPY"
+    }
+  ]
+}

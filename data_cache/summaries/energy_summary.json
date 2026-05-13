@@ -1,0 +1,27 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "breakdown",
+    "electricity_avg_kwh_cents",
+    "gas_national_avg_gallon",
+    "generated_at",
+    "grid_trend",
+    "record_count",
+    "renewables_pct_grid"
+  ],
+  "record_count": 7,
+  "signal": "NEUTRAL",
+  "source_cache": "energy_latest.json",
+  "source_generated_at": "2026-05-11T07:06:58Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

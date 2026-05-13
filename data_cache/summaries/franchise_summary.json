@@ -1,0 +1,25 @@
+{
+  "dominant_category": "Food",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "franchises",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_urls"
+  ],
+  "record_count": 7,
+  "signal": "NEUTRAL",
+  "source_cache": "franchise_latest.json",
+  "source_generated_at": "2026-05-12T00:50:14Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "McDonald's",
+    "label": "GOOD"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "McDonald's",
+    "label": "GOOD"
+  }
+}

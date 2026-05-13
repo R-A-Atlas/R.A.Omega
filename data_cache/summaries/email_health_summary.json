@@ -1,0 +1,21 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "blacklist_count",
+    "deliverability_score",
+    "dkim_status",
+    "dmarc_status",
+    "domain",
+    "generated_at",
+    "grade",
+    "mx_status",
+    "spf_status"
+  ],
+  "record_count": 0,
+  "signal": "NEUTRAL",
+  "source_cache": "email_health_latest.json",
+  "source_generated_at": "2026-05-12T01:37:32Z",
+  "top_signal": {},
+  "weakest_signal": {}
+}

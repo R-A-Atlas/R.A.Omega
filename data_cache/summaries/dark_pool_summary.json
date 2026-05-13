@@ -1,0 +1,26 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "_meta",
+    "generated_at",
+    "record_count",
+    "signals",
+    "source",
+    "week_of"
+  ],
+  "record_count": 40,
+  "signal": "NEUTRAL",
+  "source_cache": "dark_pool_latest.json",
+  "source_generated_at": "2026-05-13T00:32:59Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "CAT",
+    "label": "HIGH_DARK_POOL"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "CAT",
+    "label": "HIGH_DARK_POOL"
+  }
+}

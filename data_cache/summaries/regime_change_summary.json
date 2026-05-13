@@ -1,0 +1,18 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "confidence",
+    "generated_at",
+    "inputs",
+    "recommended_posture",
+    "regime",
+    "risk_flags"
+  ],
+  "record_count": 0,
+  "signal": "NEUTRAL",
+  "source_cache": "regime_change_latest.json",
+  "source_generated_at": "2026-05-12T00:34:31Z",
+  "top_signal": {},
+  "weakest_signal": {}
+}

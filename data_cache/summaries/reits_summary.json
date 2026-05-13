@@ -1,0 +1,25 @@
+{
+  "dominant_category": "Retail",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "generated_at",
+    "record_count",
+    "reits",
+    "source",
+    "treasury_10y_rate"
+  ],
+  "record_count": 10,
+  "signal": "NEUTRAL",
+  "source_cache": "reits_latest.json",
+  "source_generated_at": "2026-05-12T00:28:16Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "O",
+    "label": "BUY"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "O",
+    "label": "BUY"
+  }
+}

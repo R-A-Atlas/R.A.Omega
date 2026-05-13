@@ -1,0 +1,28 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "brackets",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url",
+    "standard_deduction_married",
+    "standard_deduction_single",
+    "year"
+  ],
+  "record_count": 7,
+  "signal": "NEUTRAL",
+  "source_cache": "federal_tax_latest.json",
+  "source_generated_at": "2026-05-12T00:50:12Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

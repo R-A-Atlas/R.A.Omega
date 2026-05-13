@@ -1,0 +1,26 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "federal_min_wage",
+    "generated_at",
+    "record_count",
+    "source",
+    "source_url",
+    "states"
+  ],
+  "record_count": 51,
+  "signal": "NEUTRAL",
+  "source_cache": "labor_law_latest.json",
+  "source_generated_at": "2026-05-12T00:50:15Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": ""
+  }
+}

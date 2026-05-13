@@ -1,0 +1,25 @@
+{
+  "dominant_category": "",
+  "generated_at": "2026-05-13T01:21:13Z",
+  "important_keys": [
+    "artprice100_index",
+    "generated_at",
+    "record_count",
+    "sales",
+    "source"
+  ],
+  "record_count": 3,
+  "signal": "NEUTRAL",
+  "source_cache": "art_latest.json",
+  "source_generated_at": "2026-05-12T01:37:29Z",
+  "top_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "ABOVE_ESTIMATE"
+  },
+  "weakest_signal": {
+    "change_pct": 0.0,
+    "id": "",
+    "label": "ABOVE_ESTIMATE"
+  }
+}
