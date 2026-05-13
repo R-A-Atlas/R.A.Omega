@@ -36,9 +36,9 @@ When unsure which doc wins:
 
 ---
 
-## 3. WHAT ATLAS IS
+## 3. WHAT R.A. OMEGA IS
 
-ATLAS is a 10-loop AI financial intelligence platform.
+R.A. Omega is a finance-first AI intelligence platform.
 User types any finance question. 10+ free data sources fetched in
 parallel. One Gemini call synthesizes everything. User gets
 institutional-grade analysis in under 3 minutes for ~$0.017.
@@ -67,7 +67,8 @@ Port conflict fix: netstat -ano | findstr :8000  then  taskkill /PID <PID> /F
 URLs:
   http://127.0.0.1:8000/        Zenith 3D landing page (entry point)
   http://127.0.0.1:8000/auth    Sign in / Create account
-  http://127.0.0.1:8000/option1 Main app — redirects to /auth if no token
+  http://127.0.0.1:8000/app     Main R.A. Omega chat app
+  http://127.0.0.1:8000/option1 Legacy app alias — redirects to /auth if no token
   http://127.0.0.1:8000/v2      Old dashboard (keep, backwards compat)
   http://127.0.0.1:8000/health  Health check JSON
 
@@ -86,6 +87,11 @@ URLs:
                                 Voice/docs: `POST /voice/query` (Whisper→same as /query), `POST /tts` (OpenAI/ElevenLabs),
                                 `POST /export/pdf|pptx|xlsx` (body = POST /query JSON; files under `atlas_vault/03-Outputs/`).
                                 WeasyPrint/GTK may be required on Windows for server PDF.
+  atlas_core/summaries/         Summary layer. `summary_generator.py` distills all `data_cache/*_latest.json` files.
+  atlas_core/data_map.py        Generates `atlas_vault/03-Outputs/data_map.html`.
+  atlas_agents/cognitive/critical_paths/  Deterministic SOPs for high-value query types.
+  .claude/hooks/                Session continuity and pre-commit context hooks.
+  .claude/commands/             Slash commands for repeatable workflows.
   atlas_digest.py               Optional daily 7am digest email (`DIGEST_EMAIL`, `DIGEST_TZ`, SendGrid or SMTP).
   atlas_export/                 Builders: `pdf_render.py`, `build_deck.py`, `build_workbook.py`.
   atlas_db.py                   Supabase client + sessions + watchlist + positions.
@@ -96,7 +102,7 @@ URLs:
 ### ACTIVE FRONTEND
   index_1778228972988.html      Zenith 3D landing. Served at /.
   auth.html                     Sign In + Create Account. Served at /auth.
-  ra_omega_app.html      Main app UI (Option 1). Served at /app.
+  ra_omega_app.html             Main app UI. Served at /app and /option1.
   atlas_dashboard_v4.html       Old dashboard. Served at /v2. Keep for compat.
 
 ### DO NOT DELETE (data moat)
@@ -185,48 +191,46 @@ final_report: overall_rating, confidence, price_now, executive_summary,
 
 ---
 
-## 8. CONFIRMED WORKING (last verified May 2026)
+## 8. CONFIRMED WORKING (last verified 2026-05-13)
 
 Backend:
-  ✅ All 10 loops — ~154-176s, ~$0.017/query
-  ✅ POST /query → 200, all fields populated
+  ✅ Full test suite — 990 passed — test with `python -m pytest tests/ -q`
+  ✅ POST /query async dispatch — api_server.py:2197 — test with `python -m pytest tests/test_api_endpoints.py -q`
+  ✅ Query controls and specialist packet routing — api_server.py:1305 — test with `python -m pytest tests/test_agent_graph.py tests/test_api_endpoints.py -q`
+  ✅ OmegaAgent summary-first data cache loading — atlas_omega.py:773 — test with `python -m pytest tests/test_api_endpoints.py::test_internal_knowledge_payload_accepts_new_macro_intent -q`
+  ✅ Summary generator for 64 cache files — atlas_core/summaries/summary_generator.py:301 — test with `python atlas_core/summaries/summary_generator.py`
+  ✅ Data map generator and HTML output — atlas_core/data_map.py:205 — test with `python atlas_core/data_map.py`
+  ✅ Critical paths for crypto/equity/macro/options/portfolio — atlas_agents/cognitive/critical_paths/ — inspect files or regenerate data map
   ✅ Intent router — classify_intent_route() routing correctly
-  ✅ IM stopword fix in QueryParser._STOPWORDS
   ✅ Loop 5 user_id tri-state portfolio loading
   ✅ Sessions CRUD API — 4 routes + mock support for test_user_local
   ✅ Watchlist API — list/add/remove in atlas_db.py
-  ✅ Regime fix — get_market_regime = detect_market_regime in market_scanner.py
-  ✅ RAG — 355 total chunks (SOUN 124, O 109, NVDA 122)
+  ✅ RAG — local Chroma database present under atlas_rag/
 
 Auth + Database:
-  ✅ Supabase tables: queries, user_folders, positions (deployed)
+  ✅ Supabase tables: queries, user_folders, positions (schema present)
   ✅ auth.html Sign In + Create Account with Supabase JWT
   ✅ /auth and /login routes in api_server.py
   ✅ Auth guard on /option1 → redirects to /auth if no token
+  ✅ Stripe billing endpoints — api_server.py:2066 and api_server.py:2104 — test with `python -m pytest tests/test_api_endpoints.py -q`
+  ✅ Subscription tier gate — api_server.py:1036 — test with `python -m pytest tests/test_api_endpoints.py -q`
   ✅ Sign Out button in Option 1 header
   ✅ / root → Zenith with Supabase config injected
   ✅ ATLAS_DISABLE_AUTH=true in .env for local dev
-  ✅ schema.sql (2026-05-09): bottom migration block = Section A (chat_sessions, user_watchlist,
-     queries.session_id) + Section B (RLS + *_owner policies on chat_sessions, queries,
-     user_folders, positions, user_watchlist); verification SQL in comment footer
-  ⚠️ NEEDS ACTION: Run that bottom block in Supabase SQL Editor (Section A then Section B).
-     Confirm: tables/column exist; pg_tables.rowsecurity = true and pg_policies rows for
-     all five tables (queries in schema.sql footer). Prefer SUPABASE_KEY=service_role on
-     FastAPI (bypasses RLS; policies protect anon/authenticated PostgREST).
-  ⬜ After you verify in Supabase: replace the two lines above (✅ migration file / ⚠️ NEEDS ACTION)
-     with a single ✅ noting production DB has sessions/watchlist column + RLS applied
+  ⚠️ Production Supabase still needs environment-specific verification: hosted project must have the latest migration applied and Stripe keys configured in deployment secrets.
 
-UI — Option 1 (ra_omega_app.html at /app):
+UI — Main Chat (ra_omega_app.html at /app):
   ✅ StructuredResponse cards + QuickStatsStrip (RYG-style risk / impact meters)
   ✅ ExportBar — HTML Report, Export PDF (print dialog), Infographic, Copy JSON
-  ✅ generateStandaloneReport() — dark theme, Inter + JetBrains Mono, ATLAS branding,
+  ✅ generateStandaloneReport() — dark theme, Inter + JetBrains Mono, R.A. Omega branding,
      price-level rail + bar chart, scenarios donut, horizontal catalyst timeline,
      contenteditable narrative fields, print/PDF export bar
   ✅ Message renderer branches on rawData → StructuredResponse + ExportBar (~line 2170+)
   ✅ Sessions sidebar — New chat, list, rename, archive, delete, context_topic under titles
   ✅ session_id on POST /query; auto-create session on first message when none selected
   ✅ Live market regime via GET /regime (loading → label; sidebar + header chip)
-  ⚠️ VISUAL SPOT-CHECK — periodic screenshot on real /query still recommended after UI changes
+  ✅ Normal/web/deep research mode controls and personalization settings
+  ⚠️ Visual screenshot checks are still recommended after UI changes.
 
 UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
   ✅ Sessions sidebar with New chat, list, rename, archive, delete
@@ -235,6 +239,11 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
   ✅ syncWatchlistFromServer() + one-time localStorage migration
   ✅ refreshRegimeNav() calls GET /regime live
   ⚠️ regimeLabel still hardcoded "BULL MARKET" on initial load (minor flash)
+
+Not Working / Not Fully Production:
+  ❌ Hosted production is not complete until deployment secrets, Supabase production migrations, and Stripe webhook signing are verified in the live environment.
+  ⚠️ Some market feeds can be fallback-backed when public sources fail; label fallback data in user-facing analysis.
+  ⚠️ In-app browser policy blocks direct `file://` opening of generated HTML artifacts; verify generated HTML from disk or serve it from FastAPI when needed.
 
 ---
 
@@ -248,15 +257,15 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
   Confirm: chat_sessions, user_watchlist exist; queries.session_id exists; rowsecurity on all five
     tables; policies listed (see verification comments in schema.sql footer)
 
-### PRIORITY 1 — Visual confirm cards in Option 1
-  Start server. Go to /option1. Run "Analyze NVDA — current setup and trade plan"
+### PRIORITY 1 — Visual confirm cards in main chat
+  Start server. Go to /app. Run "Analyze NVDA — current setup and trade plan"
   Take screenshot.
   Expected: TLDR card (colored border) + Executive Summary + Trade Plan table +
             Scenarios bars + Execution Rules + Failure Modes + Trader Memo +
             HTML Report button + Copy JSON button
   If broken: fix rawData flow in message renderer (search for `log.rawData` in ra_omega_app.html)
 
-### PRIORITY 2 — Port sessions sidebar into Option 1 UI — DONE (in repo)
+### PRIORITY 2 — Port sessions sidebar into main chat UI — DONE (in repo)
   Implemented: sidebar, POST /sessions, session_id on /query, context topics,
   QuickStatsStrip meters, live regime fetch. Treat regressions as bugs, not greenfield.
 
@@ -268,7 +277,12 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
   _persist_query_report_bg and _persist_omega_report_bg return early when user_id == "test_user_local".
   If UUID noise persists, trace other call sites — do not re-add duplicate guards without diagnosis.
 
-### PRIORITY 5 — Add transcripts to vault + RAG
+### PRIORITY 5 — Silver platter summary/data-map layer — DONE (in repo)
+  Implemented: `atlas_core/summaries/summary_generator.py`, 64 tracked summaries,
+  Omega summary-first loading, `.claude/hooks/`, 5 critical paths, and
+  `atlas_core/data_map.py` output to `atlas_vault/03-Outputs/data_map.html`.
+
+### PRIORITY 6 — Add transcripts to vault + RAG
   Save Claude Code workflow transcripts as .md files in:
     atlas_vault/01-Raw/Transcripts/
   Then ingest via rag_engine.py into Chroma.
@@ -278,8 +292,10 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
 
 ## 10. BUSINESS ROADMAP
 
-### Phase 1 — Polish (NOW, weeks 1-4)
-  Complete Priorities 0-3. Goal: looks and feels worth $149/month.
+### Phase 1 — Polish / Production Readiness (NOW, weeks 1-4)
+  Current state: core app, auth guard, billing routes, summary layer, critical paths,
+  and data map are built with 990 passing tests. Remaining work is production
+  environment verification, deployment, visual QA, and final hosted auth/payment checks.
 
 ### Phase 2 — First users (months 1-3)
   Deploy to cloud (Railway or Render, ~$20/month).
@@ -302,12 +318,13 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
 
 ### KEY DIFFERENTIATORS
   1. atlas_memory.db grows smarter with every query → switching cost moat
-  2. Loop 8 regime memory → proprietary analogue DB, grows daily
-  3. Cross-domain: stocks + crypto + mortgages + cars + debt
-  4. Interactive editable HTML reports → Power BI for retail traders
-  5. ~$0.017/query vs Bloomberg $2,000/month
-  6. Loop 5 personalized to user's actual portfolio
-  7. Intent router: works for prose finance AND ticker analysis equally
+  2. Summary-first data layer keeps normal answers fast and token-efficient
+  3. Critical paths make top agent workflows deterministic
+  4. Cross-domain: stocks + crypto + mortgages + cars + debt
+  5. Interactive editable HTML reports → Power BI for retail traders
+  6. ~$0.017/query target vs Bloomberg-scale pricing
+  7. Loop 5 personalized to user's actual portfolio
+  8. Intent router: works for prose finance AND ticker analysis equally
 
 ---
 
