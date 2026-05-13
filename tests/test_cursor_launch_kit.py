@@ -19,7 +19,9 @@ def test_auth_and_landing_are_ra_omega_branded():
     legacy_landing = (ROOT / "index_1778307874705.html").read_text(encoding="utf-8")
     assert "R.A. OMEGA_" in auth
     assert "R.A. OMEGA" in landing
-    assert "KNOW WHAT" in landing
+    assert "KNOW BEFORE" in landing
+    assert "YOU MOVE" in landing
+    assert "BEFORE MONEY MOVES" not in landing
     assert "117 SPECIALISTS" not in landing
     assert "Finance-first intelligence" not in landing
     assert "ATLAS<span" not in landing
