@@ -86,6 +86,9 @@ def test_finance_dashboard_routes_return_html(client: TestClient, path: str) -> 
     r = client.get(path)
     assert r.status_code == 200
     assert "text/html" in r.headers.get("content-type", "")
+    assert "R.A. OMEGA" in r.text
+    assert "Message R.A. Omega" in r.text
+    assert "Message ATLAS" not in r.text
 
 
 def test_pricing_route_returns_checkout_page(client: TestClient) -> None:

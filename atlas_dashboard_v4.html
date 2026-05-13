@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ATLAS — Financial Intelligence</title>
+<title>R.A. Omega - Finance Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -830,7 +830,7 @@ h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
 
 <!-- NAV -->
 <nav class="nav nav-minimal">
-  <div class="nav-logo">ATLAS<span>.</span></div>
+  <div class="nav-logo">R.A. OMEGA<span>.</span></div>
   <div class="nav-regime">
     <div class="dot"></div>
     <span id="regimeLabel">BULL MARKET</span>
@@ -841,7 +841,7 @@ h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
 <div class="shell">
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="sidebar-brand-mini">ATLAS<span>.</span></div>
+    <div class="sidebar-brand-mini">R.A. OMEGA<span>.</span></div>
     <button type="button" class="sidebar-new-chat" onclick="createAtlasNewChat()">＋ New chat</button>
     <div class="sidebar-search-wrap">
       <input type="search" id="sidebarChatSearch" class="sidebar-search" placeholder="Search chats" autocomplete="off" oninput="filterAtlasChatSessions()" />
@@ -985,7 +985,7 @@ h1,h2,h3,h4,h5 { font-family: 'Syne', sans-serif; }
           <button type="button" class="composer-chip" onclick="atlasSetComposerMode('deep'); setComposerOnly('Look up data and summarize: ')">🌐 Look something up</button>
         </div>
         <div class="composer-pill">
-          <textarea id="queryInput" class="composer-input" rows="1" placeholder="Message ATLAS…" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); runQuery(); }"></textarea>
+          <textarea id="queryInput" class="composer-input" rows="1" placeholder="Message R.A. Omega…" onkeydown="if(event.key==='Enter' && !event.shiftKey){ event.preventDefault(); runQuery(); }"></textarea>
           <div class="composer-mode-wrap">
             <select id="atlasComposerMode" class="composer-mode" title="Quick chat uses /query (fast for hello). Deep research tries Omega then pipelines." onchange="atlasOnComposerModeUi();">
               <option value="chat">Quick</option>
@@ -1123,7 +1123,7 @@ function initAtlasSupabaseClient() {
   }
   const g = window.supabase;
   if (!g || typeof g.createClient !== 'function') {
-    console.warn('ATLAS: @supabase/supabase-js not loaded');
+    console.warn('R.A. Omega: @supabase/supabase-js not loaded');
     updateAtlasAuthUi();
     return;
   }
@@ -2465,7 +2465,7 @@ function renderError(msg) {
     <div class="card">
       <div class="insight-box danger">
         <strong>Error:</strong> ${msg}<br>
-        <span style="font-size:12px;color:var(--muted);">Make sure the ATLAS API server is running: <code>python api_server.py</code></span>
+        <span style="font-size:12px;color:var(--muted);">Make sure the R.A. Omega API server is running: <code>python api_server.py</code></span>
       </div>
     </div>
   `;
@@ -2474,11 +2474,11 @@ function renderError(msg) {
 function getMockResult(query) {
   return {
     headline: "Analysis ready — API server not connected",
-    executive_brief: "This is a preview of how results would appear. Start the ATLAS API server with 'python api_server.py' to get real analysis.",
+    executive_brief: "This is a preview of how results would appear. Start the R.A. Omega API server with 'python api_server.py' to get real analysis.",
     urgency: "informational",
     domain: "GENERAL_FINANCE",
     domain_label: "General Finance",
-    primary_recommendation: "Connect your backend: run 'uvicorn api_server:app --port 8000' from your ATLAS directory.",
+    primary_recommendation: "Connect your backend: run 'uvicorn api_server:app --port 8000' from your R.A. Omega directory.",
     scenarios: [
       {label: "API connected", probability: 1.0, outcome: "Full institutional-grade analysis for: "+query, your_action: "Run the API server"},
     ],
