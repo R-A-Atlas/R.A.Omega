@@ -177,6 +177,7 @@
         );
 
         const API_BASE_FALLBACK = 'http://127.0.0.1:8000';
+        const ASSISTANT_SENDER = 'OMEGA';
         const LOOP_STEPS = [
             'Loop 1 of 10: Scraping multiple sources in parallel (news, filings, chains)…',
             'Loop 2 of 10: Cross-referencing facts and tagging source reliability…',
@@ -2671,7 +2672,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     const agentLog = logFromQueryResponse(env);
                     next.push({
                         id: nid++,
-                        sender: 'ATLAS',
+                        sender: ASSISTANT_SENDER,
                         type: 'agent',
                         timestamp: tsFromReport(rep.ts),
                         ...agentLog,
@@ -2700,7 +2701,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     if (hasRealChatMessages(cur)) return prev;
                     return {
                         ...prev,
-                        [sid]: [{ id: Date.now(), sender: 'ATLAS', type: 'system', timestamp: ts(), content: 'Loading…' }],
+                        [sid]: [{ id: Date.now(), sender: ASSISTANT_SENDER, type: 'system', timestamp: ts(), content: 'Loading…' }],
                     };
                 });
 
@@ -2720,7 +2721,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 [sid]: [
                                     {
                                         id: Date.now(),
-                                        sender: 'ATLAS',
+                                        sender: ASSISTANT_SENDER,
                                         type: 'system',
                                         timestamp: ts(),
                                         content: 'New chat - ask about a ticker, portfolio risk, options, debt, credit repair, business structure, taxes, real estate, or macro conditions.',
@@ -2833,7 +2834,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     return [
                         {
                             id: -1,
-                            sender: 'ATLAS',
+                            sender: ASSISTANT_SENDER,
                             type: 'system',
                             timestamp: ts(),
                             content: welcome,
@@ -2846,7 +2847,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     return [
                         {
                             id: -2,
-                            sender: 'ATLAS',
+                            sender: ASSISTANT_SENDER,
                             type: 'system',
                             timestamp: ts(),
                             content: 'Loading…',
@@ -3076,7 +3077,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                         ...arr,
                                         {
                                             id: Date.now() + 1,
-                                            sender: 'ATLAS',
+                                            sender: ASSISTANT_SENDER,
                                             type: 'agent',
                                             timestamp: ts(),
                                             content:
@@ -3139,7 +3140,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                         ...arr,
                                         {
                                             id: Date.now() + 2,
-                                            sender: 'ATLAS',
+                                            sender: ASSISTANT_SENDER,
                                             type: 'agent',
                                             timestamp: ts(),
                                             ...logFromQueryResponse(data),
@@ -3164,7 +3165,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 ...(prev[sid] || []),
                                 {
                                     id: Date.now() + 3,
-                                    sender: 'ATLAS',
+                                    sender: ASSISTANT_SENDER,
                                     type: 'agent',
                                     timestamp: ts(),
                                     content: 'Network or timeout: ' + detail,
@@ -3351,7 +3352,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 ...(prev[sid] || []),
                                 {
                                     id: Date.now() + 1,
-                                    sender: 'ATLAS',
+                                    sender: ASSISTANT_SENDER,
                                     type: 'agent',
                                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
                                     content:
@@ -3402,7 +3403,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 ...(prev[sid] || []),
                                 {
                                     id: Date.now() + 2,
-                                    sender: 'ATLAS',
+                                    sender: ASSISTANT_SENDER,
                                     type: 'agent',
                                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
                                     ...logFromQueryResponse(data),
@@ -3426,7 +3427,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                             ...(prev[sid] || []),
                             {
                                 id: Date.now() + 3,
-                                sender: 'ATLAS',
+                                sender: ASSISTANT_SENDER,
                                 type: 'agent',
                                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
                                 content: 'Network or timeout: ' + detail,

@@ -29,3 +29,11 @@ def test_auth_and_landing_are_ra_omega_branded():
     assert "FINANCIAL INTELLIGENCE AT SCALE" not in legacy_landing
     assert "#0044FF" not in legacy_landing
     assert 'window.location.replace("/")' in legacy_landing
+
+
+def test_chat_ui_does_not_use_atlas_sender_label():
+    app = (ROOT / "ra_omega_app.html").read_text(encoding="utf-8")
+    assert "sender: 'ATLAS'" not in app
+    assert 'sender: "ATLAS"' not in app
+    assert "const ASSISTANT_SENDER = 'OMEGA'" in app
+    assert "log.sender === 'USR' ? 'You' : 'R.A. Omega'" in app
