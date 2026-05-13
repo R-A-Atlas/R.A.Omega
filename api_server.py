@@ -1,7 +1,7 @@
 """
-api_server.py — ATLAS FastAPI Backend
-======================================
-Wraps all ATLAS engines as HTTP endpoints.
+api_server.py - R.A. Omega FastAPI Backend
+==========================================
+Wraps all R.A. Omega engines as HTTP endpoints.
 Run with: uvicorn api_server:app --host 0.0.0.0 --port 8000 --reload
 
 Reverse proxies (nginx, Caddy, Cloudflare, etc.) in front of this API should use
@@ -97,7 +97,7 @@ except ImportError:
     print("Install FastAPI: pip install fastapi uvicorn --break-system-packages")
     sys.exit(1)
 
-# ── ATLAS module path (api_server.py lives in project root with all modules) ─
+# Project module path (api_server.py lives in project root with all modules)
 BASE_DIR = Path(__file__).resolve().parent
 ATLAS_DIR = BASE_DIR
 ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"
@@ -1255,7 +1255,7 @@ def _gemini_nl_edit_report_json(result_json: dict, instruction: str) -> dict:
     if len(payload) > 100_000:
         payload = payload[:100_000] + "\n...[truncated]"
 
-    prompt = f"""You edit ATLAS dashboard query report JSON. Apply the user's instruction.
+    prompt = f"""You edit R.A. Omega dashboard query report JSON. Apply the user's instruction.
 Return ONE JSON object: the full updated report with the SAME top-level keys and structure as the input.
 Preserve: parsed_query, final_report, tldr, trader_memo, hedge_fund_brief, execution_rules,
 failure_modes, scenarios, clarification_questions, timing, loop_outputs, audit_notes when present.
