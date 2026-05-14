@@ -225,6 +225,7 @@ DC_INTENT_GROWTH_MARKETING_SCAN = "GROWTH_MARKETING_SCAN"
 DC_INTENT_INTELLIGENCE_SYNTHESIS = "INTELLIGENCE_SYNTHESIS"
 DC_INTENT_SECTOR_ROTATION_SCAN = "SECTOR_ROTATION_SCAN"
 DC_INTENT_SENTIMENT_DIVERGENCE_SCAN = "SENTIMENT_DIVERGENCE_SCAN"
+DC_INTENT_MACRO_RISK_SCAN = "MACRO_RISK_SCAN"
 
 DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
     {
@@ -261,6 +262,7 @@ DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
         DC_INTENT_INTELLIGENCE_SYNTHESIS,
         DC_INTENT_SECTOR_ROTATION_SCAN,
         DC_INTENT_SENTIMENT_DIVERGENCE_SCAN,
+        DC_INTENT_MACRO_RISK_SCAN,
     }
 )
 
@@ -967,6 +969,29 @@ def _compact_global_liquidity_scan(obj: dict) -> dict:
     }
 
 
+def _compact_macro_risk_scan(files: dict) -> dict:
+    """Macro Risk: combines fed_watch, cpi_inflation, jobs, treasury_yield, regime_change."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "macro_risk_scan",
+        "fed_rate_probability": _get("fed_watch", "next_meeting_probability") or _get("fed_watch", "rate_probability"),
+        "fed_stance": _get("fed_watch", "stance") or _get("fed_watch", "policy"),
+        "cpi_latest": _get("cpi_inflation", "latest_cpi") or _get("cpi_inflation", "value"),
+        "cpi_trend": _get("cpi_inflation", "trend"),
+        "jobs_added": _get("jobs", "nonfarm_payrolls") or _get("jobs", "jobs_added"),
+        "unemployment_rate": _get("jobs", "unemployment_rate"),
+        "yield_10yr": _get("treasury_yield", "ten_year") or _get("treasury_yield", "yield_10yr"),
+        "yield_2yr": _get("treasury_yield", "two_year") or _get("treasury_yield", "yield_2yr"),
+        "yield_curve_signal": _get("treasury_yield", "curve_signal") or _get("treasury_yield", "inversion"),
+        "current_regime": _get("regime_change", "current_regime"),
+        "regime_confidence": _get("regime_change", "confidence"),
+        "risk_signal": _get("regime_change", "signal"),
+    }
+
+
 def _compact_growth_marketing_cache(files: dict) -> dict:
     """G1-G10: aggregate 10 growth/marketing cache files."""
     def _get(name: str, key: str, fallback=None):
@@ -1151,6 +1176,13 @@ def _load_internal_knowledge_payload(
             "sentiment_divergence": "sentiment_divergence_latest.json",
             "risk_budget": "risk_budget_latest.json",
         },
+        DC_INTENT_MACRO_RISK_SCAN: {
+            "fed_watch": "fed_watch_latest.json",
+            "cpi_inflation": "cpi_inflation_latest.json",
+            "jobs": "jobs_latest.json",
+            "treasury_yield": "treasury_yield_latest.json",
+            "regime_change": "regime_change_latest.json",
+        },
     }
 
     if intent in _MULTI_FILE_INTENTS:
@@ -1182,6 +1214,8 @@ def _load_internal_knowledge_payload(
             compact = _compact_growth_marketing_cache(files_data)
         elif intent == DC_INTENT_INTELLIGENCE_SYNTHESIS:
             compact = _compact_intelligence_cache(files_data)
+        elif intent == DC_INTENT_MACRO_RISK_SCAN:
+            compact = _compact_macro_risk_scan(files_data)
         else:
             compact = {"snapshot": intent, "data": files_data}
         meta["loaded"] = True

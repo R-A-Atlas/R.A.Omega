@@ -140,6 +140,7 @@ INTENT_GROWTH_MARKETING_SCAN = "GROWTH_MARKETING_SCAN"
 INTENT_INTELLIGENCE_SYNTHESIS = "INTELLIGENCE_SYNTHESIS"
 INTENT_SECTOR_ROTATION_SCAN = "SECTOR_ROTATION_SCAN"
 INTENT_SENTIMENT_DIVERGENCE_SCAN = "SENTIMENT_DIVERGENCE_SCAN"
+INTENT_MACRO_RISK_SCAN = "MACRO_RISK_SCAN"
 
 # SCAN intents always use RESEARCH output format (no trading template)
 _SCAN_INTENTS: frozenset[str] = frozenset({
@@ -147,6 +148,7 @@ _SCAN_INTENTS: frozenset[str] = frozenset({
     "PERSONAL_WEALTH_SCAN", "TAX_LEGAL_SCAN", "BUSINESS_SCAN",
     "ALTERNATIVE_ASSET_SCAN", "GLOBAL_LIQUIDITY_SCAN", "GROWTH_MARKETING_SCAN",
     "INTELLIGENCE_SYNTHESIS", "SECTOR_ROTATION_SCAN", "SENTIMENT_DIVERGENCE_SCAN",
+    "MACRO_RISK_SCAN",
     "CRYPTO_MARKET_SCAN", "EQUITIES_MARKET_SCAN", "OPTIONS_FLOW_MARKET_SCAN",
     "INSIDER_TRADES_MARKET_SCAN", "TREASURY_YIELD_MARKET_SCAN",
     "CPI_INFLATION_MARKET_SCAN", "FED_WATCH_MARKET_SCAN", "WATCH_MARKET_SCAN",
@@ -168,6 +170,7 @@ DOMAIN_FRAMING: dict[str, str] = {
     "GLOBAL_LIQUIDITY_SCAN": "You are a global macro and liquidity specialist tracking M2 money supply, central bank policy, and liquidity cycles.",
     "SECTOR_ROTATION_SCAN": "You are a sector rotation specialist who tracks institutional money flows across market sectors to identify rotation opportunities.",
     "SENTIMENT_DIVERGENCE_SCAN": "You are a contrarian analyst who identifies divergences between retail and institutional sentiment to find early-mover signals.",
+    "MACRO_RISK_SCAN": "You are a macro risk analyst synthesizing Fed policy, inflation, jobs, and yield curve signals into a unified risk picture for investors.",
 }
 
 _ROUTER_TICKER_DD_EXCLUDE_RE = re.compile(
@@ -319,6 +322,14 @@ _GLOBAL_LIQUIDITY_TOPIC_RE = re.compile(
     r"\b(?:global\s+liquidity|m2\s+money\s+supply|central\s+bank|"
     r"liquidity\s+cycle|monetary\s+policy|quantitative\s+easing|"
     r"qt\s+tightening|global\s+money|m2\s+growth|liquidity\s+signal)\b",
+    re.I | re.S,
+)
+_MACRO_RISK_TOPIC_RE = re.compile(
+    r"\b(?:macro\s+risk|systemic\s+risk|recession\s+risk|yield\s+curve\s+inversion|"
+    r"credit\s+spread|sovereign\s+risk|macro\s+outlook|risk[\s-]off|risk[\s-]on|"
+    r"macro\s+environment|economic\s+risk|macro\s+signal|macro\s+dashboard|"
+    r"cpi\s+and\s+fed|fed\s+and\s+inflation|jobs\s+and\s+rates|"
+    r"macro\s+picture|overall\s+macro)\b",
     re.I | re.S,
 )
 _GROWTH_MARKETING_TOPIC_RE = re.compile(
@@ -537,6 +548,8 @@ def classify_sector_cache_intent(raw: str) -> Optional[str]:
         return INTENT_ALTERNATIVE_ASSET_SCAN
     if _GLOBAL_LIQUIDITY_TOPIC_RE.search(q):
         return INTENT_GLOBAL_LIQUIDITY_SCAN
+    if _MACRO_RISK_TOPIC_RE.search(q):
+        return INTENT_MACRO_RISK_SCAN
     if _SECTOR_ROTATION_TOPIC_RE.search(q):
         return INTENT_SECTOR_ROTATION_SCAN
     if _SENTIMENT_DIVERGENCE_TOPIC_RE.search(q):
