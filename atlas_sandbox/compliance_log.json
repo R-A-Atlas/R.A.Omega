@@ -22,5 +22,29 @@
     "blocked_phrases": [],
     "has_disclaimer": false,
     "timestamp": "2026-05-14T08:21:27.242746+00:00"
+  },
+  {
+    "query": "What are current mortgage rates?",
+    "domain": "real_estate",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-14T12:41:22.120009+00:00"
+  },
+  {
+    "query": "What are current mortgage rates?",
+    "domain": "real_estate",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-14T12:41:22.127272+00:00"
+  },
+  {
+    "query": "What are current mortgage rates?",
+    "domain": "real_estate",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-14T12:41:22.141515+00:00"
   }
 ]

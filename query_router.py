@@ -311,7 +311,8 @@ _ALTERNATIVE_ASSET_TOPIC_RE = re.compile(
     r"\b(?:art\s+auction|sotheby|christie|collectibles?|trading\s+cards?|"
     r"\bpsa\b|ebay\s+sold|p2p\s+lending|prosper|lending\s+club|"
     r"physical\s+gold|silver\s+coin|bullion|premium\s+over\s+spot|"
-    r"luxury\s+watches?|rolex|patek|alternative\s+investment)\b",
+    r"luxury\s+watches?|alternative\s+investment|"
+    r"(?:rolex|patek|audemars)\s+(?:market|price|value|invest|appreciat|depreciat|premium|resale|sell|buy|worth|portfolio|return))\b",
     re.I | re.S,
 )
 _GLOBAL_LIQUIDITY_TOPIC_RE = re.compile(

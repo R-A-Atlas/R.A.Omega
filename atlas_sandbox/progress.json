@@ -1,8 +1,8 @@
 {
-  "vault_total": 1,
+  "vault_total": 4,
   "target": 50000,
-  "last_batch_approved": 1,
-  "last_batch_total": 2,
-  "last_run": "2026-05-14T08:21:27.250758+00:00",
-  "pct": 0.0
+  "last_batch_approved": 3,
+  "last_batch_total": 3,
+  "last_run": "2026-05-14T12:41:22.156903+00:00",
+  "pct": 0.01
 }

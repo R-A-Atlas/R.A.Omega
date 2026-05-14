@@ -2034,6 +2034,18 @@ def serve_ra_omega_app(request: Request):
     return FileResponse(RA_OMEGA_APP, media_type="text/html; charset=utf-8")
 
 
+@app.get("/option1")
+def redirect_option1():
+    """Legacy alias — permanent redirect to /app."""
+    return RedirectResponse(url="/app", status_code=301)
+
+
+@app.get("/login")
+def redirect_login():
+    """Legacy alias — permanent redirect to /auth."""
+    return RedirectResponse(url="/auth", status_code=301)
+
+
 @app.get("/data-map")
 def serve_data_map():
     path = BASE_DIR / "atlas_vault" / "03-Outputs" / "data_map.html"

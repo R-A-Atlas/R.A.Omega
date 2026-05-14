@@ -94,6 +94,8 @@ URLs:
   .claude/commands/             Slash commands for repeatable workflows.
   atlas_digest.py               Optional daily 7am digest email (`DIGEST_EMAIL`, `DIGEST_TZ`, SendGrid or SMTP).
   atlas_export/                 Builders: `pdf_render.py`, `build_deck.py`, `build_workbook.py`.
+  atlas_memory/memory_injector.py  Long-term memory layer. get_relevant_context + save_to_memory.
+  atlas_sandbox/sandbox_loop.py    8-sandbox training data pipeline. CLI: --batch N --domain X --dry-run.
   atlas_db.py                   Supabase client + sessions + watchlist + positions.
   atlas_personalization.py      Loop 5 personalization bundle.
   market_scanner.py             Regime + squeeze detection.
@@ -173,6 +175,18 @@ URLs:
   RYG meters                inferRiskLevelQuick() + inferFinancialImpactQuick()
   Vault log: atlas_vault/04-Projects/ATLAS/Notes/2026-05-08-Watchlist-Regime-Migration.md
 
+### Full Intent Map (classify_sector_cache_intent)
+  DARK_POOL_SCAN, PENNY_STOCK_SCAN
+  REAL_ESTATE_SCAN (R1-R7: residential/rental/str/commercial/zoning/reits/mortgage_rates)
+  PERSONAL_WEALTH_SCAN (W1-W8: hysa/credit_cards/auto_loans/student_debt/retirement_limits/personal_loans/col/insurance)
+  TAX_LEGAL_SCAN (L1-L6: federal_tax/state_tax/bankruptcy/sec_filings/consumer_alerts/labor_law)
+  BUSINESS_SCAN (B1-B6: sba/saas_metrics/ecommerce/freelance_rates/franchise/vc_deals)
+  ALTERNATIVE_ASSET_SCAN (A1-A5: watches/art/collectibles/p2p/metals)
+  GLOBAL_LIQUIDITY_SCAN (M9)
+  GROWTH_MARKETING_SCAN (G1-G10: competitor_ads/seo_keywords/sentiment/email_health/engagement/reviews/roas/leads/crm_sync/content)
+  INTELLIGENCE_SYNTHESIS (IQ1-IQ8: correlation/regime_change/earnings_season/sector_rotation/news_catalysts/sentiment_divergence/risk_budget/backtesting)
+  SECTOR_ROTATION_SCAN, SENTIMENT_DIVERGENCE_SCAN
+
 ---
 
 ## 7. WHAT THE API RETURNS (POST /query)
@@ -191,10 +205,10 @@ final_report: overall_rating, confidence, price_now, executive_summary,
 
 ---
 
-## 8. CONFIRMED WORKING (last verified 2026-05-13)
+## 8. CONFIRMED WORKING (last verified 2026-05-14)
 
 Backend:
-  ✅ Full test suite — 990 passed — test with `python -m pytest tests/ -q`
+  ✅ Full test suite — 995 passed — test with `python -m pytest tests/ -q`
   ✅ POST /query async dispatch — api_server.py:2197 — test with `python -m pytest tests/test_api_endpoints.py -q`
   ✅ Query controls and specialist packet routing — api_server.py:1305 — test with `python -m pytest tests/test_agent_graph.py tests/test_api_endpoints.py -q`
   ✅ OmegaAgent summary-first data cache loading — atlas_omega.py:773 — test with `python -m pytest tests/test_api_endpoints.py::test_internal_knowledge_payload_accepts_new_macro_intent -q`
@@ -206,6 +220,11 @@ Backend:
   ✅ Sessions CRUD API — 4 routes + mock support for test_user_local
   ✅ Watchlist API — list/add/remove in atlas_db.py
   ✅ RAG — local Chroma database present under atlas_rag/
+  ✅ Memory injector — atlas_memory/memory_injector.py (get_relevant_context + save_to_memory wired into POST /query)
+  ✅ 8-sandbox learning loop — atlas_sandbox/sandbox_loop.py (dry-run verified, vaults to training_vault.db)
+  ✅ Sandbox API — POST /sandbox/run, GET /sandbox/progress, GET /sandbox/agent-health
+  ✅ Legacy redirects — GET /option1 → 301 /app, GET /login → 301 /auth
+  ✅ Deployment files — Procfile + railway.json (nixpacks, health check /health)
 
 Auth + Database:
   ✅ Supabase tables: queries, user_folders, positions (schema present)
@@ -221,10 +240,13 @@ Auth + Database:
 
 UI — Main Chat (ra_omega_app.html at /app):
   ✅ StructuredResponse cards + QuickStatsStrip (RYG-style risk / impact meters)
-  ✅ ExportBar — HTML Report, Export PDF (print dialog), Infographic, Copy JSON
-  ✅ generateStandaloneReport() — dark theme, Inter + JetBrains Mono, R.A. Omega branding,
-     price-level rail + bar chart, scenarios donut, horizontal catalyst timeline,
-     contenteditable narrative fields, print/PDF export bar
+  ✅ ExportBar — Copy JSON + Listen (TTS) only; other formats triggered on-demand by query
+  ✅ generateStandaloneReport() — 9-section branded report: BOTTOM LINE, Executive Summary,
+     THE SETUP, HOW THIS PLAYS OUT, WHAT BREAKS THIS, Catalyst Timeline, INTELLIGENCE MEMO,
+     intent badge in header, "117 agents active" footer, teal left-border memo
+  ✅ On-demand export: query "give me html report/pdf/pptx/excel" auto-triggers correct format
+  ✅ Brand voice applied: BOTTOM LINE, THE SETUP, HOW THIS PLAYS OUT, YOUR RULES, WHAT BREAKS THIS,
+     INTELLIGENCE BRIEF, input placeholder "What do you want to know about your money?"
   ✅ Message renderer branches on rawData → StructuredResponse + ExportBar (~line 2170+)
   ✅ Sessions sidebar — New chat, list, rename, archive, delete, context_topic under titles
   ✅ session_id on POST /query; auto-create session on first message when none selected

@@ -51,7 +51,13 @@
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
-        
+
+        :root {
+            --accent: #18C6C8;
+            --accent2: #2ED47A;
+            --bg: #0B1020;
+        }
+
         body {
             font-family: 'Space Grotesk', 'Inter', sans-serif;
             background-color: #0B1020;
@@ -691,7 +697,7 @@
   --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);
   --text:#f1f5f9;--t2:#94a3b8;--t3:#64748b;--t4:#475569;
   --surface:rgba(255,255,255,0.04);--border-c:rgba(240,246,252,0.10);
-  --accent:#18C6C8;--accent2:#22c55e;
+  --accent:#18C6C8;--accent2:#2ED47A;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
@@ -1269,7 +1275,7 @@ ${extendedBlock || ''}
                     {topLine && (
                         <div className={`rounded-lg border-l-4 ${tldrBorder} bg-surface/30 border border-borderSubtle p-4 mb-3`}>
                             <div className="text-[10px] font-mono uppercase tracking-widest text-textMuted mb-2">
-                                {data.tldr ? 'TLDR' : fr.primary_recommendation ? 'Recommendation' : 'Outlook'}
+                                {data.tldr ? 'BOTTOM LINE' : fr.primary_recommendation ? 'Recommendation' : 'Outlook'}
                             </div>
                             <div className="text-xl font-semibold text-textMain leading-snug">{topLine}</div>
                             {fr.overall_rating &&
@@ -1298,7 +1304,7 @@ ${extendedBlock || ''}
                     )}
 
                     {fr.trade_plan && (
-                        <CardWrap title="Trade Plan">
+                        <CardWrap title="THE SETUP">
                             {typeof fr.trade_plan === 'object' && tradePlanRows.length > 0 ? (
                                 <div>
                                     <table className="w-full text-sm border-collapse">
@@ -1335,7 +1341,7 @@ ${extendedBlock || ''}
                     )}
 
                     {scenarios.length > 0 && (
-                        <CardWrap title="Scenarios">
+                        <CardWrap title="HOW THIS PLAYS OUT">
                             <div className="space-y-3">
                                 {scenarios.map((sc, i) => {
                                     const label = sc.label || sc.name || sc.scenario || `Scenario ${i + 1}`;
@@ -1364,7 +1370,7 @@ ${extendedBlock || ''}
                     )}
 
                     {executionRules.length > 0 && (
-                        <CardWrap title="Execution Rules">
+                        <CardWrap title="YOUR RULES">
                             {executionRules.map((rule, i) => (
                                 <div
                                     key={i}
@@ -1378,7 +1384,7 @@ ${extendedBlock || ''}
                     )}
 
                     {failureModes.length > 0 && (
-                        <CardWrap title="Failure Modes">
+                        <CardWrap title="WHAT BREAKS THIS">
                             <div className="space-y-2">
                                 {failureModes.map((fm, i) => {
                                     const text = formatFailureMode(fm);
@@ -1400,7 +1406,7 @@ ${extendedBlock || ''}
 
                     {traderMemo && (
                         <div className="rounded-lg border border-accent-indigo/20 border-l-4 border-l-accent-indigo bg-accent-indigo/5 p-4 mb-3">
-                            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-indigo/70 mb-2">Trader Memo</div>
+                            <div className="text-[10px] font-mono uppercase tracking-widest text-accent-indigo/70 mb-2">INTELLIGENCE BRIEF</div>
                             <div className="text-sm italic text-textMain/80 leading-relaxed whitespace-pre-wrap">{traderMemo}</div>
                         </div>
                     )}
@@ -3929,7 +3935,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                             value={inputValue}
                                             onChange={(e) => setInputValue(e.target.value)}
                                             className="w-full bg-transparent border-none text-textMain px-3 pt-2 pb-3 font-medium placeholder-textMuted/45 text-[15px]"
-                                            placeholder="Message R.A. Omega about markets, debt, credit, business, taxes, or risk..."
+                                            placeholder="What do you want to know about your money?"
                                             autoComplete="off"
                                             spellCheck="false"
                                             disabled={!!activeIsProcessing}

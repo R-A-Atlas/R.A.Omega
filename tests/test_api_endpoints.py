@@ -547,7 +547,6 @@ def test_app_redirects_without_cookie_when_auth_enabled(
 @pytest.mark.parametrize(
     "path",
     [
-        "/option1",
         "/atlas_option1.html",
         "/atlas_dashboard_v4.html",
         "/atlas_dashboard_v2.html",
@@ -555,12 +554,23 @@ def test_app_redirects_without_cookie_when_auth_enabled(
         "/v4",
         "/chat",
         "/ra-omega",
-        "/login",
     ],
 )
 def test_removed_legacy_page_routes_return_404(client: TestClient, path: str) -> None:
     r = client.get(path)
     assert r.status_code == 404
+
+
+def test_option1_redirects_to_app(client: TestClient) -> None:
+    r = client.get("/option1", follow_redirects=False)
+    assert r.status_code == 301
+    assert r.headers.get("location", "").rstrip("/").endswith("/app")
+
+
+def test_login_redirects_to_auth(client: TestClient) -> None:
+    r = client.get("/login", follow_redirects=False)
+    assert r.status_code == 301
+    assert r.headers.get("location", "").rstrip("/").endswith("/auth")
 
 
 def test_billing_checkout_returns_503_when_not_configured(client: TestClient) -> None:

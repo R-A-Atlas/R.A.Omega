@@ -544,7 +544,7 @@
 # CSS only: --accent: #18C6C8, --accent2: #2ED47A
 # Add Space Grotesk to Google Fonts
 # Verify: hard refresh → teal accent visible
-- [ ] R.A. Omega teal brand colors applied
+- [x] R.A. Omega teal brand colors applied
 
 ## TASK 24 [HAIKU] — Update card label copy
 # Text strings only. Do NOT change variable names or JSON keys:
@@ -556,7 +556,7 @@
 #   "Scenarios" → "HOW THIS PLAYS OUT"
 #   input placeholder → "What do you want to know about your money?"
 # Verify: run query → new labels visible
-- [ ] Card labels updated to R.A. Omega voice
+- [x] Card labels updated to R.A. Omega voice
 
 ## TASK 25 [HAIKU] — Fix legacy redirects + deployment files
 # GET /option1 → 301 to /app
@@ -564,7 +564,7 @@
 # Create Procfile: web: uvicorn api_server:app --host 0.0.0.0 --port $PORT
 # Create railway.json with nixpacks + health check
 # Verify: python -m py_compile api_server.py, files exist
-- [ ] Legacy redirects fixed, deployment files created
+- [x] Legacy redirects fixed, deployment files created
 
 # ═══════════════════════════════════════════════
 # PHASE 8 — INTEGRATION TESTS
@@ -579,22 +579,22 @@
 # "Tell me about BlackRock" → research format, no entry prices
 # "Analyze NVDA setup" → trading format with levels
 # "Should I pay off debt or invest?" → advice format
-- [ ] Output format matches query intent in all 3 cases
+- [x] Output format matches query intent in all 3 cases
 
 ## TASK 28 — Test: HTML report opens branded on demand
 # "Analyze NVDA then give me an html report"
 # Report opens with: stat cards, 9 sections, R.A. Omega branding
-- [ ] Branded HTML report auto-opens when requested
+- [x] Branded HTML report auto-opens when requested
 
 ## TASK 29 — Test: deep mode fires 10-loop for any query
 # Deep mode selected. "Deep research on the housing market"
 # Must use 10-loop engine, return comprehensive report
-- [ ] Deep mode fires 10-loop for any query type
+- [x] Deep mode fires 10-loop for any query type
 
 ## TASK 30 — Test: sandbox runs and vaults pairs
 # python atlas_sandbox/sandbox_loop.py --batch 3 --domain real_estate
 # Must vault at least 1 approved training pair
-- [ ] Sandbox vaults at least 1 training pair without errors
+- [x] Sandbox vaults at least 1 training pair without errors
 
 # ═══════════════════════════════════════════════
 # PHASE 9 — DOCUMENTATION
@@ -606,7 +606,7 @@
 # Section 6: list ALL new intent names with their cache files
 # Section 9: cross off completed priority items
 # Verify: CLAUDE.md modified today
-- [ ] CLAUDE.md fully synced
+- [x] CLAUDE.md fully synced
 
 ## TASK 32 [HAIKU] — Update AGENT_REGISTRY.md
 # For every newly wired agent add their intent:
@@ -615,19 +615,19 @@
 #   R1-R7 All → REAL_ESTATE_SCAN ✅
 #   (etc for every agent wired in this sprint)
 # Show count: agents with active intents / total built
-- [ ] AGENT_REGISTRY.md shows active intents for all wired agents
+- [x] AGENT_REGISTRY.md shows active intents for all wired agents
 
 ## TASK 33 — Final test suite
 # python -m pytest tests/ -v --tb=short 2>&1 | tail -30
 # Must: 990+ passed, 0 failed
-- [ ] Final test suite 990+ passed 0 failed
+- [x] Final test suite 990+ passed 0 failed
 
 ## TASK 34 [HAIKU] — Write SPRINT_DONE.md
 # Sections: Date, All 34 tasks, Files created, Files modified,
 #   All agents now wired (complete list with intents),
 #   Sandbox vault count, Integration test results,
 #   Could not complete (why), Next sprint: 500+ agent expansion
-- [ ] SPRINT_DONE.md written with complete audit
+- [x] SPRINT_DONE.md written with complete audit
 
 # ═══════════════════════════════════════════════
 # GOAL COMPLETION — ALL must be true to stop:
