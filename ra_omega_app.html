@@ -127,6 +127,55 @@
             background-clip: text;
             animation: shimmer 2s linear infinite;
         }
+
+        /* Research Transparency Panel */
+        .rp-panel {
+            position: fixed;
+            top: 0; right: 0; bottom: 0;
+            width: 340px;
+            z-index: 55;
+            background: #111827;
+            border-left: 1px solid rgba(24,198,200,0.2);
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+            transform: translateX(100%);
+            box-shadow: -8px 0 32px rgba(0,0,0,0.45);
+        }
+        .rp-panel.rp-open { transform: translateX(0); }
+        @media (max-width: 640px) { .rp-panel { width: 100%; } }
+
+        @keyframes rp-pulse {
+            0%, 100% { opacity: 1; box-shadow: 0 0 6px #18C6C8; }
+            50%       { opacity: 0.3; box-shadow: none; }
+        }
+        @keyframes rp-spin { to { transform: rotate(360deg); } }
+        @keyframes rp-fadein {
+            from { opacity: 0; transform: translateY(5px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .rp-dot-pulse {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: #18C6C8; display: inline-block; flex-shrink: 0;
+            animation: rp-pulse 1.8s ease-in-out infinite;
+        }
+        .rp-dot-done { background: #2ED47A; animation: none; }
+        .rp-dot-idle { background: rgba(255,255,255,0.18); animation: none; }
+        .rp-fadein { animation: rp-fadein 0.3s ease; }
+        .rp-spinner {
+            width: 14px; height: 14px; border: 2px solid rgba(24,198,200,0.25);
+            border-top-color: #18C6C8; border-radius: 50%;
+            display: inline-block; flex-shrink: 0;
+            animation: rp-spin 0.9s linear infinite;
+        }
+        .rp-section-label {
+            font-size: 9px; font-weight: 700; letter-spacing: 0.22em;
+            text-transform: uppercase; margin-bottom: 8px;
+        }
+        .rp-scroll::-webkit-scrollbar { width: 3px; }
+        .rp-scroll::-webkit-scrollbar-thumb { background: rgba(24,198,200,0.2); border-radius: 3px; }
     </style>
 </head>
 <body class="antialiased h-screen w-screen flex flex-col relative">
@@ -1928,6 +1977,154 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             );
         };
 
+        // ── Research Transparency Panel ──────────────────────────────────────────
+        const PLANNING_MSGS = [
+            { key: 'analyzing',   label: 'Analyzing your query…' },
+            { key: 'identifying', label: 'Identifying relevant agents…' },
+            { key: 'building',    label: 'Building research plan…' },
+        ];
+
+        const ResearchPanel = ({ activity, activeAgents, isOpen, onClose, isActive, planningPhase, panelQuery, elapsedS }) => {
+            const plan   = Array.isArray(activity?.plan)   ? activity.plan   : [];
+            const events = Array.isArray(activity?.events) ? activity.events : [];
+            const pct    = activity && Number.isFinite(Number(activity.progress_pct))
+                ? Math.max(0, Math.min(100, Number(activity.progress_pct)))
+                : isActive ? 22 : 100;
+            const currentMsg = activity?.current_message || '';
+            const agents     = Array.isArray(activeAgents?.agents) ? activeAgents.agents : [];
+            const agentCount = agents.length || (activeAgents?.agent_ids?.length || 0);
+            const isDone     = !isActive && !!activity;
+
+            const planningIdx = PLANNING_MSGS.findIndex(m => m.key === planningPhase);
+            const showPlanning = planningPhase !== null && planningIdx >= 0;
+
+            return (
+                <div className={`rp-panel${isOpen ? ' rp-open' : ''}`}>
+
+                    {/* Header */}
+                    <div style={{padding:'13px 15px 11px',borderBottom:'1px solid rgba(24,198,200,0.13)',flexShrink:0}}>
+                        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:5}}>
+                            <div style={{display:'flex',alignItems:'center',gap:8}}>
+                                <span className={`rp-dot-pulse${isDone?' rp-dot-done':''}`} />
+                                <span style={{fontSize:10,fontWeight:700,letterSpacing:'0.18em',textTransform:'uppercase',color:isDone?'#2ED47A':'#18C6C8'}}>
+                                    {isDone ? 'Intelligence Complete' : 'Intelligence Active'}
+                                </span>
+                            </div>
+                            <button type="button" onClick={onClose}
+                                style={{background:'none',border:'none',color:'rgba(255,255,255,0.35)',cursor:'pointer',padding:'2px 5px',fontSize:17,lineHeight:1,borderRadius:4}}
+                                title="Hide panel — research continues">✕</button>
+                        </div>
+                        <div style={{fontSize:11,color:'rgba(255,255,255,0.38)',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}} title={panelQuery}>
+                            {panelQuery ? (panelQuery.length > 62 ? panelQuery.slice(0,62)+'…' : panelQuery) : ''}
+                        </div>
+                    </div>
+
+                    {/* Scrollable body */}
+                    <div className="rp-scroll" style={{flex:1,overflowY:'auto',padding:'12px 15px',display:'flex',flexDirection:'column',gap:15,minHeight:0}}>
+
+                        {/* Research plan */}
+                        <div>
+                            <div className="rp-section-label" style={{color:'#18C6C8'}}>Research Plan</div>
+                            {showPlanning ? (
+                                <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                                    {PLANNING_MSGS.map((msg, i) => {
+                                        const done  = i < planningIdx;
+                                        const doing = i === planningIdx;
+                                        return (
+                                            <div key={msg.key} className={doing ? 'rp-fadein' : ''} style={{display:'flex',alignItems:'center',gap:9,fontSize:12}}>
+                                                {done  ? <span style={{fontSize:13}}>✅</span> : null}
+                                                {doing ? <span className="rp-spinner" /> : null}
+                                                {!done && !doing ? <span style={{fontSize:12,color:'rgba(255,255,255,0.2)'}}>○</span> : null}
+                                                <span style={{color:doing?'#f4f7fb':done?'rgba(255,255,255,0.45)':'rgba(255,255,255,0.25)',lineHeight:1.4}}>{msg.label}</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            ) : plan.length > 0 ? (
+                                <div style={{display:'flex',flexDirection:'column',gap:7}}>
+                                    {plan.map((step) => (
+                                        <div key={step.id||step.title} className="rp-fadein" style={{display:'flex',alignItems:'flex-start',gap:9,fontSize:12}}>
+                                            {step.status==='done'  ? <span style={{fontSize:13,flexShrink:0}}>✅</span> : null}
+                                            {step.status==='doing' ? <span className="rp-spinner" style={{marginTop:2}} /> : null}
+                                            {step.status!=='done' && step.status!=='doing' ? <span style={{fontSize:12,color:'rgba(255,255,255,0.2)',flexShrink:0}}>○</span> : null}
+                                            <span style={{
+                                                color: step.status==='done'?'rgba(255,255,255,0.42)':step.status==='doing'?'#f4f7fb':'rgba(255,255,255,0.28)',
+                                                lineHeight:1.45
+                                            }}>{step.title}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div style={{fontSize:12,color:'rgba(255,255,255,0.25)',fontStyle:'italic'}}>Waiting for plan…</div>
+                            )}
+                        </div>
+
+                        {/* Active agents */}
+                        {agents.length > 0 && (
+                            <div>
+                                <div className="rp-section-label" style={{color:'rgba(255,255,255,0.38)'}}>Agents Active</div>
+                                <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                                    {agents.slice(0,10).map((ag, i) => (
+                                        <div key={ag.agent_id||ag.name||i} className="rp-fadein" style={{display:'flex',alignItems:'center',gap:8,fontSize:11}}>
+                                            <span style={{width:5,height:5,borderRadius:'50%',background:'#18C6C8',flexShrink:0,display:'inline-block'}} />
+                                            <span style={{color:'rgba(255,255,255,0.78)'}}>{ag.name}</span>
+                                            {ag.division && <span style={{color:'rgba(255,255,255,0.28)',fontSize:10}}>— {ag.division}</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Live activity feed */}
+                        {events.length > 0 && (
+                            <div>
+                                <div className="rp-section-label" style={{color:'rgba(255,255,255,0.38)'}}>Live Activity</div>
+                                <div style={{display:'flex',flexDirection:'column',gap:5}}>
+                                    {events.slice(-5).map((evt, i) => (
+                                        <div key={evt.id||i} className="rp-fadein" style={{fontSize:11,lineHeight:1.5}}>
+                                            <span style={{fontFamily:'"JetBrains Mono",monospace',color:'rgba(255,255,255,0.28)',marginRight:7,fontSize:10}}>
+                                                {new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false})}
+                                            </span>
+                                            <span style={{color:'rgba(255,255,255,0.72)'}}>{evt.title||evt.message||''}</span>
+                                            {evt.body && <div style={{color:'rgba(255,255,255,0.38)',fontSize:10,marginTop:2,paddingLeft:52}}>{evt.body}</div>}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+
+                    {/* Footer: progress + current action */}
+                    <div style={{flexShrink:0,padding:'11px 15px 13px',borderTop:'1px solid rgba(24,198,200,0.1)'}}>
+                        {isDone ? (
+                            <div style={{textAlign:'center',padding:'6px 0'}}>
+                                <div style={{fontSize:13,fontWeight:600,color:'#2ED47A',marginBottom:3}}>✅ Research Complete</div>
+                                <div style={{fontSize:11,color:'rgba(255,255,255,0.38)',fontFamily:'"JetBrains Mono",monospace'}}>
+                                    {agentCount > 0 ? `${agentCount} agents` : '—'}{elapsedS > 0 ? ` · ${elapsedS}s` : ''}
+                                </div>
+                            </div>
+                        ) : (
+                            <>
+                                <div style={{display:'flex',justifyContent:'space-between',marginBottom:5,fontSize:10,fontFamily:'"JetBrains Mono",monospace'}}>
+                                    <span style={{color:'rgba(255,255,255,0.28)'}}>Running for {elapsedS}s</span>
+                                    <span style={{color:'#18C6C8',fontWeight:600}}>{Math.round(pct)}% complete</span>
+                                </div>
+                                <div style={{height:3,borderRadius:2,background:'rgba(255,255,255,0.06)',overflow:'hidden',marginBottom:9}}>
+                                    <div style={{height:'100%',borderRadius:2,background:'linear-gradient(90deg,#18C6C8,#2ED47A)',width:`${pct}%`,transition:'width 0.7s ease'}} />
+                                </div>
+                                {currentMsg && (
+                                    <div style={{fontSize:11,fontStyle:'italic',color:'rgba(24,198,200,0.85)',lineHeight:1.45,overflow:'hidden',display:'-webkit-box',WebkitLineClamp:2,WebkitBoxOrient:'vertical'}}>
+                                        {currentMsg}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
         /** Rebuild POST /query envelope from DB row (result_json is flattened final_report + _parsed_query + _timing). */
         function normalizeStoredReportToEnvelope(queryText, stored) {
             const r = stored && typeof stored === 'object' ? { ...stored } : {};
@@ -2577,6 +2774,14 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
             const [mobileSessionsOpen, setMobileSessionsOpen] = useState(false);
             const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
+            // Research Transparency Panel state
+            const [researchPanelOpen, setResearchPanelOpen] = useState(false);
+            const [planningPhase, setPlanningPhase] = useState(null); // 'analyzing' | 'identifying' | 'building' | null
+            const [panelQuery, setPanelQuery] = useState('');
+            const [panelElapsed, setPanelElapsed] = useState(0);
+            const [activeQueryIsDeep, setActiveQueryIsDeep] = useState(false);
+            const panelStartRef = useRef(null);
+
             const voiceRecorderRef = useRef(null);
             const voiceChunksRef = useRef([]);
             const voiceStreamRef = useRef(null);
@@ -2892,6 +3097,25 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     progressTimersRef.current = {};
                 };
             }, []);
+
+            // Research panel: elapsed timer + auto-close 3s after completion
+            useEffect(() => {
+                const isDeep = !!activeIsProcessing;
+                if (isDeep) {
+                    if (!panelStartRef.current) panelStartRef.current = Date.now();
+                    const t = setInterval(() => {
+                        setPanelElapsed(Math.floor((Date.now() - panelStartRef.current) / 1000));
+                    }, 1000);
+                    return () => clearInterval(t);
+                } else if (panelStartRef.current) {
+                    panelStartRef.current = null;
+                    const t = setTimeout(() => {
+                        setResearchPanelOpen(false);
+                        setActiveQueryIsDeep(false);
+                    }, 3000);
+                    return () => clearTimeout(t);
+                }
+            }, [activeIsProcessing]);
 
             useEffect(() => { loadSessions(); }, [loadSessions]);
 
@@ -3315,6 +3539,19 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                 setToolsOpen(false);
                 const activeMode = researchMode || 'normal';
+
+                // Open Research Transparency Panel for deep mode queries
+                if (activeMode === 'deep') {
+                    setResearchPanelOpen(true);
+                    setPanelQuery(q);
+                    setPanelElapsed(0);
+                    setActiveQueryIsDeep(true);
+                    setPlanningPhase('analyzing');
+                    setTimeout(() => setPlanningPhase('identifying'), 700);
+                    setTimeout(() => setPlanningPhase('building'),    1400);
+                    setTimeout(() => setPlanningPhase(null),          2200);
+                }
+
                 let plannedJobId = null;
                 if (activeMode === 'deep' || activeMode === 'web') {
                     let plannedActivity = buildPendingResearchActivity(q, activeMode);
@@ -3532,6 +3769,11 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     decision: raw && raw._route_decision ? raw._route_decision : null,
                 };
             }, [logs, activeSessionId, researchActivityBySession]);
+
+            const lastActiveAgents = useMemo(() => {
+                const real = [...logs].reverse().find((m) => m && m.rawData && m.rawData._active_agents);
+                return real?.rawData?._active_agents || null;
+            }, [logs]);
 
             const activeSession = sessions.find((s) => String(s.id) === String(activeSessionId));
             const headerChatTitle = activeSession?.title || (activeSessionId ? 'Chat' : 'New chat');
@@ -3759,6 +4001,18 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 </span>
                             </div>
                             <div className="flex items-center gap-3 text-textMuted">
+                                {/* Research panel reopen badge — shown when panel is hidden but deep query is active */}
+                                {activeQueryIsDeep && !researchPanelOpen && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setResearchPanelOpen(true)}
+                                        className="inline-flex items-center gap-1.5 rounded border border-accent-indigo/45 bg-accent-indigo/10 px-2 py-1 text-[10px] font-mono text-accent-indigo hover:bg-accent-indigo/18 transition-colors"
+                                        title="Reopen research panel"
+                                    >
+                                        <span className="rp-dot-pulse" style={{width:6,height:6}} />
+                                        Active
+                                    </button>
+                                )}
                                 <span className="hidden lg:inline-flex items-center gap-1.5 rounded border border-amber-500/25 bg-amber-500/10 px-2 py-1 text-[10px] font-mono text-amber-100/90" title="Not certified legal, tax, fiduciary, or investment advice">
                                     <Icon name="ShieldAlert" size={12} />
                                     validation, not fiduciary advice
@@ -4186,6 +4440,18 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                             </div>
                         </div>
                     </aside>
+
+                    {/* Research Transparency Panel — fixed overlay, deep mode only */}
+                    <ResearchPanel
+                        activity={lastResearchMeta.activity}
+                        activeAgents={lastActiveAgents}
+                        isOpen={researchPanelOpen}
+                        onClose={() => setResearchPanelOpen(false)}
+                        isActive={!!activeIsProcessing}
+                        planningPhase={planningPhase}
+                        panelQuery={panelQuery}
+                        elapsedS={panelElapsed}
+                    />
 
                 </div>
             );
