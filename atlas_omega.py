@@ -212,6 +212,20 @@ DC_INTENT_TARIFFS = "TARIFFS_MARKET_SCAN"
 DC_INTENT_JOBS = "JOBS_MARKET_SCAN"
 DC_INTENT_CONGRESS_TRADES = "CONGRESS_TRADES_MARKET_SCAN"
 
+# Phase-2 extended intents (Tasks 4-12)
+DC_INTENT_DARK_POOL_SCAN = "DARK_POOL_SCAN"
+DC_INTENT_PENNY_STOCK_SCAN = "PENNY_STOCK_SCAN"
+DC_INTENT_REAL_ESTATE_SCAN = "REAL_ESTATE_SCAN"
+DC_INTENT_PERSONAL_WEALTH_SCAN = "PERSONAL_WEALTH_SCAN"
+DC_INTENT_TAX_LEGAL_SCAN = "TAX_LEGAL_SCAN"
+DC_INTENT_BUSINESS_SCAN = "BUSINESS_SCAN"
+DC_INTENT_ALTERNATIVE_ASSET_SCAN = "ALTERNATIVE_ASSET_SCAN"
+DC_INTENT_GLOBAL_LIQUIDITY_SCAN = "GLOBAL_LIQUIDITY_SCAN"
+DC_INTENT_GROWTH_MARKETING_SCAN = "GROWTH_MARKETING_SCAN"
+DC_INTENT_INTELLIGENCE_SYNTHESIS = "INTELLIGENCE_SYNTHESIS"
+DC_INTENT_SECTOR_ROTATION_SCAN = "SECTOR_ROTATION_SCAN"
+DC_INTENT_SENTIMENT_DIVERGENCE_SCAN = "SENTIMENT_DIVERGENCE_SCAN"
+
 DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
     {
         DC_INTENT_CRYPTO,
@@ -234,6 +248,19 @@ DATA_CACHE_MACRO_ONLY_INTENTS: frozenset[str] = frozenset(
         DC_INTENT_TARIFFS,
         DC_INTENT_JOBS,
         DC_INTENT_CONGRESS_TRADES,
+        # Phase-2 extended
+        DC_INTENT_DARK_POOL_SCAN,
+        DC_INTENT_PENNY_STOCK_SCAN,
+        DC_INTENT_REAL_ESTATE_SCAN,
+        DC_INTENT_PERSONAL_WEALTH_SCAN,
+        DC_INTENT_TAX_LEGAL_SCAN,
+        DC_INTENT_BUSINESS_SCAN,
+        DC_INTENT_ALTERNATIVE_ASSET_SCAN,
+        DC_INTENT_GLOBAL_LIQUIDITY_SCAN,
+        DC_INTENT_GROWTH_MARKETING_SCAN,
+        DC_INTENT_INTELLIGENCE_SYNTHESIS,
+        DC_INTENT_SECTOR_ROTATION_SCAN,
+        DC_INTENT_SENTIMENT_DIVERGENCE_SCAN,
     }
 )
 
@@ -769,6 +796,253 @@ def _compact_generic_cache(obj: dict, *, snapshot: str, list_key: str | None = N
     return out
 
 
+def _compact_dark_pool_scan(obj: dict) -> dict:
+    """D8: dark_pool_latest.json → top_tickers, ratio_signals, date."""
+    top = obj.get("top_tickers") or obj.get("tickers") or []
+    if isinstance(top, list):
+        top = top[:20]
+    return {
+        "snapshot": "dark_pool_scan",
+        "date": obj.get("date") or obj.get("generated_at"),
+        "top_tickers": top,
+        "ratio_signals": obj.get("ratio_signals") or obj.get("signals"),
+        "total_volume": obj.get("total_volume"),
+        "notable_prints": (obj.get("notable_prints") or [])[:10],
+    }
+
+
+def _compact_penny_stock_scan(obj: dict) -> dict:
+    """D9: penny_stocks_latest.json → top_movers, volume_leaders, date."""
+    movers = obj.get("top_movers") or obj.get("movers") or []
+    if isinstance(movers, list):
+        movers = movers[:20]
+    leaders = obj.get("volume_leaders") or obj.get("leaders") or []
+    if isinstance(leaders, list):
+        leaders = leaders[:15]
+    return {
+        "snapshot": "penny_stock_scan",
+        "date": obj.get("date") or obj.get("generated_at"),
+        "top_movers": movers,
+        "volume_leaders": leaders,
+        "total_screened": obj.get("total_screened"),
+    }
+
+
+def _compact_real_estate_cache(files: dict) -> dict:
+    """R1-R7: aggregate 7 real estate cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "real_estate_scan",
+        "median_price": _get("residential", "median_price"),
+        "yoy_change": _get("residential", "yoy_change"),
+        "days_on_market": _get("residential", "days_on_market"),
+        "avg_rent": _get("rental_yield", "avg_rent"),
+        "gross_yield": _get("rental_yield", "gross_yield"),
+        "str_avg_daily_rate": _get("str", "avg_daily_rate"),
+        "str_occupancy_rate": _get("str", "occupancy_rate"),
+        "commercial_lease_rate": _get("commercial", "avg_lease_rate"),
+        "commercial_vacancy": _get("commercial", "vacancy_rate"),
+        "permit_trends": _get("zoning", "permit_trends"),
+        "top_reit_yields": (_get("reits", "top_yields") or _get("reits", "reits") or [])[:5],
+        "mortgage_30yr": _get("mortgage_rates", "current_30yr"),
+        "mortgage_15yr": _get("mortgage_rates", "current_15yr"),
+        "mortgage_trend": _get("mortgage_rates", "trend"),
+    }
+
+
+def _compact_wealth_cache(files: dict) -> dict:
+    """W1-W8: aggregate 8 wealth/debt cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "personal_wealth_scan",
+        "best_hysa_apy": _get("hysa", "best_apy"),
+        "best_hysa_bank": _get("hysa", "bank_name"),
+        "best_cashback_card": _get("credit_cards", "best_cashback"),
+        "best_travel_card": _get("credit_cards", "best_travel"),
+        "auto_loan_avg_rate": _get("auto_loans", "avg_rate"),
+        "auto_loan_credit_union": _get("auto_loans", "credit_union_rate"),
+        "student_debt_federal_rate": _get("student_debt", "federal_rate"),
+        "student_forgiveness_programs": _get("student_debt", "forgiveness_programs"),
+        "ira_limit": _get("retirement_limits", "ira_limit"),
+        "401k_limit": _get("retirement_limits", "401k_limit"),
+        "retirement_year": _get("retirement_limits", "year"),
+        "personal_loan_rate_range": _get("personal_loans", "avg_rate_range"),
+        "top_affordable_cities": (_get("col", "top_affordable_cities") or [])[:5],
+        "avg_grocery_index": _get("col", "avg_grocery_index"),
+        "avg_auto_premium": _get("insurance", "avg_auto_premium"),
+        "avg_home_premium": _get("insurance", "avg_home_premium"),
+    }
+
+
+def _compact_tax_legal_cache(files: dict) -> dict:
+    """L1-L6: aggregate 6 tax/legal cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "tax_legal_scan",
+        "tax_brackets": _get("federal_tax", "brackets"),
+        "standard_deduction": _get("federal_tax", "standard_deduction"),
+        "tax_year": _get("federal_tax", "year"),
+        "top_low_tax_states": (_get("state_tax", "top_low_tax_states") or [])[:5],
+        "special_tax_programs": _get("state_tax", "special_programs"),
+        "bankruptcy_ch7_count": _get("bankruptcy", "ch7_count"),
+        "bankruptcy_ch11_count": _get("bankruptcy", "ch11_count"),
+        "bankruptcy_trend": _get("bankruptcy", "filing_trend"),
+        "recent_sec_risk_filings": (_get("sec_filings", "recent_risk_filings") or [])[:5],
+        "consumer_alerts": (_get("consumer_alerts", "top_alerts") or [])[:5],
+        "consumer_alert_severity": _get("consumer_alerts", "severity_counts"),
+        "federal_min_wage": _get("labor_law", "federal_min_wage"),
+        "recent_labor_changes": _get("labor_law", "recent_changes"),
+    }
+
+
+def _compact_business_cache(files: dict) -> dict:
+    """B1-B6: aggregate 6 business cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "business_scan",
+        "sba_top_programs": (_get("sba", "top_programs") or [])[:5],
+        "sba_max_amounts": _get("sba", "max_amounts"),
+        "sba_deadlines": _get("sba", "deadlines"),
+        "median_cac": _get("saas_metrics", "median_cac"),
+        "median_ltv": _get("saas_metrics", "median_ltv"),
+        "avg_churn": _get("saas_metrics", "avg_churn"),
+        "top_ecommerce_niches": (_get("ecommerce", "top_niches") or [])[:5],
+        "ecommerce_trend_scores": _get("ecommerce", "trend_scores"),
+        "top_freelance_roles": (_get("freelance_rates", "top_roles") or [])[:5],
+        "freelance_rate_ranges": _get("freelance_rates", "rate_ranges"),
+        "top_franchises": (_get("franchise", "top_franchises") or [])[:5],
+        "franchise_cost_ranges": _get("franchise", "cost_ranges"),
+        "vc_hot_sectors": (_get("vc_deals", "hot_sectors") or [])[:5],
+        "vc_recent_deals": (_get("vc_deals", "recent_deals") or [])[:5],
+    }
+
+
+def _compact_alternative_asset_cache(files: dict) -> dict:
+    """A1-A5: aggregate 5 alternative asset cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "alternative_asset_scan",
+        "top_watch_models": (_get("watches", "top_models") or _get("watches", "models") or [])[:5],
+        "watch_avg_prices": _get("watches", "avg_prices"),
+        "watch_premiums": _get("watches", "premiums"),
+        "recent_art_sales": (_get("art", "recent_sales") or [])[:5],
+        "top_artists": (_get("art", "top_artists") or [])[:5],
+        "trending_collectibles": (_get("collectibles", "trending_items") or [])[:5],
+        "collectibles_price_trends": _get("collectibles", "price_trends"),
+        "p2p_avg_returns": _get("p2p", "avg_returns"),
+        "p2p_default_rates": _get("p2p", "default_rates"),
+        "gold_spot": _get("metals", "gold_spot"),
+        "silver_spot": _get("metals", "silver_spot"),
+        "metals_premiums": _get("metals", "premiums"),
+    }
+
+
+def _compact_global_liquidity_scan(obj: dict) -> dict:
+    """M9: global_liquidity_latest.json → liquidity_trend, signal, key_drivers."""
+    return {
+        "snapshot": "global_liquidity_scan",
+        "period": obj.get("period"),
+        "m2_trillions_usd": obj.get("m2_trillions_usd"),
+        "yoy_change_pct": obj.get("yoy_change_pct"),
+        "liquidity_regime": obj.get("liquidity_regime"),
+        "liquidity_trend": obj.get("liquidity_trend") or obj.get("trend"),
+        "signal": obj.get("signal"),
+        "key_drivers": obj.get("key_drivers"),
+        "source": obj.get("source"),
+    }
+
+
+def _compact_growth_marketing_cache(files: dict) -> dict:
+    """G1-G10: aggregate 10 growth/marketing cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "growth_marketing_scan",
+        "top_advertisers": (_get("competitor_ads", "top_advertisers") or [])[:5],
+        "ad_spend_ranges": _get("competitor_ads", "spend_ranges"),
+        "trending_keywords": (_get("seo_keywords", "trending_keywords") or [])[:10],
+        "keyword_volumes": _get("seo_keywords", "volumes"),
+        "brand_sentiment": _get("sentiment", "brand_sentiment"),
+        "trending_topics": (_get("sentiment", "trending_topics") or [])[:5],
+        "email_domain_score": _get("email_health", "domain_score"),
+        "email_deliverability": _get("email_health", "deliverability"),
+        "avg_engagement_benchmarks": _get("engagement", "avg_engagement_benchmarks"),
+        "common_complaints": (_get("reviews", "common_complaints") or [])[:5],
+        "top_praise": (_get("reviews", "top_praise") or [])[:3],
+        "avg_roas_by_platform": _get("roas", "avg_roas_by_platform"),
+        "lead_count": _get("leads", "lead_count"),
+        "lead_categories": _get("leads", "categories"),
+        "crm_sync_status": _get("crm_sync", "sync_status"),
+    }
+
+
+def _compact_intelligence_cache(files: dict) -> dict:
+    """IQ1-IQ8: aggregate 8 intelligence synthesis cache files."""
+    def _get(name: str, key: str, fallback=None):
+        d = files.get(name) or {}
+        return d.get(key, fallback)
+
+    return {
+        "snapshot": "intelligence_synthesis",
+        "top_correlations": (_get("correlation", "top_correlations") or [])[:5],
+        "notable_divergences": (_get("correlation", "notable_divergences") or [])[:3],
+        "current_regime": _get("regime_change", "current_regime"),
+        "regime_confidence": _get("regime_change", "confidence"),
+        "regime_signal": _get("regime_change", "signal"),
+        "high_impact_earnings": (_get("earnings_season_brief", "high_impact_reports") or [])[:5],
+        "weekly_earnings_risk": _get("earnings_season_brief", "weekly_risk"),
+        "sector_rotation_thesis": _get("sector_rotation", "rotation_thesis"),
+        "inflow_sectors": (_get("sector_rotation", "inflow_sectors") or [])[:5],
+        "top_news_catalysts": (_get("news_catalysts", "top_impact_headlines") or [])[:5],
+        "catalyst_tickers": (_get("news_catalysts", "affected_tickers") or [])[:10],
+        "sentiment_divergences": (_get("sentiment_divergence", "top_divergences") or [])[:5],
+        "divergence_trade_implications": _get("sentiment_divergence", "trade_implications"),
+        "portfolio_risk_score": _get("risk_budget", "portfolio_risk_score"),
+        "risk_alerts": (_get("risk_budget", "alerts") or [])[:5],
+    }
+
+
+def _compact_sector_rotation_scan(obj: dict) -> dict:
+    """IQ4-specific: sector_rotation_latest.json → detailed rotation view."""
+    return {
+        "snapshot": "sector_rotation_scan",
+        "rotation_thesis": obj.get("rotation_thesis"),
+        "inflow_sectors": (obj.get("inflow_sectors") or [])[:5],
+        "outflow_sectors": (obj.get("outflow_sectors") or [])[:5],
+        "institutional_flows": obj.get("institutional_flows"),
+        "signal_strength": obj.get("signal_strength"),
+        "generated_at": obj.get("generated_at"),
+    }
+
+
+def _compact_sentiment_divergence_scan(obj: dict) -> dict:
+    """IQ6-specific: sentiment_divergence_latest.json → divergence signals."""
+    return {
+        "snapshot": "sentiment_divergence_scan",
+        "top_divergences": (obj.get("top_divergences") or [])[:10],
+        "trade_implications": obj.get("trade_implications"),
+        "retail_sentiment": obj.get("retail_sentiment"),
+        "institutional_sentiment": obj.get("institutional_sentiment"),
+        "generated_at": obj.get("generated_at"),
+    }
+
 
 def _load_internal_knowledge_payload(
     intent: str,
@@ -805,7 +1079,116 @@ def _load_internal_knowledge_payload(
         DC_INTENT_TARIFFS: "tariffs_latest.json",
         DC_INTENT_JOBS: "jobs_latest.json",
         DC_INTENT_CONGRESS_TRADES: "congress_trades_latest.json",
+        # Phase-2 single-file intents
+        DC_INTENT_DARK_POOL_SCAN: "dark_pool_latest.json",
+        DC_INTENT_PENNY_STOCK_SCAN: "penny_stocks_latest.json",
+        DC_INTENT_GLOBAL_LIQUIDITY_SCAN: "global_liquidity_latest.json",
+        DC_INTENT_SECTOR_ROTATION_SCAN: "sector_rotation_latest.json",
+        DC_INTENT_SENTIMENT_DIVERGENCE_SCAN: "sentiment_divergence_latest.json",
     }
+
+    # Phase-2 multi-file intents: load multiple cache files in parallel
+    _MULTI_FILE_INTENTS = {
+        DC_INTENT_REAL_ESTATE_SCAN: {
+            "residential": "residential_latest.json",
+            "rental_yield": "rental_yield_latest.json",
+            "str": "str_latest.json",
+            "commercial": "commercial_latest.json",
+            "zoning": "zoning_latest.json",
+            "reits": "reits_latest.json",
+            "mortgage_rates": "mortgage_rates_latest.json",
+        },
+        DC_INTENT_PERSONAL_WEALTH_SCAN: {
+            "hysa": "hysa_latest.json",
+            "credit_cards": "credit_cards_latest.json",
+            "auto_loans": "auto_loans_latest.json",
+            "student_debt": "student_debt_latest.json",
+            "retirement_limits": "retirement_limits_latest.json",
+            "personal_loans": "personal_loans_latest.json",
+            "col": "col_latest.json",
+            "insurance": "insurance_latest.json",
+        },
+        DC_INTENT_TAX_LEGAL_SCAN: {
+            "federal_tax": "federal_tax_latest.json",
+            "state_tax": "state_tax_latest.json",
+            "bankruptcy": "bankruptcy_latest.json",
+            "sec_filings": "sec_filings_latest.json",
+            "consumer_alerts": "consumer_alerts_latest.json",
+            "labor_law": "labor_law_latest.json",
+        },
+        DC_INTENT_BUSINESS_SCAN: {
+            "sba": "sba_latest.json",
+            "saas_metrics": "saas_metrics_latest.json",
+            "ecommerce": "ecommerce_latest.json",
+            "freelance_rates": "freelance_rates_latest.json",
+            "franchise": "franchise_latest.json",
+            "vc_deals": "vc_deals_latest.json",
+        },
+        DC_INTENT_ALTERNATIVE_ASSET_SCAN: {
+            "watches": "watches_latest.json",
+            "art": "art_latest.json",
+            "collectibles": "collectibles_latest.json",
+            "p2p": "p2p_latest.json",
+            "metals": "metals_latest.json",
+        },
+        DC_INTENT_GROWTH_MARKETING_SCAN: {
+            "competitor_ads": "competitor_ads_latest.json",
+            "seo_keywords": "seo_keywords_latest.json",
+            "sentiment": "sentiment_latest.json",
+            "email_health": "email_health_latest.json",
+            "engagement": "engagement_latest.json",
+            "reviews": "reviews_latest.json",
+            "roas": "roas_latest.json",
+            "leads": "leads_latest.json",
+            "crm_sync": "crm_sync_latest.json",
+        },
+        DC_INTENT_INTELLIGENCE_SYNTHESIS: {
+            "correlation": "correlation_latest.json",
+            "regime_change": "regime_change_latest.json",
+            "earnings_season_brief": "earnings_season_brief_latest.json",
+            "sector_rotation": "sector_rotation_latest.json",
+            "news_catalysts": "news_catalysts_latest.json",
+            "sentiment_divergence": "sentiment_divergence_latest.json",
+            "risk_budget": "risk_budget_latest.json",
+        },
+    }
+
+    if intent in _MULTI_FILE_INTENTS:
+        file_map = _MULTI_FILE_INTENTS[intent]
+        parallel_results = _load_cache_files_parallel(list(file_map.values()))
+        files_data: dict[str, Any] = {}
+        any_loaded = False
+        for key, fname_multi in file_map.items():
+            raw_obj_multi, _ = parallel_results.get(fname_multi, (None, {}))
+            if isinstance(raw_obj_multi, dict):
+                files_data[key] = raw_obj_multi
+                any_loaded = True
+            else:
+                files_data[key] = {}
+        if not any_loaded:
+            meta["error"] = "no_multi_file_data_loaded"
+            return None, meta
+        if intent == DC_INTENT_REAL_ESTATE_SCAN:
+            compact = _compact_real_estate_cache(files_data)
+        elif intent == DC_INTENT_PERSONAL_WEALTH_SCAN:
+            compact = _compact_wealth_cache(files_data)
+        elif intent == DC_INTENT_TAX_LEGAL_SCAN:
+            compact = _compact_tax_legal_cache(files_data)
+        elif intent == DC_INTENT_BUSINESS_SCAN:
+            compact = _compact_business_cache(files_data)
+        elif intent == DC_INTENT_ALTERNATIVE_ASSET_SCAN:
+            compact = _compact_alternative_asset_cache(files_data)
+        elif intent == DC_INTENT_GROWTH_MARKETING_SCAN:
+            compact = _compact_growth_marketing_cache(files_data)
+        elif intent == DC_INTENT_INTELLIGENCE_SYNTHESIS:
+            compact = _compact_intelligence_cache(files_data)
+        else:
+            compact = {"snapshot": intent, "data": files_data}
+        meta["loaded"] = True
+        meta["asset_rows"] = _ik_row_count(compact)
+        meta["file"] = ",".join(file_map.values())
+        return compact, meta
+
     fname = intent_files.get(intent)
     if not fname:
         meta["error"] = "unknown_data_cache_intent"
@@ -897,6 +1280,17 @@ def _load_internal_knowledge_payload(
         compact = _compact_generic_cache(raw_obj, snapshot="jobs", list_key="sector_breakdown")
     elif intent == DC_INTENT_CONGRESS_TRADES:
         compact = _compact_generic_cache(raw_obj, snapshot="congress_trades", list_key="trades")
+    # Phase-2 single-file intents
+    elif intent == DC_INTENT_DARK_POOL_SCAN:
+        compact = _compact_dark_pool_scan(raw_obj)
+    elif intent == DC_INTENT_PENNY_STOCK_SCAN:
+        compact = _compact_penny_stock_scan(raw_obj)
+    elif intent == DC_INTENT_GLOBAL_LIQUIDITY_SCAN:
+        compact = _compact_global_liquidity_scan(raw_obj)
+    elif intent == DC_INTENT_SECTOR_ROTATION_SCAN:
+        compact = _compact_sector_rotation_scan(raw_obj)
+    elif intent == DC_INTENT_SENTIMENT_DIVERGENCE_SCAN:
+        compact = _compact_sentiment_divergence_scan(raw_obj)
     else:
         meta["error"] = "unknown_data_cache_intent"
         return None, meta
@@ -1526,7 +1920,7 @@ class OmegaAgent:
                 include_full=include_market_intel,
             )
         fetch_t = round(time.time() - t1, 2)
-        report = self._synthesize(user_query, domain, ctx, bundle)
+        report = self._synthesize(user_query, domain, ctx, bundle, data_cache_intent=data_cache_intent)
         ai_t = round(time.time() - t1 - fetch_t, 2)
         report.setdefault("_meta", {})
         report["_meta"].update(
@@ -1546,7 +1940,7 @@ class OmegaAgent:
             report["_meta"]["data_cache"] = dc_meta
         return report
 
-    def _synthesize(self, query: str, domain: str, ctx: UserContext, bundle: dict) -> dict:
+    def _synthesize(self, query: str, domain: str, ctx: UserContext, bundle: dict, *, data_cache_intent: str | None = None) -> dict:
         client = self._get_client()
         if not client:
             return {"error": "No GOOGLE_API_KEY in .env", "query": query}
@@ -1597,8 +1991,26 @@ D2/D3/D4 MARKET INTELLIGENCE RULES:
 - For market-wide questions, summarize only rows present in those snapshots; if record_count is 0 or a slice is empty, say no cached rows are available.
 - For specific ticker questions, use ticker_slices first. If the ticker is absent from options_flow or insider_trades, explicitly say the cache has no matching row instead of inventing flow or filings.
 """
+        # Domain framing — prepended for SCAN intents to set the analyst persona
+        _DOMAIN_FRAMING: dict[str, str] = {
+            "REAL_ESTATE_SCAN": "You are a senior real estate analyst with expertise in residential, commercial, rental, and REIT markets.",
+            "PERSONAL_WEALTH_SCAN": "You are a certified financial planner (CFP) helping users optimize savings, debt, and personal finances. Always append: 'Consult a CFP for personalized advice.'",
+            "TAX_LEGAL_SCAN": "You are a senior tax and legal analyst. This is informational only — always append: 'Consult a licensed tax professional or attorney for your specific situation.'",
+            "BUSINESS_SCAN": "You are a venture analyst and business strategist with deep expertise in SMBs, SaaS metrics, franchise, and startup funding.",
+            "ALTERNATIVE_ASSET_SCAN": "You are an alternative asset specialist covering luxury watches, fine art, collectibles, precious metals, and P2P lending.",
+            "GROWTH_MARKETING_SCAN": "You are a growth and marketing analyst specializing in digital ads, SEO, brand sentiment, and ROI optimization.",
+            "INTELLIGENCE_SYNTHESIS": "You are a senior quant analyst and portfolio strategist. Synthesize signals across regimes, rotations, and catalysts to surface the highest-conviction insights.",
+            "DARK_POOL_SCAN": "You are a market microstructure analyst specializing in dark pool activity, off-exchange block trades, and institutional flow detection.",
+            "PENNY_STOCK_SCAN": "You are a small-cap specialist focused on penny stocks and micro-cap movers. Note the high-risk nature of this asset class.",
+            "GLOBAL_LIQUIDITY_SCAN": "You are a global macro and liquidity specialist tracking M2 money supply, central bank policy, and liquidity cycles.",
+            "SECTOR_ROTATION_SCAN": "You are a sector rotation specialist who tracks institutional money flows across market sectors.",
+            "SENTIMENT_DIVERGENCE_SCAN": "You are a contrarian analyst who identifies divergences between retail and institutional sentiment.",
+        }
+        domain_frame_prefix = ""
+        if data_cache_intent and data_cache_intent in _DOMAIN_FRAMING:
+            domain_frame_prefix = _DOMAIN_FRAMING[data_cache_intent] + "\n\n"
 
-        prompt = f"""You are ATLAS Omega. Today: {today}.
+        prompt = f"""{domain_frame_prefix}You are ATLAS Omega. Today: {today}.
 Query: "{query}"
 Domain: {domain} ({lens})
 User context:

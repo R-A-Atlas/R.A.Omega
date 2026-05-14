@@ -369,7 +369,7 @@
             }
 
             const topLine = data.tldr || fr.tldr || fr.primary_recommendation || fr.overall_rating;
-            const tldrLabel = data.tldr || fr.tldr ? 'TLDR' : fr.primary_recommendation ? 'Recommendation' : 'Outlook';
+            const tldrLabel = data.tldr || fr.tldr ? 'BOTTOM LINE' : fr.primary_recommendation ? 'Recommendation' : 'Outlook';
             const ratingSub =
                 fr.overall_rating && String(fr.overall_rating).trim() !== String(topLine || '').trim()
                     ? `<p class="mono muted small rating-sub">Rating: ${esc(fr.overall_rating)}</p>`
@@ -654,18 +654,18 @@
             const execText = fr.executive_summary || fr.executive_brief || '';
             const execSection = execText && `<section class="card sec-exec"><h2 class="card-label">Executive Summary</h2><div class="card-body prose content-editable" contenteditable="true">${esc(execText)}</div></section>`;
             const thesisSection = thesisBlock && `<section class="card sec-thesis"><h2 class="card-label">Bull vs Bear Thesis</h2><div class="card-body">${thesisBlock}</div></section>`;
-            const tpSection = tradePlanBlock && `<section class="card sec-tp"><h2 class="card-label">Trade Plan</h2><div class="card-body">${tradePlanBlock}</div></section>`;
+            const tpSection = tradePlanBlock && `<section class="card sec-tp"><h2 class="card-label">THE SETUP</h2><div class="card-body">${tradePlanBlock}</div></section>`;
             const optionsSection = optionsBlock && `<section class="card sec-options"><h2 class="card-label">Options Play</h2><div class="card-body">${optionsBlock}</div></section>`;
-            const scSection = scenariosBlock && `<section class="card sec-sc"><h2 class="card-label">Scenarios</h2><div class="card-body">${scenariosBlock}</div></section>`;
+            const scSection = scenariosBlock && `<section class="card sec-sc"><h2 class="card-label">HOW THIS PLAYS OUT</h2><div class="card-body">${scenariosBlock}</div></section>`;
             const plSection = priceLevelsBar && `<section class="card sec-pl"><h2 class="card-label">Price Levels</h2><div class="card-body">${priceLevelsBar}</div></section>`;
             const krSection = keyRisksBlock && `<section class="card sec-kr"><h2 class="card-label">Key Risks</h2><div class="card-body kr-wrap">${keyRisksBlock}</div></section>`;
-            const rulesSection = rulesBlock && `<section class="card sec-rules"><h2 class="card-label">Execution Rules</h2><div class="card-body rules-wrap">${rulesBlock}</div></section>`;
-            const fmSection = fmBlock && `<section class="card sec-fm"><h2 class="card-label">Failure Modes</h2><div class="card-body fm-wrap">${fmBlock}</div></section>`;
+            const rulesSection = rulesBlock && `<section class="card sec-rules"><h2 class="card-label">YOUR RULES</h2><div class="card-body rules-wrap">${rulesBlock}</div></section>`;
+            const fmSection = fmBlock && `<section class="card sec-fm"><h2 class="card-label">WHAT BREAKS THIS</h2><div class="card-body fm-wrap">${fmBlock}</div></section>`;
             const catSection = catalystBlock && `<section class="card sec-cat"><h2 class="card-label">Catalyst Timeline</h2><div class="cat-strip-wrap"><div class="cat-strip">${catalystBlock}</div></div></section>`;
             const analystSection = analystBlock && `<section class="card sec-analyst"><h2 class="card-label">Analyst Consensus</h2><div class="card-body">${analystBlock}</div></section>`;
             const hfSection = hfBlock && `<section class="card sec-hf memo-card memo-hf"><h2 class="card-label memo-hf-label">Hedge Fund Brief</h2><div class="card-body memo-body">${hfBlock}</div></section>`;
             const traderMemo = data.trader_memo || fr.trader_memo || '';
-            const memoSection = traderMemo && `<section class="card memo-card memo-trader sec-memo"><h2 class="card-label trader-memo-label">Trader Memo</h2><div class="card-body memo-body trader-memo-body content-editable" contenteditable="true">${esc(traderMemo)}</div></section>`;
+            const memoSection = traderMemo && `<section class="card memo-card memo-trader sec-memo"><h2 class="card-label trader-memo-label">INTELLIGENCE MEMO</h2><div class="card-body memo-body trader-memo-body content-editable" contenteditable="true">${esc(traderMemo)}</div></section>`;
 
             const extendedPieces = [thesisSection, optionsSection, krSection, analystSection, hfSection].filter(Boolean);
             const extendedBlock =
@@ -680,34 +680,62 @@
             const confStr = pq.confidence != null && pq.confidence !== '' ? String(pq.confidence) : fr.confidence != null && fr.confidence !== '' ? String(fr.confidence) : '';
             const queryLine = data.query ? `<p class="mono muted small meta-query">Query: ${esc(data.query)}</p>` : '';
 
-            const headStyle = `:root{--bg:#0D1117;--surface:rgba(255,255,255,0.04);--border:rgba(240,246,252,0.12);--text:#E6EDF3;--muted:rgba(255,255,255,0.45);--accent:#0044FF;--accent2:#00AFFF}
-*{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
-body{font-family:'Inter',system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.65;padding:40px 36px 80px;max-width:960px;margin:0 auto}
+            const headStyle = `:root{
+  --bg:#0B1020;--bg2:#111827;--bg3:#1a2035;--bg4:#1e2640;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --teal:#18C6C8;--teal-dim:rgba(24,198,200,0.13);--teal-glow:rgba(24,198,200,0.07);
+  --green:#22c55e;--green-dim:rgba(34,197,94,0.12);
+  --amber:#f59e0b;--amber-dim:rgba(245,158,11,0.12);
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.12);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.12);
+  --purple:#a78bfa;--purple-dim:rgba(167,139,250,0.12);
+  --text:#f1f5f9;--t2:#94a3b8;--t3:#64748b;--t4:#475569;
+  --surface:rgba(255,255,255,0.04);--border-c:rgba(240,246,252,0.10);
+  --accent:#18C6C8;--accent2:#22c55e;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--text)}
+body{font-family:'Space Grotesk',system-ui,-apple-system,sans-serif;font-size:15px;line-height:1.65;padding:40px 36px 80px;max-width:1100px;margin:0 auto}
 .mono{font-family:'JetBrains Mono',ui-monospace,monospace}.muted{color:var(--muted)}.small{font-size:12px}
 .export-bar{position:fixed;bottom:24px;right:24px;z-index:99;display:flex;gap:10px}
 .export-btn{font-family:'JetBrains Mono',monospace;font-size:11px;padding:10px 18px;border-radius:10px;border:1px solid rgba(0,68,255,0.45);background:rgba(13,17,23,0.92);color:var(--accent2);cursor:pointer;backdrop-filter:blur(10px);transition:all 0.15s ease}
 .export-btn:hover{background:rgba(0,68,255,0.12);border-color:rgba(0,175,255,0.55)}
-header.site{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bottom:28px}
+header.site{border-bottom:1px solid var(--border2);padding-bottom:20px;margin-bottom:24px}
 .hdr-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:flex-start;gap:16px}
-.hdr-badges{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end}
-.badge{font-size:11px;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text)}
-.badge.ticker{color:var(--accent2);border-color:rgba(0,68,255,0.38)}.badge.rating{color:#238636;border-color:rgba(35,134,54,0.42)}.badge.conf{color:#D29922;border-color:rgba(210,153,34,0.42)}
-.brand-mark{font-size:14px;font-weight:700;letter-spacing:0.22em;color:var(--accent);font-family:'JetBrains Mono',monospace}
-.brand-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:0.18em;margin-top:6px;font-family:'JetBrains Mono',monospace}
-.hero{padding:22px 24px;margin-bottom:24px;background:var(--surface);border:1px solid var(--border);border-left-width:4px;border-radius:10px}
-.hero-label{font-size:10px;letter-spacing:0.2em;color:var(--muted);margin:0 0 10px;text-transform:uppercase}
-.hero-text{font-size:27px;font-weight:700;line-height:1.3;margin:0;letter-spacing:-0.022em;color:var(--text)}.rating-sub{margin:14px 0 0}
+.hdr-badges{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;align-items:center}
+.stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:700px){.stat-cards{grid-template-columns:1fr 1fr}}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.stat-num{font-size:28px;font-weight:700;line-height:1;letter-spacing:-0.03em}
+.stat-num.teal{color:var(--teal)}.stat-num.green{color:var(--green)}.stat-num.amber{color:var(--amber)}.stat-num.red{color:var(--red)}
+.stat-label{font-size:11px;color:var(--t2);margin-top:4px;font-weight:500}
+.stat-sub{font-size:10px;color:var(--t3);margin-top:2px}
+.section-label{font-size:10px;font-weight:600;color:var(--t3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.badge{display:inline-flex;align-items:center;font-size:11px;font-weight:600;padding:3px 9px;border-radius:99px;white-space:nowrap}
+.badge.ticker{background:var(--teal-dim);color:var(--teal);border:1px solid rgba(24,198,200,0.3)}
+.badge.rating{background:var(--green-dim);color:var(--green);border:1px solid rgba(34,197,94,0.3)}
+.badge.conf{background:var(--amber-dim);color:var(--amber);border:1px solid rgba(245,158,11,0.3)}
+.badge.sector{background:rgba(255,255,255,0.06);color:var(--t2);border:1px solid rgba(255,255,255,0.1)}
+.brand-mark{font-size:13px;font-weight:700;letter-spacing:0.18em;color:var(--teal);font-family:'Space Grotesk',sans-serif}
+.brand-sub{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:0.15em;margin-top:4px;font-family:'Space Grotesk',sans-serif}
+.hero{padding:22px 24px;margin-bottom:20px;background:var(--bg2);border:1px solid var(--border2);border-left-width:4px;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.hero-label{font-size:10px;letter-spacing:0.18em;color:var(--t3);margin:0 0 10px;text-transform:uppercase;font-weight:600}
+.hero-text{font-size:26px;font-weight:700;line-height:1.3;margin:0;letter-spacing:-0.02em;color:var(--text)}.rating-sub{margin:12px 0 0}
 .conf-wrap{margin-top:14px}.conf-label-row{display:flex;justify-content:space-between;margin-bottom:5px}
-.conf-track{height:4px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
-.conf-fill{height:100%;background:#0044FF;border-radius:4px}
-.card{margin-bottom:20px;padding:20px 22px;background:var(--surface);border:1px solid var(--border);border-radius:10px}
-.card-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin:0 0 14px;font-weight:600}
-.card-label.accent{color:var(--accent2)}.card-body.prose{font-size:14px;color:rgba(230,237,243,0.94)}
+.conf-track{height:5px;background:rgba(255,255,255,0.06);border-radius:4px;overflow:hidden}
+.conf-fill{height:100%;background:var(--teal);border-radius:4px}
+.card{margin-bottom:16px;padding:18px 20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px}
+.card.green{border-color:rgba(34,197,94,0.2);background:var(--green-dim)}
+.card.amber{border-color:rgba(245,158,11,0.2);background:var(--amber-dim)}
+.card.red{border-color:rgba(239,68,68,0.2);background:var(--red-dim)}
+.card.teal{border-color:rgba(24,198,200,0.2);background:var(--teal-glow)}
+.card-label{font-family:'Space Grotesk',sans-serif;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--t3);margin:0 0 14px;font-weight:600}
+.card-label.accent{color:var(--teal)}.card-body.prose{font-size:14px;color:var(--t2);line-height:1.7}
 .content-editable{outline:none;border-radius:8px;min-height:1.5em;padding:4px 2px;white-space:pre-wrap;transition:background 0.15s ease,color 0.15s ease}
 .content-editable:focus{background:rgba(0,68,255,0.08);box-shadow:0 0 0 1px rgba(0,68,255,0.38)}
-.memo-card{border-radius:12px;border:1px solid rgba(255,255,255,0.08)}.memo-body{font-style:italic;font-size:14px;white-space:pre-wrap;line-height:1.65;color:rgba(230,237,243,0.9)}
-.memo-hf{border-color:rgba(0,175,255,0.22);background:rgba(0,68,255,0.045)}.memo-hf-label{color:var(--accent2)!important;font-weight:600}
-.memo-trader{border-color:rgba(0,68,255,0.38);background:rgba(0,68,255,0.09)}.trader-memo-label{color:var(--accent2)!important;letter-spacing:0.2em;font-weight:600}.trader-memo-body{color:rgba(200,215,238,0.95)!important}
+.memo-card{border-radius:12px;border:1px solid var(--border2)}.memo-body{font-style:italic;font-size:14px;white-space:pre-wrap;line-height:1.7;color:var(--t2)}
+.memo-hf{border-color:rgba(24,198,200,0.22);background:var(--teal-glow)}.memo-hf-label{color:var(--teal)!important;font-weight:600}
+.memo-trader{border-color:rgba(24,198,200,0.3);border-left:4px solid var(--teal);background:rgba(24,198,200,0.06)}.trader-memo-label{color:var(--teal)!important;letter-spacing:0.15em;font-weight:600}.trader-memo-body{color:var(--t2)!important}
 .tp-plan-grid{font-size:14px}.tp-plan-grid thead th{font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.12em;color:var(--muted);text-align:center;padding:8px 6px;border-bottom:1px solid var(--border);font-weight:600}
 .tp-plan-grid tbody td{border-bottom:none;padding:14px 8px;text-align:center;vertical-align:middle}.tp-plan-grid tbody tr:last-child td{padding-bottom:4px}.tp-plan-grid+.tp-table{margin-top:12px}
 .tp-table{width:100%;border-collapse:collapse;font-size:14px}.tp-table td{padding:10px 12px 10px 0;border-bottom:1px solid var(--border);vertical-align:top}.tp-table tr:last-child td{border-bottom:none}
@@ -755,8 +783,8 @@ header.site{border-bottom:1px solid var(--border);padding-bottom:20px;margin-bot
 .kr-wrap{display:flex;flex-direction:column;gap:8px}.kr-row{display:flex;gap:10px;align-items:flex-start}
 .kr-bullet{color:var(--muted);font-size:14px;flex-shrink:0;margin-top:1px}
 .kr-badge{font-size:9px;font-weight:700;padding:3px 7px;border-radius:4px;flex-shrink:0;margin-top:2px}.kr-text{font-size:14px;color:rgba(230,237,243,0.9);flex:1}
-footer.meta{margin-top:36px;padding-top:20px;border-top:1px solid var(--border);font-size:11px;color:#52525b;font-family:'JetBrains Mono',monospace;line-height:1.6}
-.disclaimer{display:block;margin-top:8px;color:#6b7280}.meta-query{margin:0 0 12px}
+footer.meta{margin-top:36px;padding-top:20px;border-top:1px solid var(--border2);font-size:11px;color:var(--t4);font-family:'Space Grotesk',sans-serif;line-height:1.6;display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px}
+.disclaimer{display:block;margin-top:6px;color:var(--t4);font-size:10px}.meta-query{margin:0 0 12px}
 html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-scheme:dark}
 @page{margin:14mm}
 @media print{body{padding:12px 0;max-width:100%}.export-bar{display:none!important}.extended-label{break-after:avoid}.card,.hero,.scenario-col,.cat-node{break-inside:avoid;page-break-inside:avoid}.cat-strip{flex-wrap:wrap;overflow:visible}}
@@ -770,7 +798,7 @@ html,body{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!im
 <title>R.A. Omega - ${esc(fr.ticker || fr.company_name || 'Report')}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
 <style>${headStyle}</style>
 ${autoPrint ? '<script>window.addEventListener("load",function(){setTimeout(function(){window.print();},800);});<\/script>' : ''}
 </head>
@@ -781,17 +809,25 @@ ${autoPrint ? '<script>window.addEventListener("load",function(){setTimeout(func
 <header class="site">
   <div class="hdr-row">
     <div>
-      <div class="brand-mark">R.A. OMEGA</div>
-      <div class="brand-sub">Institutional Synthesis · ${esc(fr.sector || 'Equity Analysis')}</div>
+      <div class="brand-mark">R.A. OMEGA_</div>
+      <div class="brand-sub">Finance Intelligence Network</div>
     </div>
     <div class="hdr-badges">
-      ${tickerStr ? `<span class="badge ticker mono">${esc(tickerStr)}</span>` : ''}
-      ${fr.overall_rating ? `<span class="badge rating mono">${esc(String(fr.overall_rating))}</span>` : ''}
-      ${confStr !== '' ? `<span class="badge conf mono">Conf ${esc(confStr)}</span>` : ''}
-      ${fr.price_now ? `<span class="badge mono">$${esc(String(fr.price_now))}</span>` : ''}
+      ${tickerStr ? `<span class="badge ticker">${esc(tickerStr)}</span>` : ''}
+      ${fr.overall_rating ? `<span class="badge rating">${esc(String(fr.overall_rating).toUpperCase())}</span>` : ''}
+      ${confStr !== '' ? `<span class="badge conf">Confidence ${esc(confStr)}</span>` : ''}
+      ${fr.sector ? `<span class="badge sector">${esc(fr.sector)}</span>` : ''}
+      ${pq.intent_route ? `<span class="badge sector">${esc(pq.intent_route)}</span>` : ''}
     </div>
   </div>
   ${queryLine}
+  ${(fr.price_now || fr.confidence || fr.overall_rating || tickerStr) ? `
+  <div class="stat-cards" style="margin-top:18px">
+    ${tickerStr ? `<div class="stat-card"><div class="stat-num teal">${esc(tickerStr)}</div><div class="stat-label">Ticker</div></div>` : ''}
+    ${fr.price_now ? `<div class="stat-card"><div class="stat-num green">$${esc(String(fr.price_now))}</div><div class="stat-label">Current Price</div></div>` : ''}
+    ${fr.overall_rating ? `<div class="stat-card"><div class="stat-num amber">${esc(String(fr.overall_rating).toUpperCase())}</div><div class="stat-label">Signal</div></div>` : ''}
+    ${confStr ? `<div class="stat-card"><div class="stat-num teal">${esc(confStr)}</div><div class="stat-label">Confidence</div><div class="stat-sub">out of 10</div></div>` : ''}
+  </div>` : ''}
 </header>
 ${topSection || ''}
 ${execSection || ''}
@@ -803,7 +839,7 @@ ${fmSection || ''}
 ${catSection || ''}
 ${memoSection || ''}
 ${extendedBlock || ''}
-<footer class="meta">Generated by R.A. Omega · ${esc(new Date().toISOString())}<span class="disclaimer">R.A. Omega utilizes multi-loop validation for high-conviction algorithmic intelligence, but output does not constitute certified legal, tax, fiduciary, or investment advice.</span></footer>
+<footer class="meta"><span>R.A. OMEGA_ · 117 agents active · ${esc(new Date().toLocaleString())}</span><span class="disclaimer">Output is algorithmic intelligence only, not certified legal, tax, fiduciary, or investment advice.</span></footer>
 </body>
 </html>`;
         }
@@ -1799,37 +1835,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
             const actionBtn =
                 "inline-flex h-8 w-8 items-center justify-center rounded-md text-textMuted hover:text-textMain hover:bg-surfaceHover disabled:opacity-35 disabled:cursor-wait transition-colors";
+            // Export buttons are hidden — reports are generated on demand when user asks
+            // Only keep Copy JSON and Listen (TTS) as passive utilities
             return (
                 <div className="flex justify-end mb-2 -mt-1">
                     <div className="inline-flex items-center gap-0.5 rounded-lg border border-borderSubtle bg-base/45 px-1 py-1 shadow-sm opacity-70 group-hover:opacity-100 transition-opacity">
-                        <button type="button" className={actionBtn} onClick={copyJSON} title={copied ? 'Copied JSON' : 'Copy JSON'} aria-label={copied ? 'Copied JSON' : 'Copy JSON'}>
+                        <button type="button" className={actionBtn} onClick={copyJSON} title={copied ? 'Copied' : 'Copy data'} aria-label={copied ? 'Copied' : 'Copy data'}>
                             <Icon name={copied ? 'Check' : 'Copy'} size={15} />
                         </button>
-                        <button type="button" className={actionBtn} disabled={listenLoading} onClick={playTTS} title={listenLoading ? 'Loading audio' : 'Listen'} aria-label={listenLoading ? 'Loading audio' : 'Listen'}>
+                        <button type="button" className={actionBtn} disabled={listenLoading} onClick={playTTS} title={listenLoading ? 'Loading audio...' : 'Listen to summary'} aria-label={listenLoading ? 'Loading audio' : 'Listen'}>
                             <Icon name={listenLoading ? 'Loader2' : 'Volume2'} size={15} className={listenLoading ? 'animate-spin' : ''} />
-                        </button>
-                        <div className="mx-1 h-4 w-px bg-borderSubtle" />
-                        <button type="button" className={actionBtn} onClick={() => downloadServerExport('html')} title="Download HTML report" aria-label="Download HTML report">
-                            <Icon name="FileCode2" size={15} />
-                        </button>
-                        <button type="button" className={actionBtn} onClick={() => downloadServerExport('pdf')} title="Download PDF report" aria-label="Download PDF report">
-                            <Icon name="FileText" size={15} />
-                        </button>
-                        <button type="button" className={actionBtn} onClick={() => downloadServerExport('pdf')} title="Download server PDF" aria-label="Download server PDF">
-                            <Icon name="Download" size={15} />
-                        </button>
-                        <button type="button" className={actionBtn} onClick={openInfographic} title="Open infographic" aria-label="Open infographic">
-                            <Icon name="Image" size={15} />
-                        </button>
-                        <button type="button" className={actionBtn} onClick={openInfographicPDF} title="Infographic PDF" aria-label="Infographic PDF">
-                            <Icon name="Presentation" size={15} />
-                        </button>
-                        <div className="mx-1 h-4 w-px bg-borderSubtle" />
-                        <button type="button" className={actionBtn} onClick={() => downloadServerExport('pptx')} title="Download PowerPoint" aria-label="Download PowerPoint">
-                            <Icon name="PanelsTopLeft" size={15} />
-                        </button>
-                        <button type="button" className={actionBtn} onClick={() => downloadServerExport('excel')} title="Download Excel" aria-label="Download Excel">
-                            <Icon name="Table" size={15} />
                         </button>
                     </div>
                 </div>
@@ -2036,7 +2051,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                 route_band: route,
                 progress_pct: route === 'deep_research' ? 18 : 40,
                 current_stage: 'Preparing research',
-                current_message: 'Visible activity shows plan steps and evidence checks, not hidden reasoning.',
+                current_message: route === 'deep_research' ? `Running 10-loop deep research on: ${query.slice(0,60)}...` : `Analyzing: ${query.slice(0,60)}...`,
                 search_count: 0,
                 query,
                 plan,
@@ -2046,7 +2061,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         kind: 'analysis_summary',
                         title: 'Research route selected',
                         body: route === 'deep_research'
-                            ? 'Deep research is active because the user selected the full research lane.'
+                            ? `Deep research activated — 10 loops running on: ${query.slice(0,80)}`
                             : 'A lighter research lane is active to verify the answer without overbuilding.',
                         sources: [],
                         status: 'done',
@@ -3245,6 +3260,16 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
                 const q = inputValue.trim();
 
+                // Detect if user is requesting a specific output format
+                const _ql = q.toLowerCase();
+                const _wantsHTML  = /\b(html report|visual report|rich report|styled report|give me.*report|generate.*report|show.*report|report.*html|audit report)\b/.test(_ql);
+                const _wantsPDF   = /\b(pdf|pdf report|give.*pdf|export.*pdf|download.*pdf)\b/.test(_ql);
+                const _wantsPPTX  = /\b(powerpoint|presentation|pptx|slides|slide deck|pitch deck)\b/.test(_ql);
+                const _wantsExcel = /\b(excel|spreadsheet|xlsx|google sheet|csv table)\b/.test(_ql);
+                const _wantsWord  = /\b(word doc|word document|docx|\bdoc\b)\b/.test(_ql);
+                const _wantsComparison = /compare.*vs|vs.*compare|side by side/.test(_ql);
+                const _wantsAny   = _wantsHTML || _wantsPDF || _wantsPPTX || _wantsExcel || _wantsWord || _wantsComparison;
+
                 let sid = activeSessionId ? String(activeSessionId) : null;
                 if (!sid) {
                     const title = q.length > 56 ? q.slice(0, 53) + '…' : q;
@@ -3407,9 +3432,44 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                     type: 'agent',
                                     timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
                                     ...logFromQueryResponse(data),
+                                    _wantsHTML:  _wantsHTML,
+                                    _wantsPDF:   _wantsPDF,
+                                    _wantsPPTX:  _wantsPPTX,
+                                    _wantsExcel: _wantsExcel,
+                                    _wantsAny:   _wantsAny,
                                 },
                             ],
                         }));
+
+                        // Auto-generate the requested export format
+                        if (_wantsAny && data) {
+                            setTimeout(() => {
+                                try {
+                                    if (_wantsPDF) {
+                                        const html = generateStandaloneReport(data, { autoPrint: true });
+                                        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                                        const url = URL.createObjectURL(blob);
+                                        window.open(url, '_blank', 'noopener,noreferrer');
+                                        setTimeout(() => URL.revokeObjectURL(url), 120000);
+                                    } else if (_wantsHTML) {
+                                        const html = generateStandaloneReport(data);
+                                        const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                                        const url = URL.createObjectURL(blob);
+                                        window.open(url, '_blank', 'noopener,noreferrer');
+                                        setTimeout(() => URL.revokeObjectURL(url), 120000);
+                                    }
+                                    if (_wantsPPTX) { downloadServerExport('pptx'); }
+                                    if (_wantsExcel) { downloadServerExport('excel'); }
+                                    if (_wantsComparison && data._compare_tickers) {
+                                        fetch(apiBase() + '/compare', {
+                                            method: 'POST',
+                                            headers: authHeaders(),
+                                            body: JSON.stringify({ tickers: data._compare_tickers }),
+                                        }).catch(() => {});
+                                    }
+                                } catch(e) { console.error('Export generation failed:', e); }
+                            }, 800);
+                        }
                     }
                     loadSessions();
                 } catch (err) {
@@ -3799,6 +3859,22 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                             {log.rawData && shouldRenderStructuredResponse(log.rawData) ? (
                                                 <>
                                                     <ExportBar data={log.rawData} />
+                                                    {log._wantsHTML && log.rawData && (() => {
+                                                        // Auto-open HTML report when user asked for it
+                                                        React.useEffect(() => {
+                                                            if (log._wantsHTML && log.rawData && !log._reportOpened) {
+                                                                log._reportOpened = true;
+                                                                try {
+                                                                    const html = generateStandaloneReport(log.rawData);
+                                                                    const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+                                                                    const url = URL.createObjectURL(blob);
+                                                                    window.open(url, '_blank', 'noopener,noreferrer');
+                                                                    setTimeout(() => URL.revokeObjectURL(url), 120000);
+                                                                } catch(e) { console.error(e); }
+                                                            }
+                                                        }, []);
+                                                        return null;
+                                                    })()}
                                                     <StructuredResponse data={log.rawData} />
                                                 </>
                                             ) : (

@@ -4,25 +4,25 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R.A. Omega - Financial Intelligence</title>
-
+ 
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
+ 
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
+ 
     <style>
         :root {
             --cobalt: #18C6C8;
             --cerulean: #2ED47A;
             --void: #0B1020;
         }
-
+ 
         * { box-sizing: border-box; margin: 0; padding: 0; }
-
+ 
         body {
             overflow: hidden;
             background-color: var(--void);
@@ -32,11 +32,11 @@
             width: 100vw;
             height: 100vh;
         }
-
+ 
         .font-cinematic {
             font-family: 'Space Grotesk', sans-serif;
         }
-
+ 
         #webgl-canvas {
             position: fixed;
             top: 0; left: 0;
@@ -45,7 +45,7 @@
             z-index: 0;
             pointer-events: none;
         }
-
+ 
         .vignette {
             position: fixed;
             inset: 0;
@@ -53,7 +53,7 @@
             z-index: 1;
             pointer-events: none;
         }
-
+ 
         .ui-layer {
             position: fixed;
             inset: 0;
@@ -62,9 +62,9 @@
             flex-direction: column;
             pointer-events: none;
         }
-
+ 
         .interactive { pointer-events: auto; }
-
+ 
         /* Auth card */
         .auth-card {
             background: rgba(10, 12, 18, 0.90);
@@ -76,7 +76,7 @@
             width: min(360px, calc(100vw - 2rem));
             box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
         }
-
+ 
         .auth-input {
             width: 100%;
             background: rgba(0, 0, 0, 0.45);
@@ -91,7 +91,7 @@
         }
         .auth-input:focus { border-color: #18C6C8; }
         .auth-input::placeholder { color: rgba(255,255,255,0.25); }
-
+ 
         .auth-btn {
             width: 100%;
             padding: 0.65rem;
@@ -108,14 +108,49 @@
         }
         .auth-btn:hover { background: #20D8DA; }
         .auth-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
+        .auth-btn-google {
+            width: 100%;
+            padding: 0.6rem;
+            background: #fff;
+            color: #1f1f1f;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 7px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 0.6rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55rem;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+        .auth-btn-google:hover { background: #f0f0f0; box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+        .auth-btn-google:disabled { opacity: 0.4; cursor: not-allowed; }
+        .auth-divider {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            margin: 0.85rem 0 0;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.25);
+        }
+        .auth-divider::before, .auth-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: rgba(255,255,255,0.08);
+        }
+ 
+ 
         .auth-note {
             color: rgba(255,255,255,0.42);
             font-size: 0.76rem;
             line-height: 1.5;
             margin-top: 0.95rem;
         }
-
+ 
         .auth-tab {
             flex: 1;
             padding: 0.45rem;
@@ -129,7 +164,7 @@
             font-family: inherit;
             transition: color 0.15s, border-color 0.15s;
         }
-
+ 
         .auth-error {
             background: rgba(255, 60, 60, 0.12);
             border: 1px solid rgba(255, 60, 60, 0.28);
@@ -139,7 +174,7 @@
             font-size: 0.75rem;
             margin-bottom: 0.875rem;
         }
-
+ 
         /* Feature pills */
         .feature-pill {
             display: inline-flex;
@@ -153,7 +188,7 @@
             color: rgba(255,255,255,0.5);
             white-space: nowrap;
         }
-
+ 
         @media (max-width: 900px) {
             body {
                 overflow-y: auto;
@@ -187,7 +222,7 @@
                 gap: 1.25rem !important;
             }
         }
-
+ 
         .feature-dot {
             width: 5px;
             height: 5px;
@@ -195,7 +230,7 @@
             background: var(--cerulean);
             flex-shrink: 0;
         }
-
+ 
         /* Status bar top */
         .status-label {
             font-size: 0.65rem;
@@ -210,7 +245,7 @@
             color: rgba(255,255,255,0.7);
         }
     </style>
-
+ 
     <script>
         tailwind.config = {
             theme: {
@@ -224,85 +259,85 @@
     </script>
 </head>
 <body>
-
+ 
     <div id="root" class="w-full h-full"></div>
-
+ 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
-
+ 
         /* 3D wave background */
         const TopologicalOcean = () => {
             const mountRef = useRef(null);
-
+ 
             useEffect(() => {
                 if (!mountRef.current) return;
-
+ 
                 const scene = new THREE.Scene();
                 scene.fog = new THREE.FogExp2(0x020203, 0.015);
-
+ 
                 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
                 camera.position.set(0, 40, 80);
                 camera.lookAt(0, 0, 0);
-
+ 
                 const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
                 renderer.setSize(window.innerWidth, window.innerHeight);
                 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                 mountRef.current.appendChild(renderer.domElement);
-
+ 
                 const SEGS = 150;
                 const SIZE = 200;
                 const geometry = new THREE.PlaneGeometry(SIZE, SIZE, SEGS, SEGS);
                 geometry.rotateX(-Math.PI / 2);
-
+ 
                 const count = geometry.attributes.position.count;
                 const initialPositions = new Float32Array(count * 3);
                 const posArray = geometry.attributes.position.array;
                 for (let i = 0; i < count * 3; i++) initialPositions[i] = posArray[i];
-
+ 
                 const colors = new Float32Array(count * 3);
                 geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
+ 
                 const material = new THREE.PointsMaterial({
                     size: 0.3, vertexColors: true, transparent: true,
                     opacity: 0.8, blending: THREE.AdditiveBlending, depthWrite: false
                 });
-
+ 
                 const particles = new THREE.Points(geometry, material);
                 scene.add(particles);
-
+ 
                 let targetRotX = 0, targetRotY = 0;
                 const onMouseMove = (e) => {
                     targetRotX = (e.clientX / window.innerWidth - 0.5) * 0.2;
                     targetRotY = (e.clientY / window.innerHeight - 0.5) * 0.2;
                 };
                 window.addEventListener('mousemove', onMouseMove);
-
+ 
                 const onResize = () => {
                     camera.aspect = window.innerWidth / window.innerHeight;
                     camera.updateProjectionMatrix();
                     renderer.setSize(window.innerWidth, window.innerHeight);
                 };
                 window.addEventListener('resize', onResize);
-
+ 
                 let reqId;
                 const clock = new THREE.Clock();
                 const colorWhite = new THREE.Color(0xffffff);
                 const colorDark  = new THREE.Color(0x333333);
                 const tempColor  = new THREE.Color();
-
+ 
                 const animate = () => {
                     reqId = requestAnimationFrame(animate);
                     const time = clock.getElapsedTime();
-
+ 
                     camera.position.lerp(new THREE.Vector3(0, 40, 80), 0.02);
                     particles.rotation.y += (0 - particles.rotation.y) * 0.05;
                     particles.rotation.z += (targetRotX - particles.rotation.z) * 0.05;
                     particles.rotation.x += (targetRotY - particles.rotation.x) * 0.05;
-
+ 
                     const pos = geometry.attributes.position.array;
                     const col = geometry.attributes.color.array;
                     const speed = 0.5, height = 3, waveFreq = 0.05;
-
+ 
                     for (let i = 0; i < count; i++) {
                         const i3 = i * 3;
                         const x = initialPositions[i3], z = initialPositions[i3 + 2];
@@ -310,20 +345,20 @@
                                    Math.cos(z * waveFreq + time * speed * 0.8) +
                                    Math.sin((x + z) * waveFreq * 0.5 - time * speed * 1.2)) * height;
                         pos[i3 + 1] = y;
-
+ 
                         let mix = (y + height * 3) / (height * 6);
                         mix = Math.max(0, Math.min(1, mix));
                         tempColor.lerpColors(colorDark, colorWhite, mix);
                         col[i3] = tempColor.r; col[i3+1] = tempColor.g; col[i3+2] = tempColor.b;
                     }
-
+ 
                     geometry.attributes.position.needsUpdate = true;
                     geometry.attributes.color.needsUpdate = true;
                     renderer.render(scene, camera);
                 };
-
+ 
                 animate();
-
+ 
                 return () => {
                     window.removeEventListener('mousemove', onMouseMove);
                     window.removeEventListener('resize', onResize);
@@ -334,10 +369,10 @@
                     renderer.dispose();
                 };
             }, []);
-
+ 
             return <div ref={mountRef} id="webgl-canvas" />;
         };
-
+ 
         /* Auth panel */
         const AuthPanel = () => {
             const [tab, setTab]         = useState('signin');
@@ -347,16 +382,16 @@
             const [error, setError]     = useState('');
             const [loading, setLoading] = useState(false);
             const [success, setSuccess] = useState('');
-
+ 
             const sb = useMemo(() => {
                 const cfg = window.__ATLAS_SB_CONFIG__ || {};
                 return (cfg.url && cfg.anonKey && window.supabase)
                     ? window.supabase.createClient(cfg.url, cfg.anonKey)
                     : null;
             }, []);
-
+ 
             const switchTab = (t) => { setTab(t); setError(''); setSuccess(''); };
-
+ 
             const storeSession = (session) => {
                 if (!session || !session.access_token) return;
                 localStorage.setItem('atlas_access_token', session.access_token);
@@ -367,7 +402,7 @@
                     '; Path=/; SameSite=Lax; Max-Age=' +
                     String(maxAge);
             };
-
+ 
             const signIn = async () => {
                 setError(''); setSuccess('');
                 if (!sb)       { setError('Auth not configured.'); return; }
@@ -377,9 +412,9 @@
                 setLoading(false);
                 if (err) { setError(err.message); return; }
                 storeSession(data.session);
-                window.location.href = '/option1';
+                window.location.href = '/app';
             };
-
+ 
             const signUp = async () => {
                 setError(''); setSuccess('');
                 if (!sb)       { setError('Auth not configured.'); return; }
@@ -392,14 +427,25 @@
                 if (err) { setError(err.message); return; }
                 if (data.session) {
                     storeSession(data.session);
-                    window.location.href = '/option1';
+                    window.location.href = '/app';
                 } else {
                     setSuccess('Check your email for a confirmation link, then sign in.');
                 }
             };
-
+ 
             const onKey = (e) => { if (e.key === 'Enter') tab === 'signin' ? signIn() : signUp(); };
-
+            const signInWithGoogle = async () => {
+                setError(''); setSuccess('');
+                if (!sb) { setError('Auth not configured.'); return; }
+                setLoading(true);
+                const { error: err } = await sb.auth.signInWithOAuth({
+                    provider: 'google',
+                    options: { redirectTo: window.location.origin + '/app' }
+                });
+                if (err) { setError(err.message); setLoading(false); }
+            };
+ 
+ 
             return (
                 <div className="auth-card interactive">
                     {/* Brand */}
@@ -411,7 +457,7 @@
                             Finance Intelligence Network
                         </div>
                     </div>
-
+ 
                     {/* Tabs */}
                     <div style={{ display: 'flex', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: '1.2rem' }}>
                         {[['signin','Sign In'],['signup','Create Account']].map(([t, label]) => (
@@ -421,37 +467,47 @@
                             }}>{label}</button>
                         ))}
                     </div>
-
+ 
                     {/* Error */}
                     {error && <div className="auth-error">{error}</div>}
-
+ 
                     {/* Success */}
                     {success && (
                         <div style={{ background: 'rgba(24,198,200,0.08)', border: '1px solid rgba(24,198,200,0.22)', color: '#18C6C8', borderRadius: '6px', padding: '0.5rem 0.7rem', fontSize: '0.75rem', marginBottom: '0.875rem' }}>
                             {success}
                         </div>
                     )}
-
+ 
                     {/* Fields */}
                     <div style={{ marginBottom: '0.75rem' }}>
                         <label style={{ display: 'block', fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Email</label>
                         <input className="auth-input" type="email" value={email} onChange={e => setEmail(e.target.value)} onKeyDown={onKey} placeholder="you@example.com" autoComplete="email" />
                     </div>
-
+ 
                     <div style={{ marginBottom: tab === 'signup' ? '0.75rem' : '0' }}>
                         <label style={{ display: 'block', fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Password</label>
                         <input className="auth-input" type="password" value={password} onChange={e => setPass(e.target.value)} onKeyDown={onKey} placeholder="Password" autoComplete={tab === 'signup' ? 'new-password' : 'current-password'} />
                     </div>
-
+ 
                     {tab === 'signup' && (
                         <div>
                             <label style={{ display: 'block', fontSize: '0.68rem', color: 'rgba(255,255,255,0.38)', marginBottom: '0.3rem', textTransform: 'uppercase', letterSpacing: '0.07em' }}>Confirm Password</label>
                             <input className="auth-input" type="password" value={confirm} onChange={e => setConfirm(e.target.value)} onKeyDown={onKey} placeholder="Confirm password" autoComplete="new-password" />
                         </div>
                     )}
-
+ 
                     <button className="auth-btn" onClick={tab === 'signin' ? signIn : signUp} disabled={loading}>
                         {loading ? 'Please wait...' : (tab === 'signin' ? 'Sign In ->' : 'Create Account ->')}
+                    </button>
+                    <div className="auth-divider">or</div>
+                    <button className="auth-btn-google" onClick={signInWithGoogle} disabled={loading}>
+                        <svg width="17" height="17" viewBox="0 0 48 48">
+                            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+                            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+                        </svg>
+                        Continue with Google
                     </button>
                     <p className="auth-note">
                         Chat stays the primary workspace. Dashboards, scanners, reports, and portfolio tools open after sign-in.
@@ -459,7 +515,7 @@
                 </div>
             );
         };
-
+ 
         /* Root app */
         const App = () => {
             const features = [
@@ -467,16 +523,16 @@
                 'Research on demand',
                 'Reports when needed',
             ];
-
+ 
             return (
                 <div className="w-full h-full relative">
                     {/* 3D Background */}
                     <TopologicalOcean />
                     <div className="vignette" />
-
+ 
                     {/* UI Layer */}
                     <div className="ui-layer" style={{ padding: '2rem 2.5rem' }}>
-
+ 
                         {/* Top bar */}
                         <div className="flex justify-between items-start w-full">
                             <div>
@@ -487,7 +543,7 @@
                                     Finance intelligence
                                 </p>
                             </div>
-
+ 
                             {/* Status indicators */}
                             <div className="desktop-status flex gap-6" style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
                                 <div className="flex flex-col items-end gap-1">
@@ -500,10 +556,10 @@
                                 </div>
                             </div>
                         </div>
-
+ 
                         {/* Hero copy left, auth card right */}
                         <div className="hero-row flex-1 flex items-center justify-between w-full" style={{ marginTop: '2rem', marginBottom: '2rem' }}>
-
+ 
                             {/* Left: Hero copy */}
                             <div className="hero-copy interactive" style={{ maxWidth: '520px' }}>
                                 <h2 className="font-cinematic" style={{ fontSize: 'clamp(2.35rem, 4.7vw, 4.8rem)', fontWeight: 700, lineHeight: 0.96, letterSpacing: '0', marginBottom: '1.05rem', maxWidth: '500px' }}>
@@ -513,7 +569,7 @@
                                 <p style={{ color: 'rgba(255,255,255,0.52)', fontSize: '0.98rem', lineHeight: 1.55, maxWidth: '390px', marginBottom: '1.35rem' }}>
                                     Markets, debt, taxes, real estate, and business answers at the depth the task deserves.
                                 </p>
-
+ 
                                 {/* Feature pills */}
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
                                     {features.map(f => (
@@ -524,14 +580,14 @@
                                     ))}
                                 </div>
                             </div>
-
+ 
                             {/* Right: Auth card */}
                             <div className="interactive">
                                 <AuthPanel />
                             </div>
-
+ 
                         </div>
-
+ 
                         {/* Bottom data strip */}
                         <div className="bottom-strip w-full flex justify-between items-end">
                             <div className="bottom-metrics" style={{ display: 'flex', gap: '2.5rem' }}>
@@ -550,12 +606,12 @@
                                 R.A. Omega - Intelligence Network Online
                             </div>
                         </div>
-
+ 
                     </div>
                 </div>
             );
         };
-
+ 
         ReactDOM.createRoot(document.getElementById('root')).render(<App />);
     </script>
 </body>

@@ -1,7 +1,7 @@
 """
 E6 — Red Teamer | Security Test Suite
 ======================================
-ATTACK VECTORS: prompt injection, SQL injection, auth bypass (API + Option 1
+ATTACK VECTORS: prompt injection, SQL injection, auth bypass (API + main chat
 static route), malformed JSON, concurrent request flood, sensitive data leaks,
 multipart filename abuse, stack-trace leakage in JSON errors.
 
@@ -21,11 +21,8 @@ test_user_local. No standalone uvicorn process is required.
 
 Known strict expectation (may fail until E1 ships server-side guard)
 -------------------------------------------------------------------
-``GET /option1`` without a valid session is expected to return **302** to ``/auth``.
-Today the route returns **200** static HTML; auth is enforced in browser JS only.
-``test_option1_redirects_without_session_cookie`` encodes the target behavior —
-it will fail on the current tree until middleware or Depends is added on the
-server for Option 1.
+``GET /app`` without a valid session is expected to return **302** to ``/auth``.
+``test_app_redirects_without_session_cookie`` encodes that behavior.
 """
 from __future__ import annotations
 
@@ -230,10 +227,10 @@ class TestAuthBypass:
         r = client.get("/health")
         assert r.status_code == 200, f"Health endpoint unexpectedly blocked — {r.status_code}"
 
-    def test_option1_redirects_without_session_cookie(self, client: TestClient):
-        r = client.get("/option1", follow_redirects=False)
+    def test_app_redirects_without_session_cookie(self, client: TestClient):
+        r = client.get("/app", follow_redirects=False)
         assert r.status_code == 302, (
-            f"VULNERABILITY: Option 1 must redirect unauthenticated users to /auth "
+            f"VULNERABILITY: Main chat must redirect unauthenticated users to /auth "
             f"(strict policy); got {r.status_code}"
         )
         loc = (r.headers.get("location") or "").replace("\\", "/")

@@ -1,0 +1,26 @@
+[
+  {
+    "query": "Analyze SOL setup for a swing trade",
+    "domain": "crypto",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-14T08:21:12.562607+00:00"
+  },
+  {
+    "query": "Best states for low taxes?",
+    "domain": "tax_legal",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-14T08:21:27.217767+00:00"
+  },
+  {
+    "query": "Covered call setup on NVDA?",
+    "domain": "options",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-14T08:21:27.242746+00:00"
+  }
+]

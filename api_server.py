@@ -26,11 +26,9 @@ Endpoints (research + query pipeline + portfolio require Authorization: Bearer <
     GET  /alerts         — Active alerts
     GET  /regime         — Current market regime (cached 5min)
     GET  /rag/status     — Chroma RAG stats (SEC + finance_knowledge; JWT)
-    GET  /, /auth, /login — Zenith landing (Supabase sign in / sign up)
-    GET  /app            — Main R.A. Omega chat UI (stable product route)
-    GET  /option1        — Legacy alias for the same chat UI
-    GET  /dashboard, /v4 — Finance dashboard (advanced dashboard)
-    GET  /atlas_dashboard_v2.html — Legacy v2 UI only
+    GET  /, /auth         — Zenith landing (Supabase sign in / sign up)
+    GET  /app             — Main R.A. Omega chat UI
+    GET  /dashboard       — Finance dashboard (atlas_dashboard_v4.html)
     GET  /history/reports   — Query-report history (for dashboard)
     DELETE /history/{report_id} — Remove one saved query report
     PATCH  /history/{report_id} — Rename and/or move report to folder
@@ -101,7 +99,6 @@ except ImportError:
 BASE_DIR = Path(__file__).resolve().parent
 ATLAS_DIR = BASE_DIR
 ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"
-ATLAS_DASHBOARD_V2 = ATLAS_DIR / "atlas_dashboard_v2.html"
 RA_OMEGA_APP = ATLAS_DIR / "ra_omega_app.html"
 ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 sys.path.insert(0, str(BASE_DIR))
@@ -953,6 +950,28 @@ def _create_research_job_for_request(
     return job
 
 
+def _detect_doc_type(query: str) -> Optional[str]:
+    """Detect if the user wants a specific document output format."""
+    ql = (query or "").lower()
+    if re.search(r"\binfographic\b|\bvisual\s+summary\b", ql):
+        return "infographic"
+    if re.search(r"\bpowerpoint\b|\bpresentation\b|\bslide\s+deck\b|\bslides\b", ql):
+        return "pptx"
+    if re.search(r"\bexcel\b|\bspreadsheet\b|\bxlsx\b", ql):
+        return "excel"
+    if re.search(r"\bemail\s+digest\b|\bdaily\s+brief\b", ql):
+        return "email_digest"
+    if re.search(r"\bcompare\b.{0,40}\bvs\b|\bvs\b.{0,40}\bcompare\b|\bside\s+by\s+side\b", ql):
+        return "compare"
+    if re.search(r"\bportfolio\s+report\b|\bportfolio\s+analysis\b", ql):
+        return "portfolio_report"
+    if re.search(r"\bpdf\b|\bpdf\s+report\b", ql):
+        return "pdf"
+    if re.search(r"\bhtml\s+report\b|\bvisual\s+report\b|\bgive.*report\b|\bgenerate.*report\b", ql):
+        return "html_report"
+    return None
+
+
 def _finalize_query_response(
     shaped: dict,
     req: "QueryRequest",
@@ -963,6 +982,9 @@ def _finalize_query_response(
 ) -> dict:
     shaped["_session_id"] = req.session_id
     shaped["_api_time_s"] = round(time.time() - start, 2)
+    doc_type = _detect_doc_type(q_store)
+    if doc_type:
+        shaped["_requested_doc_type"] = doc_type
     report_id = str(uuid.uuid4())
     shaped["_report_id"] = report_id
     try:
@@ -1513,6 +1535,14 @@ def dispatch_query_request(
             latest = research_jobs.get_job(job["job_id"], user_id=user_id)
             return bool(latest and latest.get("cancel_requested"))
 
+        try:
+            from atlas_memory.memory_injector import get_relevant_context as _get_mem
+            _mem_ctx = _get_mem(q_store, user_id)
+            if _mem_ctx:
+                route_input = f"{_mem_ctx}\n\n{route_input}"
+        except Exception:
+            pass
+
         raw = router.route(
             route_input,
             user_id=user_id,
@@ -1539,6 +1569,11 @@ def dispatch_query_request(
                 )
                 return _finalize_query_response(body, req, user_id, background_tasks, q_store, start)
         shaped = _ensure_query_ui_envelope(raw, q_store)
+        try:
+            from atlas_memory.memory_injector import save_to_memory as _save_mem
+            _save_mem(q_store, shaped, user_id)
+        except Exception:
+            pass
         shaped["_request_controls"] = {
             "research_mode": mode,
             "web_search": bool(getattr(req, "web_search", False) or mode in ("web", "deep")),
@@ -1976,9 +2011,7 @@ def serve_pricing():
     return _pricing_html_response()
 
 
-@app.get("/v4")
 @app.get("/dashboard")
-@app.get("/atlas_dashboard_v4.html")
 def serve_dashboard_v4():
     if not ATLAS_DASHBOARD_V4.is_file():
         raise HTTPException(
@@ -1989,11 +2022,7 @@ def serve_dashboard_v4():
 
 
 @app.get("/app")
-@app.get("/chat")
-@app.get("/ra-omega")
-@app.get("/option1")
-@app.get("/atlas_option1.html")
-def serve_atlas_option1_chat(request: Request):
+def serve_ra_omega_app(request: Request):
     """Main R.A. Omega chat UI - same origin as API for POST /query and /omega."""
     if not _request_has_browser_session(request):
         return RedirectResponse(url="/auth", status_code=302)
@@ -2005,14 +2034,22 @@ def serve_atlas_option1_chat(request: Request):
     return FileResponse(RA_OMEGA_APP, media_type="text/html; charset=utf-8")
 
 
-@app.get("/atlas_dashboard_v2.html")
-def serve_dashboard_v2_only():
-    if not ATLAS_DASHBOARD_V2.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail="Missing atlas_dashboard_v2.html next to api_server.py",
-        )
-    return FileResponse(ATLAS_DASHBOARD_V2, media_type="text/html; charset=utf-8")
+@app.get("/data-map")
+def serve_data_map():
+    path = BASE_DIR / "atlas_vault" / "03-Outputs" / "data_map.html"
+    if not path.is_file():
+        try:
+            from atlas_core.data_map import main as generate_data_map
+
+            generate_data_map()
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Data map is missing and could not be regenerated: {exc}",
+            ) from exc
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Missing data_map.html")
+    return FileResponse(path, media_type="text/html; charset=utf-8")
 
 
 @app.post("/jobs/plan")
@@ -2140,9 +2177,8 @@ def cancel_research_job(job_id: str, user_id: AtlasUserId):
 
 
 @app.get("/auth")
-@app.get("/login")
 def serve_auth():
-    """Same Zenith landing as `/` so Option1 → /auth matches the home experience."""
+    """Same Zenith landing as `/` for Supabase sign in / sign up."""
     return _zenith_landing_response()
 
 
@@ -2921,6 +2957,58 @@ def get_stats():
         return {"error": "gemini_limiter not loaded"}
 
 
+# ── Sandbox endpoints ─────────────────────────────────────────────────────────
+
+@app.post("/sandbox/run")
+async def sandbox_run(request: Request):
+    """Run a sandbox batch: { n_queries, domains, sandboxes, dry_run }"""
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+    n = int(body.get("n_queries", 3))
+    domain = body.get("domains") or None
+    if isinstance(domain, list):
+        domain = domain[0] if domain else None
+    dry_run = bool(body.get("dry_run", False))
+    try:
+        from atlas_sandbox.sandbox_loop import run_batch
+        result = run_batch(n=n, domain=domain, dry_run=dry_run, verbose=False)
+        return {"status": "ok", "approved": result["approved"], "total": result["batch_size"], "vault_total": result["vault_total"]}
+    except Exception as exc:
+        logger.error("Sandbox run error: %s", exc)
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+@app.get("/sandbox/progress")
+def sandbox_progress():
+    """GET sandbox training vault progress."""
+    try:
+        from atlas_sandbox.sandbox_loop import PROGRESS_FILE, get_vault_count
+        if PROGRESS_FILE.exists():
+            import json as _json
+            prog = _json.loads(PROGRESS_FILE.read_text(encoding="utf-8"))
+        else:
+            count = get_vault_count()
+            prog = {"vault_total": count, "target": 50000, "pct": round(count / 50000 * 100, 2)}
+        return prog
+    except Exception as exc:
+        return {"vault_total": 0, "target": 50000, "pct": 0.0, "error": str(exc)}
+
+
+@app.get("/sandbox/agent-health")
+def sandbox_agent_health():
+    """GET latest agent health report (or generate fresh if missing)."""
+    try:
+        from atlas_sandbox.sandbox_loop import AGENT_HEALTH_REPORT, run_agent_health
+        if not AGENT_HEALTH_REPORT.exists():
+            return run_agent_health()
+        import json as _json
+        return _json.loads(AGENT_HEALTH_REPORT.read_text(encoding="utf-8"))
+    except Exception as exc:
+        return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
 # ── Dev entry point ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
@@ -2928,7 +3016,7 @@ if __name__ == "__main__":
     print()
     print("  Zenith / auth:          http://127.0.0.1:8000/  ·  http://127.0.0.1:8000/auth")
     print("  Main chat:              http://127.0.0.1:8000/app")
-    print("  Optional v4 dashboard: http://127.0.0.1:8000/v4  (atlas_dashboard_v4.html)")
+    print("  Dashboard:              http://127.0.0.1:8000/dashboard")
     print("  Health:                 http://127.0.0.1:8000/health")
     print()
     uvicorn.run(

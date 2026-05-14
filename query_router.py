@@ -127,6 +127,49 @@ INTENT_TARIFFS_MARKET_SCAN = "TARIFFS_MARKET_SCAN"
 INTENT_JOBS_MARKET_SCAN = "JOBS_MARKET_SCAN"
 INTENT_CONGRESS_TRADES_MARKET_SCAN = "CONGRESS_TRADES_MARKET_SCAN"
 
+# Phase-2 extended intents (Tasks 4-12)
+INTENT_DARK_POOL_SCAN = "DARK_POOL_SCAN"
+INTENT_PENNY_STOCK_SCAN = "PENNY_STOCK_SCAN"
+INTENT_REAL_ESTATE_SCAN = "REAL_ESTATE_SCAN"
+INTENT_PERSONAL_WEALTH_SCAN = "PERSONAL_WEALTH_SCAN"
+INTENT_TAX_LEGAL_SCAN = "TAX_LEGAL_SCAN"
+INTENT_BUSINESS_SCAN = "BUSINESS_SCAN"
+INTENT_ALTERNATIVE_ASSET_SCAN = "ALTERNATIVE_ASSET_SCAN"
+INTENT_GLOBAL_LIQUIDITY_SCAN = "GLOBAL_LIQUIDITY_SCAN"
+INTENT_GROWTH_MARKETING_SCAN = "GROWTH_MARKETING_SCAN"
+INTENT_INTELLIGENCE_SYNTHESIS = "INTELLIGENCE_SYNTHESIS"
+INTENT_SECTOR_ROTATION_SCAN = "SECTOR_ROTATION_SCAN"
+INTENT_SENTIMENT_DIVERGENCE_SCAN = "SENTIMENT_DIVERGENCE_SCAN"
+
+# SCAN intents always use RESEARCH output format (no trading template)
+_SCAN_INTENTS: frozenset[str] = frozenset({
+    "DARK_POOL_SCAN", "PENNY_STOCK_SCAN", "REAL_ESTATE_SCAN",
+    "PERSONAL_WEALTH_SCAN", "TAX_LEGAL_SCAN", "BUSINESS_SCAN",
+    "ALTERNATIVE_ASSET_SCAN", "GLOBAL_LIQUIDITY_SCAN", "GROWTH_MARKETING_SCAN",
+    "INTELLIGENCE_SYNTHESIS", "SECTOR_ROTATION_SCAN", "SENTIMENT_DIVERGENCE_SCAN",
+    "CRYPTO_MARKET_SCAN", "EQUITIES_MARKET_SCAN", "OPTIONS_FLOW_MARKET_SCAN",
+    "INSIDER_TRADES_MARKET_SCAN", "TREASURY_YIELD_MARKET_SCAN",
+    "CPI_INFLATION_MARKET_SCAN", "FED_WATCH_MARKET_SCAN", "WATCH_MARKET_SCAN",
+    "EARNINGS_MARKET_SCAN", "FOREX_MARKET_SCAN", "COMMODITIES_MARKET_SCAN",
+    "SUPPLY_CHAIN_MARKET_SCAN", "ENERGY_MARKET_SCAN", "CLIMATE_RISK_MARKET_SCAN",
+    "TARIFFS_MARKET_SCAN", "JOBS_MARKET_SCAN", "CONGRESS_TRADES_MARKET_SCAN",
+})
+
+DOMAIN_FRAMING: dict[str, str] = {
+    "REAL_ESTATE_SCAN": "You are a senior real estate analyst with expertise in residential, commercial, rental, and REIT markets.",
+    "PERSONAL_WEALTH_SCAN": "You are a certified financial planner (CFP) helping users optimize savings, debt, and personal finances. Always append: 'Consult a CFP for personalized advice.'",
+    "TAX_LEGAL_SCAN": "You are a senior tax and legal analyst. This is informational only — always append: 'Consult a licensed tax professional or attorney for your specific situation.'",
+    "BUSINESS_SCAN": "You are a venture analyst and business strategist with deep expertise in SMBs, SaaS metrics, franchise, and startup funding.",
+    "ALTERNATIVE_ASSET_SCAN": "You are an alternative asset specialist covering luxury watches, fine art, collectibles, precious metals, and P2P lending.",
+    "GROWTH_MARKETING_SCAN": "You are a growth and marketing analyst specializing in digital ads, SEO, brand sentiment, and ROI optimization.",
+    "INTELLIGENCE_SYNTHESIS": "You are a senior quant analyst and portfolio strategist. You synthesize signals across multiple data sources to find the highest-conviction insights across regimes, rotations, and catalysts.",
+    "DARK_POOL_SCAN": "You are a market microstructure analyst specializing in dark pool activity, off-exchange block trades, and institutional flow detection.",
+    "PENNY_STOCK_SCAN": "You are a small-cap specialist focused on penny stocks, micro-cap movers, and high-volume low-float opportunities. Always note the high-risk nature of this asset class.",
+    "GLOBAL_LIQUIDITY_SCAN": "You are a global macro and liquidity specialist tracking M2 money supply, central bank policy, and liquidity cycles.",
+    "SECTOR_ROTATION_SCAN": "You are a sector rotation specialist who tracks institutional money flows across market sectors to identify rotation opportunities.",
+    "SENTIMENT_DIVERGENCE_SCAN": "You are a contrarian analyst who identifies divergences between retail and institutional sentiment to find early-mover signals.",
+}
+
 _ROUTER_TICKER_DD_EXCLUDE_RE = re.compile(
     r"\banalyze\s+[A-Z]{2,5}\b|\b(?:deep\s+dive|dd)\s+on\s+[A-Z]{2,5}\b",
     re.I,
@@ -223,6 +266,90 @@ _TARIFF_TOPIC_RE = re.compile(r"\b(?:tariff|ustr|section\s+301|section\s+232|tra
 _JOBS_TOPIC_RE = re.compile(r"\b(?:jobs\s+report|job\s+market|payrolls?|unemployment|bls|labor\s+market)\b", re.I | re.S)
 _CONGRESS_TRADES_TOPIC_RE = re.compile(r"\b(?:congress(?:ional)?\s+trades?|stock\s+act|house\s+stock|politician\s+trades?)\b", re.I | re.S)
 
+# Phase-2 extended topic regexes
+_DARK_POOL_TOPIC_RE = re.compile(
+    r"\b(?:dark\s+pool|off[\s-]exchange|block\s+trade|dark\s+pool\s+volume|"
+    r"institutional\s+buying|hidden\s+orders?|dark\s+pool\s+activity|dark\s+pool\s+prints?)\b",
+    re.I | re.S,
+)
+_PENNY_STOCK_TOPIC_RE = re.compile(
+    r"\b(?:penny\s+stock|micro[\s-]cap|small[\s-]cap\s+movers?|under\s+\$5|"
+    r"high\s+volume\s+cheap|low\s+float|sub[\s-]\$5\s+stock|otc\s+stock)\b",
+    re.I | re.S,
+)
+_REAL_ESTATE_TOPIC_RE = re.compile(
+    r"\b(?:housing\s+market|home\s+prices?|real\s+estate|mortgage\s+rates?|"
+    r"rental\s+yield|airbnb|short[\s-]term\s+rental|reit|commercial\s+property|"
+    r"zoning|permit|residential|apartment\s+rent|home\s+values?|property\s+market|"
+    r"housing\s+prices?|buying\s+a\s+home|sell(?:ing)?\s+(?:a\s+)?house)\b",
+    re.I | re.S,
+)
+_PERSONAL_WEALTH_TOPIC_RE = re.compile(
+    r"\b(?:credit\s+card|best\s+credit\s+card|auto\s+loan|car\s+loan|"
+    r"student\s+(?:debt|loan)|loan\s+forgiveness|hysa|high[\s-]yield\s+savings?|"
+    r"ira\s+limit|401k|retirement\s+(?:savings?|account|limit)|personal\s+loan|"
+    r"cost\s+of\s+living|insurance\s+premium|debt\s+consolidation|savings\s+rate|"
+    r"emergency\s+fund|pay\s+off\s+debt)\b",
+    re.I | re.S,
+)
+_TAX_LEGAL_TOPIC_RE = re.compile(
+    r"\b(?:federal\s+tax|tax\s+bracket|irs|state\s+tax|act\s+60|"
+    r"bankruptcy|chapter\s+7|chapter\s+11|sec\s+filing|10[\s-]k|"
+    r"consumer\s+protection|labor\s+law|minimum\s+wage|w[\s-]?2|"
+    r"independent\s+contractor|tax\s+deduction|capital\s+gains\s+tax|"
+    r"tax\s+(?:return|filing|planning|strategy))\b",
+    re.I | re.S,
+)
+_BUSINESS_TOPIC_RE = re.compile(
+    r"\b(?:sba\s+loan|sba\s+grant|small\s+business|saas\s+metrics?|"
+    r"\bcac\b|\bltv\b|\bchurn\b|ecommerce\s+trends?|trending\s+niche|"
+    r"freelance\s+rates?|franchise\s+cost|vc\s+funding|startup\s+funding|"
+    r"venture\s+capital|b2b\s+metrics?|solopreneur|agency\s+pricing)\b",
+    re.I | re.S,
+)
+_ALTERNATIVE_ASSET_TOPIC_RE = re.compile(
+    r"\b(?:art\s+auction|sotheby|christie|collectibles?|trading\s+cards?|"
+    r"\bpsa\b|ebay\s+sold|p2p\s+lending|prosper|lending\s+club|"
+    r"physical\s+gold|silver\s+coin|bullion|premium\s+over\s+spot|"
+    r"luxury\s+watches?|rolex|patek|alternative\s+investment)\b",
+    re.I | re.S,
+)
+_GLOBAL_LIQUIDITY_TOPIC_RE = re.compile(
+    r"\b(?:global\s+liquidity|m2\s+money\s+supply|central\s+bank|"
+    r"liquidity\s+cycle|monetary\s+policy|quantitative\s+easing|"
+    r"qt\s+tightening|global\s+money|m2\s+growth|liquidity\s+signal)\b",
+    re.I | re.S,
+)
+_GROWTH_MARKETING_TOPIC_RE = re.compile(
+    r"\b(?:competitor\s+ads?|meta\s+ad\s+library|seo\s+keywords?|google\s+trends?|"
+    r"trending\s+keywords?|social\s+sentiment|brand\s+mentions?|content\s+repurpose|"
+    r"email\s+deliverability|dkim|spf|engagement\s+rate|"
+    r"influencer|google\s+reviews?|roas|return\s+on\s+ad\s+spend|"
+    r"lead\s+generation|local\s+business\s+marketing|\bcrm\b)\b",
+    re.I | re.S,
+)
+_INTELLIGENCE_SYNTHESIS_TOPIC_RE = re.compile(
+    r"\b(?:market\s+correlation|cross[\s-]asset|regime\s+change|"
+    r"earnings\s+season|news\s+catalyst|"
+    r"sentiment\s+divergence|risk\s+budget|portfolio\s+risk|"
+    r"neural\s+web|combined\s+analysis|market\s+regime\s+signal|"
+    r"market\s+regime\b)\b",
+    re.I | re.S,
+)
+_SECTOR_ROTATION_TOPIC_RE = re.compile(
+    r"\b(?:sector\s+rotation|money\s+flowing\s+into|institutional\s+rotation|"
+    r"which\s+sectors?|energy\s+vs\s+tech|defensive\s+vs\s+growth|"
+    r"rotating\s+(?:out\s+of|into)|sectors?\s+are\s+rotating|"
+    r"sector\s+rotati\w+)\b",
+    re.I | re.S,
+)
+_SENTIMENT_DIVERGENCE_TOPIC_RE = re.compile(
+    r"\b(?:sentiment\s+divergence|retail\s+vs\s+institutional|smart\s+money|"
+    r"contrarian\s+signal|sentiment\s+gap|retail\s+sentiment|"
+    r"institutional\s+sentiment)\b",
+    re.I | re.S,
+)
+
 _MARKET_HINT_RE = re.compile(
     r"\$[A-Za-z]{1,5}\b|"
     r"\b(?:buy|sell|short|long)\s+(?:the\s+)?(?:stock|shares)\b|"
@@ -292,14 +419,23 @@ def classify_intent_route(raw: str) -> str:
             gen += w
     if re.search(r"\bi\s*['']?m\b|\bi am\b", lc):
         gen += 2.5
-    if re.search(r"\banalyze\s+[A-Z]{2,5}\b", q):
+    if re.search(r"\banalyze\s+[A-Z]{2,5}\b", q, re.IGNORECASE):
         mkt += 2.5
     if re.search(r"\b(?:deep dive|dd)\s+on\s+[A-Z]{2,5}\b", lc):
         mkt += 3.0
     log.debug("[intent] scores general=%.1f market=%.1f — %s", gen, mkt, q[:80])
+    # If BOTH scores are zero (e.g. "tell me about BlackRock", "everything on Tesla")
+    # route to GENERAL_FINANCE so Omega handles it with the research format
+    if gen == 0.0 and mkt == 0.0:
+        return INTENT_GENERAL_FINANCE
+    # General finance wins if it scores higher (with small buffer)
     if gen >= mkt + 0.75:
         return INTENT_GENERAL_FINANCE
-    return INTENT_MARKET_DEEP_DIVE
+    # Market deep dive needs a clear signal to justify the heavy 10-loop engine
+    if mkt >= 2.0:
+        return INTENT_MARKET_DEEP_DIVE
+    # Tie or unclear — default to GENERAL_FINANCE (safer, less expensive)
+    return INTENT_GENERAL_FINANCE
 
 
 def classify_sector_cache_intent(raw: str) -> Optional[str]:
@@ -382,6 +518,32 @@ def classify_sector_cache_intent(raw: str) -> Optional[str]:
         return INTENT_JOBS_MARKET_SCAN
     if _CONGRESS_TRADES_TOPIC_RE.search(q) and dc_ok:
         return INTENT_CONGRESS_TRADES_MARKET_SCAN
+
+    # Phase-2 extended routing (Tasks 4-12)
+    if _DARK_POOL_TOPIC_RE.search(q):
+        return INTENT_DARK_POOL_SCAN
+    if _PENNY_STOCK_TOPIC_RE.search(q):
+        return INTENT_PENNY_STOCK_SCAN
+    if _REAL_ESTATE_TOPIC_RE.search(q):
+        return INTENT_REAL_ESTATE_SCAN
+    if _PERSONAL_WEALTH_TOPIC_RE.search(q):
+        return INTENT_PERSONAL_WEALTH_SCAN
+    if _TAX_LEGAL_TOPIC_RE.search(q):
+        return INTENT_TAX_LEGAL_SCAN
+    if _BUSINESS_TOPIC_RE.search(q):
+        return INTENT_BUSINESS_SCAN
+    if _ALTERNATIVE_ASSET_TOPIC_RE.search(q):
+        return INTENT_ALTERNATIVE_ASSET_SCAN
+    if _GLOBAL_LIQUIDITY_TOPIC_RE.search(q):
+        return INTENT_GLOBAL_LIQUIDITY_SCAN
+    if _SECTOR_ROTATION_TOPIC_RE.search(q):
+        return INTENT_SECTOR_ROTATION_SCAN
+    if _SENTIMENT_DIVERGENCE_TOPIC_RE.search(q):
+        return INTENT_SENTIMENT_DIVERGENCE_SCAN
+    if _INTELLIGENCE_SYNTHESIS_TOPIC_RE.search(q):
+        return INTENT_INTELLIGENCE_SYNTHESIS
+    if _GROWTH_MARKETING_TOPIC_RE.search(q):
+        return INTENT_GROWTH_MARKETING_SCAN
 
     return None
 
@@ -1225,8 +1387,55 @@ When you use facts from INTERNAL KNOWLEDGE BASE, cite the source_path shown for 
             else "Provide brief macro_connections anyway (may be general market context)."
         )
 
-        prompt = f"""You are ATLAS — senior equities/options analyst. Today is {today}.
+        # Detect output format based on what was actually asked
+        _q_lower = parsed.raw.lower()
+        _is_trade_query = any(w in _q_lower for w in [
+            "trade", "setup", "entry", "options", "calls", "puts",
+            "buy signal", "sell signal", "short", "position size",
+            "stop loss", "target price", "entry price"
+        ])
+        _is_personal = any(w in _q_lower for w in [
+            " i ", " my ", " me ", " i'm ", " should i ", " can i ",
+            " how do i ", " what should i ", " am i ", " will i "
+        ])
+        _has_ticker = bool(parsed.tickers)
+        # Format rules:
+        # - Ticker + trade keywords → TRADING format (default)
+        # - Personal question → ADVICE format
+        # - General research (deep mode or company/topic) → RESEARCH format
+        if _is_personal:
+            _output_format = "ADVICE"
+        elif _has_ticker and _is_trade_query:
+            _output_format = "TRADING"
+        elif not _has_ticker or (not _is_trade_query):
+            _output_format = "RESEARCH"
+        else:
+            _output_format = "TRADING"
+
+        _format_instruction = {
+            "TRADING": """OUTPUT FORMAT: TRADING ANALYSIS
+You are a senior trader. Provide a full trading analysis with specific entry/exit levels,
+trade plan, execution rules, failure modes, and scenarios.
+All fields in the JSON schema are required including trade_plan, options_play, price_levels.""",
+            "RESEARCH": """OUTPUT FORMAT: DEEP RESEARCH REPORT
+You are a senior analyst. The user wants comprehensive research, NOT a trading report.
+Focus on: thorough overview, business model, financials, recent developments, opportunities, risks.
+For trade_plan use: action="N/A - research query", entry_price=null, stop_loss=null, targets=null.
+For tldr: summarize the most important finding in plain English (not "buy/sell").
+For trader_memo: write a research brief, not a trading memo.
+For scenarios: describe outcome scenarios for the topic/company, not price targets.""",
+            "ADVICE": """OUTPUT FORMAT: PERSONAL FINANCE ADVICE
+You are a personal finance advisor. The user is asking for advice about their situation.
+Focus on: their specific situation, options available, recommended action, risks, next steps.
+For trade_plan: use action="N/A - personal finance" with null prices.
+For scenarios: describe financial outcome scenarios based on their choices.
+For trader_memo: write clear plain-English advice they can act on.""",
+        }[_output_format]
+
+        prompt = f"""You are ATLAS — senior financial analyst. Today is {today}.
 Return ONE valid JSON object only (no markdown fences). Python has already gathered data; you interpret and structure it.
+
+{_format_instruction}
 
 QUALITY AND DEPTH (non-negotiable):
 Do not sacrifice quality or detail for brevity. You are an institutional analyst. Provide exhaustive, hedge-fund-level deep dives for every section, particularly the "scenarios", "trader_memo", and "failure_modes". Take as many tokens as necessary to produce a flawless, comprehensive analysis. Use long, specific JSON string values wherever substance demands it.
@@ -1961,6 +2170,7 @@ class QueryRouter:
         session_id: Optional[str] = None,
         *,
         crypto_snapshot: bool = False,
+        research_mode: Optional[str] = None,
         progress_callback: Optional[Callable[[dict[str, Any]], None]] = None,
         cancel_check: Optional[Callable[[], bool]] = None,
     ) -> dict[str, Any]:
@@ -1984,7 +2194,11 @@ class QueryRouter:
                     except Exception as e:
                         log.warning("[QueryRouter] Omega data_cache route failed, continuing: %s", e)
 
-            route_kind = classify_intent_route(raw_q)
+            # Force 10-loop engine when user explicitly chose Deep mode
+            if research_mode == "deep":
+                route_kind = INTENT_MARKET_DEEP_DIVE
+            else:
+                route_kind = classify_intent_route(raw_q)
             if route_kind == INTENT_GENERAL_FINANCE:
                 om = self._get_omega()
                 if om:

@@ -73,7 +73,7 @@ def test_health_returns_ok(client: TestClient) -> None:
     assert "query_router" in body["engines"]
 
 
-@pytest.mark.parametrize("path", ["/app", "/chat", "/ra-omega", "/option1"])
+@pytest.mark.parametrize("path", ["/app"])
 def test_main_chat_routes_return_html(client: TestClient, path: str) -> None:
     r = client.get(path)
     assert r.status_code == 200
@@ -81,7 +81,7 @@ def test_main_chat_routes_return_html(client: TestClient, path: str) -> None:
     assert "R.A. Omega" in r.text
 
 
-@pytest.mark.parametrize("path", ["/dashboard", "/v4", "/atlas_dashboard_v4.html"])
+@pytest.mark.parametrize("path", ["/dashboard"])
 def test_finance_dashboard_routes_return_html(client: TestClient, path: str) -> None:
     r = client.get(path)
     assert r.status_code == 200
@@ -99,6 +99,16 @@ def test_pricing_route_returns_checkout_page(client: TestClient) -> None:
     assert "checkout('pro')" in r.text
     assert "/billing/checkout" in r.text
     assert "R.A. OMEGA_" in r.text
+
+
+def test_data_map_route_returns_generated_html(client: TestClient) -> None:
+    r = client.get("/data-map")
+    assert r.status_code == 200
+    assert "text/html" in r.headers.get("content-type", "")
+    assert "R.A. Omega Data Map" in r.text
+    assert "Pantry" in r.text
+    assert "Prep Table" in r.text
+    assert "Plate" in r.text
 
 
 def test_regime_endpoint_returns_json(client: TestClient) -> None:
@@ -524,14 +534,33 @@ def test_query_tier_gate_blocks_over_daily_cap(
     assert body["tier"] == "free"
 
 
-def test_option1_redirects_without_cookie_when_auth_enabled(
+def test_app_redirects_without_cookie_when_auth_enabled(
     monkeypatch: pytest.MonkeyPatch, client: TestClient,
 ) -> None:
     monkeypatch.setenv("ATLAS_DISABLE_AUTH", "false")
-    r = client.get("/option1", follow_redirects=False)
+    r = client.get("/app", follow_redirects=False)
     monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
     assert r.status_code == 302
     assert "/auth" in r.headers["location"]
+
+
+@pytest.mark.parametrize(
+    "path",
+    [
+        "/option1",
+        "/atlas_option1.html",
+        "/atlas_dashboard_v4.html",
+        "/atlas_dashboard_v2.html",
+        "/v2",
+        "/v4",
+        "/chat",
+        "/ra-omega",
+        "/login",
+    ],
+)
+def test_removed_legacy_page_routes_return_404(client: TestClient, path: str) -> None:
+    r = client.get(path)
+    assert r.status_code == 404
 
 
 def test_billing_checkout_returns_503_when_not_configured(client: TestClient) -> None:
