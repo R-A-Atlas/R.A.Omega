@@ -1535,13 +1535,23 @@ def dispatch_query_request(
             latest = research_jobs.get_job(job["job_id"], user_id=user_id)
             return bool(latest and latest.get("cancel_requested"))
 
+        _full_ctx = ""
         try:
             from atlas_memory.memory_injector import get_relevant_context as _get_mem
             _mem_ctx = _get_mem(q_store, user_id)
             if _mem_ctx:
-                route_input = f"{_mem_ctx}\n\n{route_input}"
+                _full_ctx += _mem_ctx + "\n"
         except Exception:
             pass
+        try:
+            from atlas_vault.obsidian_connector import inject_vault_context as _get_vault
+            _vault_ctx = _get_vault(q_store, user_id or "anonymous")
+            if _vault_ctx:
+                _full_ctx += _vault_ctx + "\n"
+        except Exception:
+            pass
+        if _full_ctx:
+            route_input = f"{_full_ctx.strip()}\n\n{route_input}"
 
         raw = router.route(
             route_input,
@@ -3019,6 +3029,95 @@ def sandbox_agent_health():
         return _json.loads(AGENT_HEALTH_REPORT.read_text(encoding="utf-8"))
     except Exception as exc:
         return JSONResponse(status_code=500, content={"error": str(exc)})
+
+
+# ── Vault endpoints ───────────────────────────────────────────────────────────
+
+_VAULT_MAX_BYTES = 10 * 1024 * 1024  # 10 MB
+
+
+@app.post("/vault/upload")
+async def vault_upload(
+    user_id: AtlasUserId,
+    file: UploadFile = File(..., description="Markdown (.md) or zip archive (.zip) of .md files"),
+):
+    """
+    Upload an Obsidian vault or individual note.
+    .md  → saved directly to atlas_vault/user_vaults/{user_id}/
+    .zip → all .md files extracted to atlas_vault/user_vaults/{user_id}/
+    """
+    import zipfile as _zf
+    from atlas_vault.obsidian_connector import save_vault_note, USER_VAULTS_DIR
+
+    filename = (file.filename or "upload").lower()
+    body = await file.read()
+
+    if len(body) > _VAULT_MAX_BYTES:
+        raise HTTPException(status_code=413, detail="File exceeds 10 MB limit")
+
+    if not (filename.endswith(".md") or filename.endswith(".zip")):
+        raise HTTPException(status_code=400, detail="Only .md and .zip files are accepted")
+
+    vault_dir = USER_VAULTS_DIR / user_id
+    vault_dir.mkdir(parents=True, exist_ok=True)
+
+    files_indexed = 0
+
+    if filename.endswith(".md"):
+        ok = save_vault_note(user_id, file.filename or "upload.md", body.decode("utf-8", errors="replace"))
+        if not ok:
+            raise HTTPException(status_code=500, detail="Failed to save note")
+        files_indexed = 1
+    else:
+        import io as _io
+        try:
+            with _zf.ZipFile(_io.BytesIO(body)) as zf:
+                for member in zf.infolist():
+                    if member.filename.endswith(".md") and not member.is_dir():
+                        md_bytes = zf.read(member.filename)
+                        safe_name = Path(member.filename).name
+                        ok = save_vault_note(
+                            user_id, safe_name, md_bytes.decode("utf-8", errors="replace")
+                        )
+                        if ok:
+                            files_indexed += 1
+        except _zf.BadZipFile:
+            raise HTTPException(status_code=400, detail="Corrupt or invalid zip file")
+
+    total_notes = sum(1 for _ in vault_dir.rglob("*.md"))
+    return {"files_indexed": files_indexed, "total_notes": total_notes, "status": "ok"}
+
+
+@app.get("/vault/status")
+def vault_status(user_id: AtlasUserId):
+    """Return the current vault configuration and note count for this user."""
+    from atlas_vault.obsidian_connector import USER_VAULTS_DIR
+
+    vault_dir = USER_VAULTS_DIR / user_id
+    vault_path_str = str(Path("atlas_vault") / "user_vaults" / user_id)
+
+    if not vault_dir.exists():
+        return {
+            "vault_configured": False,
+            "note_count": 0,
+            "last_updated": None,
+            "vault_path": vault_path_str,
+        }
+
+    md_files = list(vault_dir.rglob("*.md"))
+    note_count = len(md_files)
+
+    last_updated = None
+    if md_files:
+        latest_mtime = max(f.stat().st_mtime for f in md_files)
+        last_updated = datetime.utcfromtimestamp(latest_mtime).isoformat() + "Z"
+
+    return {
+        "vault_configured": note_count > 0,
+        "note_count": note_count,
+        "last_updated": last_updated,
+        "vault_path": vault_path_str,
+    }
 
 
 # ── Dev entry point ───────────────────────────────────────────────────────────
