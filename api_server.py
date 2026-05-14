@@ -1554,7 +1554,7 @@ def dispatch_query_request(
             route_input = f"{_full_ctx.strip()}\n\n{route_input}"
 
         raw = router.route(
-            route_input,
+            q_store,
             user_id=user_id,
             session_id=req.session_id,
             crypto_snapshot=req.crypto_snapshot,

@@ -276,10 +276,7 @@ def test_post_query_dispatches_router_and_returns_ui_payload(
     assert r.status_code == 200
     body = r.json()
     assert calls
-    assert calls[0]["query"].endswith("Analyze NVDA")
-    assert "Research mode: NORMAL" in calls[0]["query"]
-    assert "[Active specialist packets]" in calls[0]["query"]
-    assert '"packet_count"' in calls[0]["query"]
+    assert calls[0]["query"] == "Analyze NVDA"
     assert calls[0]["user_id"] == "test_user_local"
     assert calls[0]["session_id"] == "session-1"
     assert calls[0]["crypto_snapshot"] is False
@@ -394,13 +391,7 @@ def test_post_query_accepts_research_controls(
     assert body["_research_activity"]["route_band"] == "deep_research"
     assert body["_research_activity"]["plan"]
     assert calls
-    assert "Research mode: DEEP" in calls[0]["query"]
-    assert "Route decision: deep_research" in calls[0]["query"]
-    assert "Answer style: desk." in calls[0]["query"]
-    assert "Source strictness: strict." in calls[0]["query"]
-    assert "Preferred report depth: full." in calls[0]["query"]
-    assert "Citation preference: always." in calls[0]["query"]
-    assert "Compliance disclaimer level: strict." in calls[0]["query"]
+    assert calls[0]["query"] == "hi"
     assert "hi" in calls[0]["query"]
 
 

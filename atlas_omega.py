@@ -1920,6 +1920,22 @@ class OmegaAgent:
     ) -> dict:
         start = time.time()
         domain, ctx = self.classifier.classify(user_query)
+        if domain == "GENERAL_FINANCE":
+            KNOWN_LARGE_COMPANIES = {
+                "blackrock", "apple", "microsoft", "google", "amazon",
+                "tesla", "jpmorgan", "goldman sachs", "morgan stanley",
+                "berkshire", "warren buffett", "vanguard", "fidelity",
+                "citadel", "bridgewater", "sequoia", "softbank",
+            }
+            for company in KNOWN_LARGE_COMPANIES:
+                if company in user_query.lower():
+                    search_prompt = (
+                        f"Search the web for current information about {company}. "
+                        "Include: what they do, AUM/revenue, recent news, "
+                        "key executives, business model, competitive position. "
+                    )
+                    user_query = search_prompt + user_query
+                    break
         if follow_up_context:
             for k, v in follow_up_context.items():
                 if hasattr(ctx, k):
@@ -2073,14 +2089,24 @@ last_updated
 
             model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
             wait_for_slot("atlas_omega")
-            resp = client.models.generate_content(
-                model=model,
-                contents=prompt,
-                config=gtypes.GenerateContentConfig(
+            # Enable Google Search tool if we added a "Search the web" prefix
+            if query.lower().startswith("search the web"):
+                cfg = gtypes.GenerateContentConfig(
+                    tools=[gtypes.Tool(google_search=gtypes.GoogleSearch())],
                     response_mime_type="application/json",
                     temperature=0.15,
                     max_output_tokens=16384,
-                ),
+                )
+            else:
+                cfg = gtypes.GenerateContentConfig(
+                    response_mime_type="application/json",
+                    temperature=0.15,
+                    max_output_tokens=16384,
+                )
+            resp = client.models.generate_content(
+                model=model,
+                contents=prompt,
+                config=cfg,
             )
             raw = (resp.text or "").strip()
             if raw.startswith("```"):

@@ -422,6 +422,14 @@ def classify_intent_route(raw: str) -> str:
     if not q:
         return INTENT_GENERAL_FINANCE
     lc = q.lower()
+    KNOWN_LARGE_COMPANIES = {
+        "blackrock", "apple", "microsoft", "google", "amazon",
+        "tesla", "jpmorgan", "goldman sachs", "morgan stanley",
+        "berkshire", "warren buffett", "vanguard", "fidelity",
+        "citadel", "bridgewater", "sequoia", "softbank",
+    }
+    if any(company in lc for company in KNOWN_LARGE_COMPANIES):
+        return INTENT_GENERAL_FINANCE
     gen = 0.0
     mkt = 0.0
     if _MARKET_HINT_RE.search(q):
