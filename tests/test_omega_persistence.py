@@ -430,3 +430,116 @@ class TestRoutingPurity:
         import py_compile
         path = pathlib.Path(__file__).resolve().parents[1] / "omega_persistence.py"
         py_compile.compile(str(path), doraise=True)
+
+    def test_uses_get_supabase_client_not_bare_symbol(self):
+        """omega_persistence must call get_supabase_client(), not import 'supabase'."""
+        path = pathlib.Path(__file__).resolve().parents[1] / "omega_persistence.py"
+        source = path.read_text(encoding="utf-8")
+        assert "from atlas_db import supabase" not in source, (
+            "omega_persistence still imports bare 'supabase' from atlas_db — "
+            "use get_supabase_client() instead"
+        )
+        assert "get_supabase_client" in source, (
+            "omega_persistence should use atlas_db.get_supabase_client()"
+        )
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# Supabase path — mocked client
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestSupabasePath:
+    """Verify the Supabase code path executes without error when a mocked client is present."""
+
+    def _make_mock_client(self):
+        from unittest.mock import MagicMock
+        client = MagicMock()
+        mock_resp = MagicMock()
+        mock_resp.data = []
+        client.table.return_value.insert.return_value.execute.return_value = mock_resp
+        client.table.return_value.select.return_value.order.return_value.limit.return_value.execute.return_value = mock_resp
+        client.table.return_value.select.return_value.eq.return_value.order.return_value.limit.return_value.execute.return_value = mock_resp
+        return client
+
+    def test_save_report_uses_supabase_when_configured(self, tmp):
+        mock_client = self._make_mock_client()
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=mock_client):
+                result = tmp.save_report_metadata({"query": "NVDA analysis"})
+        assert result["persistence_mode"] == "supabase"
+
+    def test_get_recent_reports_uses_supabase_when_configured(self, tmp):
+        mock_client = self._make_mock_client()
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=mock_client):
+                result = tmp.get_recent_reports()
+        assert isinstance(result, list)
+
+    def test_get_research_queue_uses_supabase_when_configured(self, tmp):
+        mock_client = self._make_mock_client()
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=mock_client):
+                result = tmp.get_research_queue()
+        assert isinstance(result, list)
+
+    def test_falls_back_to_local_when_client_is_none(self, tmp):
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=None):
+                result = tmp.save_report_metadata({"query": "fallback test"})
+        assert result["persistence_mode"] == "local_fallback"
+
+    def test_falls_back_to_local_on_supabase_exception(self, tmp):
+        from unittest.mock import MagicMock
+        bad_client = MagicMock()
+        bad_client.table.return_value.insert.return_value.execute.side_effect = RuntimeError("connection refused")
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=bad_client):
+                result = tmp.save_report_metadata({"query": "exception test"})
+        assert result["persistence_mode"] == "local_fallback"
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# API endpoint responses — structured JSON
+# ═══════════════════════════════════════════════════════════════════════════════
+
+class TestApiResponses:
+    def test_research_queue_endpoint_returns_list(self, no_supabase):
+        """GET /omega-os/research-queue should not error when Supabase is not configured."""
+        result = no_supabase.get_research_queue()
+        assert isinstance(result, list)
+
+    def test_dashboard_endpoint_registered(self):
+        import api_server
+        routes = {r.path for r in api_server.app.routes}
+        assert "/omega-os/dashboard" in routes
+
+    def test_dashboard_snapshot_is_json_serializable(self):
+        import json
+        import omega_dashboard
+        from unittest.mock import patch
+        with patch("omega_audit.run_audit", return_value={
+            "context": 20, "connections": 15, "capabilities": 25, "cadence": 25,
+            "total": 85, "phase": "Command Center",
+            "strengths": [], "gaps": [], "next_steps": [],
+        }):
+            snap = omega_dashboard.build_command_center_snapshot()
+        serialized = json.dumps(snap)
+        parsed = json.loads(serialized)
+        assert "omega_os_score" in parsed
+        assert "snapshot_type" in parsed
+        assert parsed["snapshot_type"] == "command_center"

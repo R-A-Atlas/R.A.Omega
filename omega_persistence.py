@@ -121,7 +121,8 @@ def save_report_metadata(report: dict[str, Any]) -> dict[str, Any]:
 
     if is_supabase_configured():
         try:
-            from atlas_db import supabase as _sb
+            from atlas_db import get_supabase_client as _get_sb
+            _sb = _get_sb()
             if _sb:
                 _sb.table("queries").insert({
                     "id":         record["id"],
@@ -167,7 +168,8 @@ def save_research_task(task: dict[str, Any]) -> dict[str, Any]:
 
     if is_supabase_configured():
         try:
-            from atlas_db import supabase as _sb
+            from atlas_db import get_supabase_client as _get_sb
+            _sb = _get_sb()
             if _sb:
                 _sb.table("research_tasks").insert(record).execute()
                 record["persistence_mode"] = "supabase"
@@ -213,7 +215,8 @@ def get_recent_reports(limit: int = 10) -> list[dict[str, Any]]:
 
     if is_supabase_configured():
         try:
-            from atlas_db import supabase as _sb
+            from atlas_db import get_supabase_client as _get_sb
+            _sb = _get_sb()
             if _sb:
                 resp = (
                     _sb.table("queries")
@@ -242,7 +245,8 @@ def get_research_queue(limit: int = 10) -> list[dict[str, Any]]:
 
     if is_supabase_configured():
         try:
-            from atlas_db import supabase as _sb
+            from atlas_db import get_supabase_client as _get_sb
+            _sb = _get_sb()
             if _sb:
                 resp = (
                     _sb.table("research_tasks")
