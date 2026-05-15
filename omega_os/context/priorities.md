@@ -1,29 +1,30 @@
 # Current Priorities
 
-## Priority 0 — Production Environment
+## Priority 0 — Output Quality Stabilization (CURRENT SPRINT)
+- Stop company reports from rendering as trade plans (output_mode contract enforcement)
+- Fix stuck progress polling in deep research UI
+- Fix deep research gating (mode controls not applying correctly)
+
+## Priority 1 — Production Deploy + Visual QA
 - Run Supabase migration (chat_sessions, user_watchlist, queries.session_id, RLS policies)
-- Verify in production: hosted project + Stripe keys in deployment secrets
+- Start server, go to /app, confirm structured cards render: TLDR + Executive Summary + Trade Plan table + Scenarios + Execution Rules + Failure Modes + Trader Memo + HTML Report + Copy JSON
+- Verify hosted project + Stripe keys in deployment secrets
+- Deploy to Railway (~$20/month)
 
-## Priority 1 — Visual QA
-- Start server, go to /app, run "Analyze NVDA — current setup and trade plan"
-- Confirm: TLDR card + Executive Summary + Trade Plan table + Scenarios + Execution Rules + Failure Modes + Trader Memo + HTML Report + Copy JSON
+## Priority 2 — Omega OS Layer (DONE)
+- omega_os/ structure built — 34 files, 12 skill SOPs
+- omega_os_loader.py, omega_audit.py, omega_level_up.py created
+- Four C audit: 88/100 (Command Center phase)
 
-## Priority 2 — Omega OS Layer (CURRENT)
-- Build omega_os/ structure
-- Create skills as markdown SOPs
-- Wire omega_os_loader.py for progressive context loading
-- Add 4C audit and level-up engine
+## Priority 3 — Connection Registry (DONE)
+- omega_connections.py — 20 connections documented with auth, permissions, safety flags
+- SEC EDGAR activated (no auth required)
+- Google Workspace adapter built
 
-## Priority 3 — Connection Registry
-- Document all planned integrations in omega_connections.py
-- No credentials required yet — use .env.example placeholders
-
-## Priority 4 — Cadence
-- Plan recurring jobs in omega_cadence.py
-- No real scheduling yet — declarations only
+## Priority 4 — Cadence (DONE)
+- omega_cadence.py — 7 recurring jobs declared (declarations only, not yet scheduled)
 
 ## Priority 5 — Beta Launch
-- Deploy to Railway (~$20/month)
 - Get 50 free beta users via r/algotrading, r/options, FinTwit/X
 - Hook: interactive HTML report ("Power BI for retail traders")
 

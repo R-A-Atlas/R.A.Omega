@@ -28,9 +28,9 @@ Founder / Lead Architect of R.A. Omega and the ATLAS Agentic OS.
 - GitHub — version control
 
 ## Current Context
-- Time zone: [update when known]
-- Working hours: [update when known]
-- Current sprint focus: Production deploy + visual QA — Supabase migration, structured card rendering on /app, Railway deployment
+- Time zone: Puerto Rico / AST
+- Working hours: Flexible builder schedule — no fixed routine yet. Best work blocks are late morning, afternoon, and night sprints. R.A. Omega should help build structure over time.
+- Current sprint focus: Stabilize output quality first — stop company reports from rendering as trade plans, fix stuck progress polling, fix deep research gating — then production deploy and visual QA.
 
 ## Financial Context
 - Currently in debt and not working — building R.A. Omega as the path to income

@@ -5,13 +5,13 @@ This file describes the user's portfolio characteristics for personalized analys
 Loaded by Loop 5 personalization in the query pipeline.
 
 ## Portfolio Style
-- Primary focus: equities + defined-risk options (paper trading only currently)
-- Holding period: swing (days to weeks) — no day trading while in financial recovery
-- Typical position size: small — sized to paper trading account; no real capital deployment until income/debt is stable
-- Max positions at once: 3–5 maximum to maintain focus and avoid overextension
+- Mode: Builder-first, capital-preservation
+- No active portfolio right now
+- May study options and swing trades for learning purposes
+- R.A. Omega should prioritize: paper trading, research, debt reduction, income generation, and business building — in that order — before risking real capital
 
 ## Current Holdings
-<!-- Update this regularly — never hardcode tickers here as investment advice -->
+<!-- No live positions — paper trading only. Update this when income/debt situation stabilizes. -->
 See positions_cache.json for live positions (Supabase-synced).
 
 ## Watchlist
