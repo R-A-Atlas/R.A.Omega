@@ -50,6 +50,13 @@ def _omega_json_loads(raw: str) -> Any:
         raise
 
 
+KNOWN_LARGE_COMPANIES: frozenset[str] = frozenset({
+    "blackrock", "apple", "microsoft", "google", "amazon",
+    "tesla", "jpmorgan", "goldman sachs", "morgan stanley",
+    "berkshire", "warren buffett", "vanguard", "fidelity",
+    "citadel", "bridgewater", "sequoia", "softbank",
+})
+
 # ETFs / index proxies: market + news only; SEC filings omitted to save latency
 _OMEGA_ETF_SYMBOLS: frozenset[str] = frozenset(
     {
@@ -1910,6 +1917,41 @@ class OmegaAgent:
                 qs.append("Premium paid per share?")
         return qs[:3]
 
+    def _respond_casual(self, query: str) -> dict:
+        """Return a plain conversational response for casual/off-topic queries."""
+        _fallback = (
+            "Hey there! I'm ATLAS, your financial intelligence assistant. "
+            "Ask me about stocks, real estate, debt, crypto, or anything money-related!"
+        )
+        client = self._get_client()
+        if client:
+            try:
+                import google.genai.types as gtypes
+                system = (
+                    "You are ATLAS, a friendly AI financial intelligence assistant. "
+                    "The user is making casual conversation. Respond warmly and briefly in plain text. "
+                    "If their message relates to finance, offer to help with analysis. "
+                    "Keep your response to 1-2 sentences."
+                )
+                resp = client.models.generate_content(
+                    model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),
+                    contents=system + "\n\nUser: " + query,
+                    config=gtypes.GenerateContentConfig(temperature=0.7, max_output_tokens=256),
+                )
+                text = (resp.text or "").strip() or _fallback
+            except Exception:
+                text = _fallback
+        else:
+            text = _fallback
+        return {
+            "domain": "CASUAL",
+            "domain_label": "Casual",
+            "headline": "ATLAS",
+            "urgency": "informational",
+            "executive_brief": text,
+            "query": query,
+        }
+
     def query(
         self,
         user_query: str,
@@ -1917,25 +1959,35 @@ class OmegaAgent:
         session_id: str | None = None,
         data_cache_intent: str | None = None,
         prefer_raw_cache: bool = False,
+        intent_route: str | None = None,
     ) -> dict:
+        if intent_route in ("CASUAL", "GENERAL_CHAT"):
+            return self._respond_casual(user_query)
         start = time.time()
         domain, ctx = self.classifier.classify(user_query)
-        if domain == "GENERAL_FINANCE":
-            KNOWN_LARGE_COMPANIES = {
-                "blackrock", "apple", "microsoft", "google", "amazon",
-                "tesla", "jpmorgan", "goldman sachs", "morgan stanley",
-                "berkshire", "warren buffett", "vanguard", "fidelity",
-                "citadel", "bridgewater", "sequoia", "softbank",
-            }
-            for company in KNOWN_LARGE_COMPANIES:
-                if company in user_query.lower():
-                    search_prompt = (
-                        f"Search the web for current information about {company}. "
-                        "Include: what they do, AUM/revenue, recent news, "
-                        "key executives, business model, competitive position. "
-                    )
-                    user_query = search_prompt + user_query
-                    break
+
+        # Company web enrichment — only during synthesis, not routing
+        # Uses detect_company_name() for proper alias + disambiguation matching
+        _enriched_company: str | None = None
+        if intent_route in ("COMPANY_RESEARCH", "GENERAL_FINANCE") or domain == "GENERAL_FINANCE":
+            try:
+                from query_router import detect_company_name as _detect_company
+                _enriched_company = _detect_company(user_query)
+            except Exception:
+                pass
+            if _enriched_company is None:
+                # Fallback: check KNOWN_LARGE_COMPANIES for queries that got here via GENERAL_FINANCE
+                for company in KNOWN_LARGE_COMPANIES:
+                    if company in user_query.lower():
+                        _enriched_company = company
+                        break
+            if _enriched_company:
+                search_prompt = (
+                    f"Search the web for current information about {_enriched_company}. "
+                    "Include: what they do, AUM/revenue/market cap, recent news, "
+                    "key executives, business model, competitive position, risks, sources. "
+                )
+                user_query = search_prompt + user_query
         if follow_up_context:
             for k, v in follow_up_context.items():
                 if hasattr(ctx, k):
@@ -1969,10 +2021,48 @@ class OmegaAgent:
                 ctx,
                 include_full=include_market_intel,
             )
+        # SEC EDGAR enrichment — synthesis-time only; never before routing
+        # Runs when a company was identified and intent qualifies for company research.
+        # Blocked for CASUAL, GENERAL_CHAT, pure trade_plan, and queries without a company.
+        _sec_meta: dict = {}
+        _wants_sec = bool(_enriched_company) and intent_route not in ("CASUAL", "GENERAL_CHAT")
+        if _wants_sec:
+            try:
+                from omega_sec_edgar import get_filing_summary as _sec_summary, is_available as _sec_avail
+                if _sec_avail():
+                    _sec_raw = _sec_summary(_enriched_company)
+                    if _sec_raw.get("sec_filings_used"):
+                        bundle["data"]["sec_edgar_filings"] = {
+                            "company":      _sec_raw.get("company"),
+                            "cik":          _sec_raw.get("cik"),
+                            "latest_10k":   _sec_raw.get("latest_10k"),
+                            "latest_10q":   _sec_raw.get("latest_10q"),
+                            "latest_8k":    _sec_raw.get("latest_8k"),
+                            "filing_context": _sec_raw.get("filing_context", ""),
+                        }
+                        _sec_meta = {
+                            "sec_filings_used": True,
+                            "sec_status":       "found",
+                            "cik":              _sec_raw.get("cik"),
+                            "latest_10k":       _sec_raw.get("latest_10k"),
+                            "latest_10q":       _sec_raw.get("latest_10q"),
+                            "latest_8k":        _sec_raw.get("latest_8k"),
+                        }
+                        log.info("[Omega] SEC EDGAR: filings found for %s (CIK %s)", _enriched_company, _sec_raw.get("cik"))
+                    else:
+                        _sec_meta = {"sec_filings_used": False, "sec_status": "not_found"}
+                else:
+                    _sec_meta = {"sec_filings_used": False, "sec_status": "unavailable"}
+            except Exception as _sec_exc:
+                log.debug("[Omega] SEC EDGAR fetch failed: %s", _sec_exc)
+                _sec_meta = {"sec_filings_used": False, "sec_status": "unavailable"}
+
         fetch_t = round(time.time() - t1, 2)
         report = self._synthesize(user_query, domain, ctx, bundle, data_cache_intent=data_cache_intent)
         ai_t = round(time.time() - t1 - fetch_t, 2)
         report.setdefault("_meta", {})
+        if _sec_meta:
+            report["_meta"].update(_sec_meta)
         report["_meta"].update(
             {
                 "domain": domain,
@@ -2060,6 +2150,12 @@ D2/D3/D4 MARKET INTELLIGENCE RULES:
         if data_cache_intent and data_cache_intent in _DOMAIN_FRAMING:
             domain_frame_prefix = _DOMAIN_FRAMING[data_cache_intent] + "\n\n"
 
+        try:
+            from atlas_prompts.prompt_loader import get_domain_prompt as _get_domain_prompt
+            agent_system_prompt = _get_domain_prompt(domain)
+        except Exception:
+            agent_system_prompt = ""
+
         prompt = f"""{domain_frame_prefix}You are ATLAS Omega. Today: {today}.
 Query: "{query}"
 Domain: {domain} ({lens})
@@ -2083,6 +2179,52 @@ risks_and_tripwires: [{{risk, severity, tripwire, response}}],
 follow_up_questions: [],
 last_updated
 {num_rule}"""
+
+        if agent_system_prompt:
+            prompt = agent_system_prompt + "\n\n" + prompt
+
+        # output_mode-based prompt constraints — use OUTPUT_CONTRACTS for required/forbidden
+        try:
+            from output_modes import resolve_output_mode as _resolve_output_mode_new
+            _output_mode = _resolve_output_mode_new(query, domain)
+        except Exception:
+            try:
+                from query_router import resolve_output_mode as _resolve_output_mode
+                _output_mode = _resolve_output_mode(query, domain)
+            except Exception:
+                _output_mode = "finance_answer"
+
+        try:
+            from output_contracts import OUTPUT_CONTRACTS as _CONTRACTS
+            _contract = _CONTRACTS.get(_output_mode)
+        except Exception:
+            _contract = None
+
+        if _output_mode != "trade_plan":
+            if _contract and _contract.forbidden_phrases:
+                _forbidden_list = ", ".join(_contract.forbidden_phrases[:6])
+                prompt += f"\n\nFORBIDDEN: Do not include {_forbidden_list}. This is not a trading query."
+            else:
+                prompt += "\n\nFORBIDDEN: Do not include entry_price, stop_loss, take_profit, execution_rules, trade_plan, risk_reward. This is not a trading query."
+
+        if _output_mode == "company_report":
+            _req_sections = ""
+            if _contract and _contract.required_sections:
+                _req_sections = ", ".join(_contract.required_sections)
+            else:
+                _req_sections = "Overview, Business Model, Financial Snapshot, Leadership, Recent News, Risks, Competitive Position, Sources"
+            prompt += f"\n\nOUTPUT CONTRACT: Provide a company intelligence report. Required sections: {_req_sections}. No trade plan."
+            if "sec_edgar_filings" in worker_data:
+                prompt += "\n\nSEC EDGAR: DATA contains sec_edgar_filings with official filing dates. Cite 10-K and 10-Q dates in the Financial Snapshot section."
+
+        if _output_mode == "chat":
+            prompt += "\n\nOUTPUT: Short casual conversational answer. No finance jargon unless asked."
+
+        if _output_mode == "document":
+            prompt += "\n\nOUTPUT: Professional polished document structure. No trade plan unless user requested it."
+
+        if _output_mode == "html_artifact":
+            prompt += "\n\nOUTPUT: Return complete valid HTML with embedded CSS. No trade plan unless requested."
 
         try:
             import google.genai.types as gtypes

@@ -129,6 +129,37 @@ except ImportError:
     class QueryCancelledError(Exception):
         """Fallback if query_router not importable at startup."""
 
+# Prefer output_modes.py; fall back to query_router then hardcoded stub
+try:
+    from output_modes import resolve_output_mode
+except ImportError:
+    try:
+        from query_router import resolve_output_mode  # type: ignore[assignment]
+    except ImportError:
+        def resolve_output_mode(raw_query: str, intent: str) -> str:  # type: ignore[misc]
+            return "finance_answer"
+
+try:
+    from quality_firewall import validate_response as _qfw_validate
+    from response_judge import judge_response as _judge_response
+    _QFW_AVAILABLE = True
+except ImportError:
+    _QFW_AVAILABLE = False
+
+    def _qfw_validate(raw_query, intent, output_mode, answer):  # type: ignore[misc]
+        class _R:
+            passed = True
+            reason = ""
+            repair_instruction = ""
+        return _R()
+
+    def _judge_response(raw_query, intent, output_mode, answer):  # type: ignore[misc]
+        class _R:
+            verdict = "PASS"
+            reason = ""
+            repair_instruction = ""
+        return _R()
+
 RATE_LIMIT_UI_MESSAGE = "API Rate Limit Exceeded - Please wait 60 seconds"
 research_jobs.configure_store(BASE_DIR / "data_cache" / "research_jobs.json")
 
@@ -1579,6 +1610,30 @@ def dispatch_query_request(
                 )
                 return _finalize_query_response(body, req, user_id, background_tasks, q_store, start)
         shaped = _ensure_query_ui_envelope(raw, q_store)
+        _intent = (shaped.get("parsed_query") or {}).get("intent_route", "GENERAL_FINANCE")
+        _output_mode = resolve_output_mode(q_store, _intent)
+        shaped["_output_mode"] = _output_mode
+
+        # ── Quality firewall + response judge (one repair log) ────────────────
+        if _QFW_AVAILABLE:
+            try:
+                _answer_text = " ".join(filter(None, [
+                    str(shaped.get("tldr") or ""),
+                    str((shaped.get("final_report") or {}).get("executive_summary") or ""),
+                    str(shaped.get("trader_memo") or ""),
+                ]))
+                _qfw = _qfw_validate(q_store, _intent, _output_mode, _answer_text)
+                if not _qfw.passed:
+                    log.warning("[quality_firewall] %s | repair: %s", _qfw.reason, _qfw.repair_instruction[:80])
+                    shaped["_quality_firewall"] = {"passed": False, "reason": _qfw.reason}
+                else:
+                    _judge = _judge_response(q_store, _intent, _output_mode, _answer_text)
+                    if _judge.verdict == "FAIL":
+                        log.warning("[response_judge] %s | repair: %s", _judge.reason, _judge.repair_instruction[:80])
+                        shaped["_response_judge"] = {"verdict": "FAIL", "reason": _judge.reason}
+            except Exception:
+                log.debug("[quality_firewall] check failed", exc_info=True)
+
         try:
             from atlas_memory.memory_injector import save_to_memory as _save_mem
             _save_mem(q_store, shaped, user_id)
@@ -1610,6 +1665,12 @@ def dispatch_query_request(
                 current_stage="Completed",
                 current_message="Research complete. Final response is ready.",
                 activity={**activity, "status": "completed", "progress_pct": 100},
+                event={
+                    "type": "complete",
+                    "label": "Done",
+                    "detail": "Final answer ready. Progress stream closed.",
+                    "ts": datetime.now(timezone.utc).isoformat(),
+                },
             )
             if updated_job:
                 activity = research_jobs.activity_from_job(updated_job)
@@ -3118,6 +3179,226 @@ def vault_status(user_id: AtlasUserId):
         "last_updated": last_updated,
         "vault_path": vault_path_str,
     }
+
+
+# ── Omega OS endpoints (read-only, no auth required for list endpoints) ───────
+
+@app.get("/omega-os/audit")
+def omega_os_audit_endpoint():
+    """Return the current Four C audit scores for the Omega OS layer."""
+    try:
+        from omega_audit import run_audit
+        return run_audit()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Audit failed: {exc}")
+
+
+@app.get("/omega-os/skills")
+def omega_os_skills_endpoint():
+    """Return Level 1 skill list (name + description) for all Omega OS skills."""
+    try:
+        from omega_os_loader import list_skills
+        return {"skills": list_skills()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Skills list failed: {exc}")
+
+
+@app.get("/omega-os/connections")
+def omega_os_connections_endpoint():
+    """Return the connection registry summary."""
+    try:
+        from omega_connections import registry_summary
+        return registry_summary()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Connections registry failed: {exc}")
+
+
+@app.get("/omega-os/cadence")
+def omega_os_cadence_endpoint():
+    """Return the cadence plan summary."""
+    try:
+        from omega_cadence import cadence_summary
+        return cadence_summary()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Cadence plan failed: {exc}")
+
+
+@app.post("/omega-os/level-up")
+async def omega_os_level_up_endpoint(request: Request):
+    """
+    Return level-up recommendations.
+    Body (optional JSON): {"weekly_actions": ["ran company report 5x", ...]}
+    """
+    try:
+        from omega_level_up import analyze
+        body: dict = {}
+        try:
+            body = await request.json()
+        except Exception:
+            pass
+        weekly_actions = body.get("weekly_actions", []) if isinstance(body, dict) else []
+        return analyze(weekly_actions=weekly_actions)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Level-up analysis failed: {exc}")
+
+
+@app.get("/omega-os/skill-select")
+def omega_os_skill_select_endpoint(q: str = "", intent: str = "", output_mode: str = ""):
+    """
+    Return the selected skill for a query/intent/output_mode combination.
+    Query params: q=<raw_query>, intent=<intent>, output_mode=<output_mode>
+    Never routes — this is synthesis-time context selection only.
+    """
+    try:
+        from omega_os_loader import select_skill, load_relevant_context, _INTENT_CONTEXT_MAP
+        skill = select_skill(q, intent, output_mode)
+        context_files = _INTENT_CONTEXT_MAP.get(intent, ["preferences.md"])
+        if skill:
+            context_files = list(context_files) + [f"skills/{skill}/skill.md"]
+        return {
+            "selected_skill": skill,
+            "context_files_used": context_files,
+            "intent": intent,
+            "output_mode": output_mode,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Skill select failed: {exc}")
+
+
+@app.get("/omega-os/sec-filings/{company}")
+def omega_os_sec_filings_endpoint(company: str):
+    """
+    Return recent SEC EDGAR filings for a company name or ticker.
+    Only available when SEC_USER_AGENT is configured in the environment.
+    Returns: cik, sec_filings_used, latest_10k, latest_10q, latest_8k, filing_context
+    """
+    try:
+        from omega_sec_edgar import get_filing_summary, is_available
+        if not is_available():
+            return {
+                "available": False,
+                "message": "Set SEC_USER_AGENT in .env to activate SEC EDGAR integration. Format: 'App Name contact@yourdomain.com'",
+                "sec_filings_used": False,
+            }
+        result = get_filing_summary(company)
+        result["available"] = True
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"SEC EDGAR lookup failed: {exc}")
+
+
+# ── Omega OS — Persistence endpoints ─────────────────────────────────────────
+
+@app.get("/omega-os/persistence/status")
+def omega_os_persistence_status():
+    """Return persistence layer status (mode, counts, runtime dir)."""
+    try:
+        from omega_persistence import get_persistence_status
+        return get_persistence_status()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Persistence status failed: {exc}")
+
+
+@app.get("/omega-os/reports/recent")
+def omega_os_recent_reports(limit: int = 10):
+    """Return recent report metadata, newest first (max 100)."""
+    try:
+        from omega_persistence import get_recent_reports
+        return {"reports": get_recent_reports(limit=limit), "limit": limit}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Recent reports failed: {exc}")
+
+
+@app.get("/omega-os/research-queue")
+def omega_os_research_queue(limit: int = 10):
+    """Return queued research tasks, highest priority first (max 100)."""
+    try:
+        from omega_persistence import get_research_queue
+        return {"tasks": get_research_queue(limit=limit), "limit": limit}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Research queue failed: {exc}")
+
+
+@app.post("/omega-os/research-task")
+async def omega_os_create_research_task(request: Request):
+    """
+    Queue a research task.
+    Body: {query (required), intent?, company?, ticker?, priority?, session_id?, notes?}
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=422, detail="Request body must be valid JSON")
+    if not body.get("query"):
+        raise HTTPException(status_code=422, detail="'query' field is required")
+    try:
+        from omega_persistence import save_research_task
+        record = save_research_task(body)
+        return {"task": record, "status": "queued"}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Research task save failed: {exc}")
+
+
+# ── Omega OS — Google Workspace export endpoints ──────────────────────────────
+
+@app.get("/omega-os/google-workspace/status")
+def omega_os_google_workspace_status():
+    """Return Google Workspace integration status (configured, missing vars, available ops)."""
+    try:
+        from omega_google_workspace import get_google_workspace_status
+        return get_google_workspace_status()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Google Workspace status failed: {exc}")
+
+
+@app.post("/omega-os/export-report")
+async def omega_os_export_report(request: Request):
+    """
+    Export a report to Google Workspace (Docs and/or Sheets).
+    Body: {report_id (required), formats?: ["doc","sheet"]}
+    Returns not_configured when Google credentials are absent — never crashes.
+    """
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=422, detail="Request body must be valid JSON")
+    if not body.get("report_id"):
+        raise HTTPException(status_code=422, detail="'report_id' field is required")
+    try:
+        from omega_google_workspace import export_report_bundle
+        formats = body.get("formats", ["doc", "sheet"])
+        result = export_report_bundle(report_id=body["report_id"], formats=formats)
+        return result
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Export report failed: {exc}")
+
+
+@app.get("/omega-os/dashboard")
+def omega_os_dashboard():
+    """
+    Return a full Command Center snapshot aggregating all Omega OS subsystems.
+    Degrades gracefully — all subsystem failures produce empty/default values.
+    No credentials required.
+    """
+    try:
+        from omega_dashboard import build_command_center_snapshot
+        return build_command_center_snapshot()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Dashboard snapshot failed: {exc}")
+
+
+@app.get("/omega-os/brain")
+def omega_os_brain():
+    """
+    Return a Brain snapshot describing Omega OS knowledge state.
+    Includes context files, decisions, skills, memory files, and recommended questions.
+    No credentials required.
+    """
+    try:
+        from omega_dashboard import build_omega_brain_snapshot
+        return build_omega_brain_snapshot()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Brain snapshot failed: {exc}")
 
 
 # ── Dev entry point ───────────────────────────────────────────────────────────

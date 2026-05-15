@@ -1056,7 +1056,9 @@ def _save_wave_cache(ticker: str, waves: dict[str, str]) -> None:
 
 def research_ticker(ticker: str, budget: float = 100.0,
                     position: dict | None = None,
-                    client=None) -> dict:
+                    client=None,
+                    output_mode: str = "trade_plan",
+                    progress=None) -> dict:
     """
     Hybrid deep research: Python scraping + Gemini synthesis.
 
@@ -1068,6 +1070,10 @@ def research_ticker(ticker: str, budget: float = 100.0,
 
     Gemini grounding calls: 0 (scraping handles data gathering)
     Gemini synthesis calls: 1 (reads real data, pure reasoning)
+
+    Args:
+        output_mode: one of trade_plan | company_report | finance_answer | chat | document
+        progress: optional JobProgress instance from progress_state.py
     """
     if client is None:
         client = _client()
@@ -1076,18 +1082,26 @@ def research_ticker(ticker: str, budget: float = 100.0,
         return {}
 
     with _RESEARCH_RUN_LOCK:
-        return _research_ticker_impl(ticker, budget, position, client)
+        return _research_ticker_impl(ticker, budget, position, client,
+                                     output_mode=output_mode, progress=progress)
 
 
-def _research_ticker_impl(ticker: str, budget: float, position: dict | None, client) -> dict:
+def _research_ticker_impl(ticker: str, budget: float, position: dict | None, client,
+                          output_mode: str = "trade_plan", progress=None) -> dict:
     ticker = ticker.upper().strip()
     today  = datetime.now(timezone.utc).strftime("%B %d, %Y")
-    logging.info("Deep research started: %s (budget=$%.0f)", ticker, budget)
+    logging.info("Deep research started: %s (budget=$%.0f, output_mode=%s)", ticker, budget, output_mode)
+
+    if progress is not None:
+        progress.advance("RETRIEVING_CONTEXT", 5, "Starting deep research")
 
     # Step 1: pull live options + earnings from yfinance
     logging.info("  [1/3] Fetching live market data (yfinance)...")
     mktdata = _stock_data(ticker)
     price   = mktdata.get("price") or 0
+
+    if progress is not None:
+        progress.advance("TOOL_CALLING", 25, "Market data fetched — scraping web sources")
 
     # Step 2: scrape all public sources
     scraped: dict = {}
@@ -1124,6 +1138,9 @@ def _research_ticker_impl(ticker: str, budget: float, position: dict | None, cli
         step_results["wave1"] = scrape_text[:3000]
         step_results["wave2"] = scrape_text[3000:6000]
         step_results["wave3"] = scrape_text[6000:9000]
+
+    if progress is not None:
+        progress.advance("TOOL_CALLING", 45, "Web scraping complete — building synthesis prompt")
 
     # Step 3: single Gemini synthesis call — reads real scraped data
     logging.info("  [3/3] Synthesizing with gemini-2.5-flash (reading real scraped data)...")
@@ -1474,6 +1491,25 @@ Return ONLY valid JSON (no markdown, no prose outside the object):
 }}
 """
 
+    # ── output_mode constraints appended to synthesis prompt ──────────────────
+    if output_mode != "trade_plan":
+        synthesis_prompt += (
+            "\n\nFORBIDDEN: Do not include entry_price, stop_loss, take_profit, "
+            "execution_rules, trade_plan, risk_reward. This is not a trading query."
+        )
+    if output_mode == "company_report":
+        synthesis_prompt += (
+            "\n\nOUTPUT CONTRACT: Provide company overview, business model, revenue/AUM, "
+            "key executives, recent news, risks, competitive position, sources. No trade plan."
+        )
+    if output_mode == "chat":
+        synthesis_prompt += (
+            "\n\nOUTPUT: Short casual conversational answer. No finance jargon unless asked."
+        )
+
+    if progress is not None:
+        progress.advance("SYNTHESIZING", 55, "Running Gemini synthesis")
+
     synthesis, synthesis_quality = _run_full_synthesis(
         client,
         synthesis_prompt,
@@ -1485,6 +1521,59 @@ Return ONLY valid JSON (no markdown, no prose outside the object):
         scrape_text,
         float(price or 0),
     )
+
+    if progress is not None:
+        progress.advance("FINALIZING", 90, "Synthesis complete — building result")
+
+    # ── quality firewall + one repair loop ───────────────────────────────────
+    try:
+        from quality_firewall import validate_response as _qfw_validate
+        import json as _json_qfw
+        _qfw = _qfw_validate(ticker, "MARKET_DEEP_DIVE", output_mode, _json_qfw.dumps(synthesis or {}))
+        if not _qfw.passed:
+            logging.warning("  [quality_firewall] %s — attempting repair synthesis", _qfw.reason[:80])
+            _repair_prompt = synthesis_prompt + "\n\nREPAIR INSTRUCTION:\n" + _qfw.repair_instruction
+            try:
+                _repair_synthesis, _repair_quality = _run_full_synthesis(
+                    client,
+                    _repair_prompt,
+                    ticker,
+                    today,
+                    mktdata,
+                    budget,
+                    scraped_context,
+                    scrape_text,
+                    float(price or 0),
+                )
+                if _repair_synthesis and str(_repair_synthesis.get("executive_summary") or "").strip():
+                    synthesis = _repair_synthesis
+                    synthesis_quality = "repaired_by_firewall"
+                    logging.info("  [quality_firewall] repair synthesis succeeded")
+                else:
+                    logging.warning("  [quality_firewall] repair synthesis returned empty result")
+            except Exception:
+                logging.debug("  [quality_firewall] repair synthesis failed", exc_info=True)
+    except Exception:
+        logging.debug("quality_firewall check failed", exc_info=True)
+
+    # ── per-query cost tracking ───────────────────────────────────────────────
+    try:
+        from gemini_limiter import (
+            record_call as _gl_record,
+            estimate_cost as _gl_estimate,
+            get_model_for_tier as _gl_model,
+        )
+        import json as _json_cost
+        _gl_model_name = _gl_model(output_mode)
+        _in_tok  = len(synthesis_prompt) // 4
+        _out_tok = len(_json_cost.dumps(synthesis or {})) // 4
+        _gl_record(
+            "deep_research",
+            success=bool(synthesis),
+            cost_usd=_gl_estimate(_in_tok, _out_tok, _gl_model_name),
+        )
+    except Exception:
+        logging.debug("cost tracking failed", exc_info=True)
 
     # Clear the wave cache after successful completion
     try:

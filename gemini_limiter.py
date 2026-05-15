@@ -35,10 +35,21 @@ BACKOFF_SECS   = 30.0   # extra wait after burst limit hit
 # exceeds ~60s client defaults; keep aligned with dashboard / reverse-proxy budget.
 GEMINI_HTTP_TIMEOUT_MS = 300_000
 
+# ── Model tiers ───────────────────────────────────────────────────────────────
+MODEL_FLASH = "gemini-2.5-flash"
+MODEL_PRO   = "gemini-2.5-pro"
+MODEL_AUTO  = "auto"
+
+# Approximate pricing per 1M tokens (USD) — update when Google changes rates
+_COST_TABLE: dict[str, dict[str, float]] = {
+    MODEL_FLASH: {"input": 0.075,  "output": 0.30},
+    MODEL_PRO:   {"input": 1.25,   "output": 5.00},
+}
+
 # ── State ────────────────────────────────────────────────────────────────────
 _lock        = threading.Lock()
 _last_call   = 0.0
-_call_log: deque = deque(maxlen=100)   # (timestamp, caller, success)
+_call_log: deque = deque(maxlen=100)   # {ts, caller, success, duration_s, cost_usd}
 _burst_times: deque = deque(maxlen=BURST_LIMIT + 5)
 
 # ── Public API ────────────────────────────────────────────────────────────────
@@ -83,13 +94,14 @@ def wait_for_slot(caller: str = "unknown") -> float:
         return max(0.0, wait)
 
 
-def record_call(caller: str, success: bool, duration_s: float = 0.0):
+def record_call(caller: str, success: bool, duration_s: float = 0.0, cost_usd: float = 0.0):
     """Record the outcome of a Gemini call for stats tracking."""
     _call_log.append({
         "ts": datetime.now(timezone.utc).isoformat(),
         "caller": caller,
         "success": success,
         "duration_s": round(duration_s, 2),
+        "cost_usd": round(cost_usd, 6),
     })
 
 
@@ -98,13 +110,28 @@ def get_stats() -> dict:
     calls = list(_call_log)
     total = len(calls)
     successes = sum(1 for c in calls if c["success"])
+    total_cost = sum(c.get("cost_usd", 0.0) for c in calls)
     return {
         "total_calls": total,
         "success_rate": round(successes / total * 100, 1) if total else 0,
         "last_call_ago_s": round(time.time() - _last_call, 1),
         "recent_callers": [c["caller"] for c in calls[-5:]],
         "min_interval_s": MIN_INTERVAL,
+        "total_estimated_cost_usd": round(total_cost, 4),
     }
+
+
+def get_model_for_tier(output_mode: str) -> str:
+    """Return the appropriate Gemini model for the given output_mode."""
+    if output_mode in ("trade_plan", "company_report"):
+        return MODEL_PRO
+    return MODEL_FLASH
+
+
+def estimate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
+    """Estimate Gemini API cost in USD from token counts and model."""
+    rates = _COST_TABLE.get(model, _COST_TABLE[MODEL_FLASH])
+    return (input_tokens / 1_000_000) * rates["input"] + (output_tokens / 1_000_000) * rates["output"]
 
 
 def is_rate_limit_error(exc: BaseException) -> bool:

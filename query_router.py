@@ -141,6 +141,93 @@ INTENT_INTELLIGENCE_SYNTHESIS = "INTELLIGENCE_SYNTHESIS"
 INTENT_SECTOR_ROTATION_SCAN = "SECTOR_ROTATION_SCAN"
 INTENT_SENTIMENT_DIVERGENCE_SCAN = "SENTIMENT_DIVERGENCE_SCAN"
 INTENT_MACRO_RISK_SCAN = "MACRO_RISK_SCAN"
+INTENT_CASUAL = "CASUAL"
+INTENT_GENERAL_CHAT = "GENERAL_CHAT"
+INTENT_COMPANY_RESEARCH = "COMPANY_RESEARCH"
+INTENT_DOCUMENT_GENERATION = "DOCUMENT_GENERATION"
+INTENT_HTML_ARTIFACT = "HTML_ARTIFACT"
+INTENT_MARKET_DATA = "MARKET_DATA"
+INTENT_TRADING_ANALYSIS = "TRADING_ANALYSIS"
+
+KNOWN_LARGE_COMPANIES: frozenset[str] = frozenset({
+    "blackrock", "apple", "microsoft", "google", "amazon",
+    "tesla", "jpmorgan", "goldman sachs", "morgan stanley",
+    "berkshire", "warren buffett", "vanguard", "fidelity",
+    "citadel", "bridgewater", "sequoia", "softbank",
+})
+
+# Alias-based company detection (canonical → list of aliases)
+KNOWN_COMPANIES: dict[str, list[str]] = {
+    "blackrock":      ["blackrock", "blk"],
+    "apple":          ["apple", "apple inc", "aapl"],
+    "microsoft":      ["microsoft", "msft"],
+    "google":         ["google", "alphabet", "goog", "googl"],
+    "amazon":         ["amazon", "amzn"],
+    "tesla":          ["tesla", "tsla"],
+    "jpmorgan":       ["jpmorgan", "jp morgan", "jpm"],
+    "goldman sachs":  ["goldman sachs", "gs"],
+    "morgan stanley": ["morgan stanley", "ms"],
+    "berkshire":      ["berkshire", "berkshire hathaway", "brk"],
+    "warren buffett": ["warren buffett", "buffett"],
+    "vanguard":       ["vanguard"],
+    "fidelity":       ["fidelity"],
+    "citadel":        ["citadel"],
+    "bridgewater":    ["bridgewater"],
+    "sequoia":        ["sequoia capital", "sequoia"],
+    "softbank":       ["softbank"],
+    "blackstone":     ["blackstone", "bx"],
+}
+
+# Context words that indicate the word is NOT referring to the company
+NON_COMPANY_CONTEXT: dict[str, list[str]] = {
+    "apple":  ["pie", "fruit", "cider", "juice", "recipe", "orchard", "sauce", "tree"],
+    "amazon": ["rainforest", "river", "jungle", "forest", "basin", "ecology"],
+    "tesla":  ["coil", "inventor", "nikola", "alternating current"],
+}
+
+
+def _company_phrase_match(text: str, phrase: str) -> bool:
+    """True if phrase appears as a whole token/word sequence in text."""
+    escaped = re.escape(phrase.lower())
+    return re.search(rf"(?<![a-z0-9]){escaped}(?![a-z0-9])", text.lower()) is not None
+
+
+def detect_company_name(raw_query: str) -> Optional[str]:
+    """Return the canonical company name if the query is about a known company, else None."""
+    q = (raw_query or "").lower()
+    for canonical, aliases in KNOWN_COMPANIES.items():
+        for alias in aliases:
+            if _company_phrase_match(q, alias):
+                blocked = NON_COMPANY_CONTEXT.get(canonical, [])
+                if any(_company_phrase_match(q, term) for term in blocked):
+                    continue
+                return canonical
+    return None
+
+CASUAL_PATTERNS: tuple[str, ...] = (
+    r"\bhow are you\b",
+    r"\bhey\b",
+    r"\bhello\b",
+    r"\bhi\b",
+    r"\bjoke\b",
+    r"\bweather\b",
+    r"\brecipe\b",
+    r"\btell me something\b",
+    r"\bwhat is your name\b",
+)
+
+CASUAL_SIGNALS: tuple[str, ...] = (
+    r"\bhey\b",
+    r"\bhello\b",
+    r"\bhi\b",
+    r"\bhow are you\b",
+    r"\bwho won\b",
+    r"\blast night\b",
+    r"\bwrite me\b",
+    r"\bmake me\b",
+    r"\bjoke\b",
+    r"\bweather\b",
+)
 
 # SCAN intents always use RESEARCH output format (no trading template)
 _SCAN_INTENTS: frozenset[str] = frozenset({
@@ -415,21 +502,36 @@ _GENERAL_KW_SCORES: list[tuple[str, float]] = [
 
 def classify_intent_route(raw: str) -> str:
     """
-    Coarse routing: MARKET_DEEP_DIVE (10-loop + ticker path) vs GENERAL_FINANCE (Omega).
-    Runs before QueryParser tickers drive Loops 1–3 to avoid false symbols (e.g. IM in prose).
+    Coarse routing: MARKET_DEEP_DIVE (10-loop + ticker path) vs GENERAL_FINANCE / COMPANY_RESEARCH (Omega).
+    Receives ONLY the user's raw plain-text query — no metadata, memory JSON, or request controls.
     """
     q = (raw or "").strip()
     if not q:
-        return INTENT_GENERAL_FINANCE
+        return INTENT_GENERAL_CHAT
+
     lc = q.lower()
-    KNOWN_LARGE_COMPANIES = {
-        "blackrock", "apple", "microsoft", "google", "amazon",
-        "tesla", "jpmorgan", "goldman sachs", "morgan stanley",
-        "berkshire", "warren buffett", "vanguard", "fidelity",
-        "citadel", "bridgewater", "sequoia", "softbank",
-    }
-    if any(company in lc for company in KNOWN_LARGE_COMPANIES):
-        return INTENT_GENERAL_FINANCE
+
+    # ── Explicit trade requests — checked FIRST before company detection ────────
+    # This prevents "give me a trade setup for TSLA" from routing to COMPANY_RESEARCH.
+    if _EXPLICIT_TRADE_RE.search(q):
+        return INTENT_MARKET_DEEP_DIVE
+
+    # ── HTML artifact detection ───────────────────────────────────────────────
+    if re.search(r"\b(html|dashboard|landing\s+page|website|ui\s+component)\b", lc):
+        return INTENT_HTML_ARTIFACT
+
+    # ── Document generation detection ─────────────────────────────────────────
+    if re.search(
+        r"\b(?:make|create|generate|write)(?:\s+me)?\s+(?:a\s+)?(?:pdf|report|document|deck|brief|memo|presentation)\b",
+        lc,
+    ):
+        return INTENT_DOCUMENT_GENERATION
+
+    # ── Alias-based company detection with NON_COMPANY_CONTEXT disambiguation ─
+    company = detect_company_name(q)
+    if company:
+        return INTENT_COMPANY_RESEARCH
+
     gen = 0.0
     mkt = 0.0
     if _MARKET_HINT_RE.search(q):
@@ -444,10 +546,16 @@ def classify_intent_route(raw: str) -> str:
     if re.search(r"\b(?:deep dive|dd)\s+on\s+[A-Z]{2,5}\b", lc):
         mkt += 3.0
     log.debug("[intent] scores general=%.1f market=%.1f — %s", gen, mkt, q[:80])
-    # If BOTH scores are zero (e.g. "tell me about BlackRock", "everything on Tesla")
-    # route to GENERAL_FINANCE so Omega handles it with the research format
+
+    # Casual greeting / off-topic: scores will be zero and query matches casual pattern
+    if gen == 0.0 and mkt == 0.0 and any(re.search(p, lc) for p in CASUAL_PATTERNS):
+        return INTENT_CASUAL
+    # Broader casual signals (write me, who won, last night, etc.) with no market signal
+    if mkt == 0.0 and any(re.search(p, lc) for p in CASUAL_SIGNALS):
+        return INTENT_GENERAL_CHAT
+    # If BOTH scores are zero — no finance/market signal → casual
     if gen == 0.0 and mkt == 0.0:
-        return INTENT_GENERAL_FINANCE
+        return INTENT_GENERAL_CHAT
     # General finance wins if it scores higher (with small buffer)
     if gen >= mkt + 0.75:
         return INTENT_GENERAL_FINANCE
@@ -456,6 +564,46 @@ def classify_intent_route(raw: str) -> str:
         return INTENT_MARKET_DEEP_DIVE
     # Tie or unclear — default to GENERAL_FINANCE (safer, less expensive)
     return INTENT_GENERAL_FINANCE
+
+
+_OUTPUT_MODE_TRADE_RE = re.compile(
+    r"\b(trade|entry|setup|options|scalp|swing|stop[\s-]loss|take[\s-]profit|call|put|strike|expir|position size|risk[\s/]reward)\b",
+    re.I,
+)
+_OUTPUT_MODE_DOC_RE = re.compile(
+    r"\b(report|pdf|html|document|generate|presentation|deck|spreadsheet|workbook|export)\b",
+    re.I,
+)
+
+# Explicit trade-request patterns — matched before GENERAL_CHAT fallback
+_EXPLICIT_TRADE_RE = re.compile(
+    r"\b(trade\s+setup|trade\s+plan|entry\s+price|stop\s+loss|take\s+profit|scalp|swing\s+trade|day\s+trade|buy\s+calls|buy\s+puts|options\s+play|give\s+me\s+a\s+trade|show\s+me\s+a\s+trade)\b",
+    re.I,
+)
+
+
+def resolve_output_mode(raw_query: str, intent: str) -> str:
+    """Resolve the output mode — delegates to output_modes.py when available."""
+    try:
+        from output_modes import resolve_output_mode as _new_resolver
+        return _new_resolver(raw_query, intent)
+    except ImportError:
+        pass
+    # Legacy fallback (used only if output_modes.py is missing)
+    if intent in (INTENT_CASUAL, INTENT_GENERAL_CHAT):
+        return "chat"
+    if intent == INTENT_DOCUMENT_GENERATION:
+        return "document"
+    if intent == INTENT_MARKET_DEEP_DIVE:
+        return "trade_plan"
+    lc = (raw_query or "").lower()
+    if _OUTPUT_MODE_TRADE_RE.search(lc):
+        return "trade_plan"
+    if _OUTPUT_MODE_DOC_RE.search(lc):
+        return "document"
+    if intent in (INTENT_GENERAL_FINANCE, INTENT_COMPANY_RESEARCH):
+        return "company_report"
+    return "finance_answer"
 
 
 def classify_sector_cache_intent(raw: str) -> Optional[str]:
@@ -2221,20 +2369,23 @@ class QueryRouter:
                 route_kind = INTENT_MARKET_DEEP_DIVE
             else:
                 route_kind = classify_intent_route(raw_q)
-            if route_kind == INTENT_GENERAL_FINANCE:
+            if route_kind in (
+                INTENT_GENERAL_FINANCE, INTENT_CASUAL, INTENT_GENERAL_CHAT,
+                INTENT_COMPANY_RESEARCH, INTENT_HTML_ARTIFACT, INTENT_DOCUMENT_GENERATION,
+            ):
                 om = self._get_omega()
                 if om:
                     try:
-                        report = om.query(raw_q, session_id=session_id)
+                        report = om.query(raw_q, session_id=session_id, intent_route=route_kind)
                         if isinstance(report, dict):
                             env = _omega_report_to_query_envelope(report, raw_q)
                             if env:
-                                log.info("[QueryRouter] GENERAL_FINANCE → Omega")
+                                log.info("[QueryRouter] %s → Omega", route_kind)
                                 return env
                     except Exception as e:
                         log.warning("[QueryRouter] Omega route failed, using 10-loop: %s", e)
                 else:
-                    log.warning("[QueryRouter] GENERAL_FINANCE but Omega missing — falling back to 10-loop")
+                    log.warning("[QueryRouter] %s but Omega missing — falling back to 10-loop", route_kind)
             return self._engine.run(
                 raw_q,
                 user_id=user_id,
