@@ -27,8 +27,12 @@ Founder / Lead Architect of R.A. Omega and the ATLAS Agentic OS.
 - yfinance + free APIs — market data
 - GitHub — version control
 
-## Fill In
-<!-- Update this section with specifics as they emerge -->
-- Time zone: [fill in]
-- Working hours: [fill in]
-- Current sprint focus: [fill in]
+## Current Context
+- Time zone: [update when known]
+- Working hours: [update when known]
+- Current sprint focus: Production deploy + visual QA — Supabase migration, structured card rendering on /app, Railway deployment
+
+## Financial Context
+- Currently in debt and not working — building R.A. Omega as the path to income
+- High ambition, low current financial risk capacity
+- Paper trading only until income and debt plan are stable

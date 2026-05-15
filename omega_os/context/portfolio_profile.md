@@ -5,11 +5,10 @@ This file describes the user's portfolio characteristics for personalized analys
 Loaded by Loop 5 personalization in the query pipeline.
 
 ## Portfolio Style
-<!-- Fill in -->
-- Primary focus: [equity / options / crypto / mixed]
-- Holding period: [day trading / swing / long-term / mixed]
-- Typical position size: [fill in]
-- Max positions at once: [fill in]
+- Primary focus: equities + defined-risk options (paper trading only currently)
+- Holding period: swing (days to weeks) — no day trading while in financial recovery
+- Typical position size: small — sized to paper trading account; no real capital deployment until income/debt is stable
+- Max positions at once: 3–5 maximum to maintain focus and avoid overextension
 
 ## Current Holdings
 <!-- Update this regularly — never hardcode tickers here as investment advice -->

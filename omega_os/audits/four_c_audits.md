@@ -43,3 +43,15 @@ python omega_audit.py
   2. Fill in [fill in] placeholders in omega_os/context/ files
   3. Build a missing skill SOP (research_queue or voice_capture_triage next)
   4. Wire omega_os_loader into prompt_builder.py for synthesis-time context injection
+
+### Audit 2026-05-15 19:59 UTC — Total: 88/100
+- Context: 25/25
+- Connections: 13/25
+- Capabilities: 25/25
+- Cadence: 25/25
+**Gaps:** Planned connection not yet active: Google Workspace; Planned connection not yet active: Gmail; Planned connection not yet active: Google Calendar; Planned connection not yet active: Google Drive
+**Next Steps:**
+  1. Add a new active connection (Google Sheets or SEC EDGAR next)
+  2. Fill in [fill in] placeholders in omega_os/context/ files
+  3. Build a missing skill SOP (research_queue or voice_capture_triage next)
+  4. Wire omega_os_loader into prompt_builder.py for synthesis-time context injection
