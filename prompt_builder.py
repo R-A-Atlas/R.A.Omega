@@ -49,6 +49,21 @@ def build_synthesis_prompt(
     forbidden = list(contract.forbidden_phrases)  if contract else []
     tone      = contract.tone if contract else "clear and helpful"
 
+    chat_instruction = ""
+    if output_mode in ("chat", "general_chat"):
+        chat_instruction = "\n".join([
+            "GENERAL CHAT MODE:",
+            "The user is asking a normal question. Answer conversationally in plain text.",
+            "Do NOT structure this as a finance report, trade plan, or trading document.",
+            "Do NOT include any of the following sections or phrases:",
+            "THE SETUP, YOUR RULES, WHAT BREAKS THIS, HOW THIS PLAYS OUT,",
+            "Action: buy/sell/avoid/short, Rating: buy/sell/hold/avoid,",
+            "Entry, Stop Loss, Take Profit, Options Play, Best Contract,",
+            "Hedge Fund Brief, Intelligence Brief, Intelligence Memo,",
+            "Hold Period, Position Size, Position Sizing, Tripwire, Trade Rating, Risk/Reward.",
+            "Answer the user's actual question directly in conversational plain text.",
+        ])
+
     company_instruction = ""
     if output_mode == "company_report":
         company_parts = [
@@ -86,6 +101,9 @@ def build_synthesis_prompt(
         f"OUTPUT MODE: {output_mode}",
         f"TONE: {tone}",
     ]
+
+    if chat_instruction:
+        parts += ["", chat_instruction]
 
     if company_instruction:
         parts += ["", company_instruction]

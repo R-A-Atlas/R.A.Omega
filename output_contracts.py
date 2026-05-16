@@ -18,6 +18,30 @@ COMMON_TRADE_FORBIDDEN: list[str] = [
     "options play",
 ]
 
+# Headers forbidden in chat / finance_answer (trade-section bleed into general answers)
+CHAT_TRADE_FORBIDDEN: list[str] = [
+    *COMMON_TRADE_FORBIDDEN,
+    "the setup",
+    "your rules",
+    "what breaks this",
+    "how this plays out",
+    "hold period",
+    "action: buy",
+    "action: sell",
+    "action: avoid",
+    "action: short",
+    "rating: buy",
+    "rating: sell",
+    "rating: hold",
+    "rating: avoid",
+    "tripwire",
+    "position sizing",
+    "trade rating",
+    "hedge fund brief",
+    "intelligence brief",
+    "intelligence memo",
+]
+
 # Additional phrases forbidden in company_report context (trade bleed)
 COMPANY_REPORT_TRADE_FORBIDDEN: list[str] = [
     *COMMON_TRADE_FORBIDDEN,
@@ -37,6 +61,9 @@ COMPANY_REPORT_TRADE_FORBIDDEN: list[str] = [
     "how this plays out",
     "position sizing",
     "trade rating",
+    "hedge fund brief",
+    "best contract",
+    "best options contract",
 ]
 
 
@@ -51,14 +78,14 @@ class OutputContract:
 OUTPUT_CONTRACTS: dict[str, OutputContract] = {
     "chat": OutputContract(
         required_sections=(),
-        forbidden_phrases=tuple(COMMON_TRADE_FORBIDDEN),
+        forbidden_phrases=tuple(CHAT_TRADE_FORBIDDEN),
         tone="casual, direct, helpful",
         requires_sources=False,
     ),
 
     "finance_answer": OutputContract(
         required_sections=(),
-        forbidden_phrases=tuple(COMMON_TRADE_FORBIDDEN),
+        forbidden_phrases=tuple(CHAT_TRADE_FORBIDDEN),
         tone="professional but readable",
         requires_sources=False,
     ),
@@ -108,5 +135,14 @@ OUTPUT_CONTRACTS: dict[str, OutputContract] = {
         forbidden_phrases=("guaranteed profit", "risk-free"),
         tone="precise, risk-aware, educational",
         requires_sources=True,
+    ),
+
+    # general_chat is an alias for chat — same forbidden phrases, used when
+    # output_mode is set explicitly to "general_chat" rather than "chat"
+    "general_chat": OutputContract(
+        required_sections=(),
+        forbidden_phrases=tuple(CHAT_TRADE_FORBIDDEN),
+        tone="casual, direct, helpful",
+        requires_sources=False,
     ),
 }

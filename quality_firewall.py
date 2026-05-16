@@ -8,7 +8,7 @@ import logging
 import re
 from dataclasses import dataclass
 
-from output_contracts import OUTPUT_CONTRACTS
+from output_contracts import OUTPUT_CONTRACTS, CHAT_TRADE_FORBIDDEN
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +36,18 @@ _COMPANY_REPORT_BLEED_HEADERS: tuple[str, ...] = (
     "position sizing",
     "trade rating",
     "tripwire",
+    "hedge fund brief",
+    "best contract",
+    "best options contract",
+)
+
+_CHAT_REPAIR = (
+    "The response contains trade-plan section headers that do not belong in a chat or finance answer. "
+    "Rewrite as a plain, conversational answer. "
+    "Remove THE SETUP, YOUR RULES, WHAT BREAKS THIS, HOW THIS PLAYS OUT, "
+    "Action: buy/sell/avoid, Rating: buy/sell/hold, Stop Loss, Take Profit, "
+    "Hedge Fund Brief, Intelligence Brief/Memo, and all trade-plan language. "
+    "Answer the user's actual question directly in plain text."
 )
 
 _COMPANY_REPORT_REPAIR = (
@@ -102,6 +114,21 @@ def _validate(
         )
 
     text = (answer or "").lower()
+
+    # ── chat / finance_answer / general_chat trade bleed check ───────────────
+    if output_mode in {"chat", "finance_answer", "general_chat"}:
+        for phrase in CHAT_TRADE_FORBIDDEN:
+            if phrase in text:
+                log.warning(
+                    "quality_firewall: trade bleed %r detected in %s for %r",
+                    phrase, output_mode, (raw_query or "")[:60],
+                )
+                return QualityResult(
+                    passed=False,
+                    reason=f"Trade bleed in {output_mode}: forbidden phrase '{phrase}'",
+                    repair_instruction=_CHAT_REPAIR,
+                    bleed_detected=True,
+                )
 
     # ── company_report trade bleed check (runs before generic forbidden check) ──
     if output_mode == "company_report":

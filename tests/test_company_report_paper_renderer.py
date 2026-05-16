@@ -192,43 +192,40 @@ class TestUICompanyReportPaperRenderer:
 
     def test_scenarios_card_gated_for_company_report(self):
         src = self._src()
-        # HOW THIS PLAYS OUT must only render when !isCompanyReport
-        assert "!isCompanyReport" in src
+        # HOW THIS PLAYS OUT must only render when isTradePlan (trade cards gated to trade_plan)
+        assert "isTradePlan" in src
         # Check that every occurrence of HOW THIS PLAYS OUT is gated
-        # (JSX uses isCompanyReport; standalone template uses _srIsCompanyReport)
         start = 0
         while True:
             idx = src.find("HOW THIS PLAYS OUT", start)
             if idx == -1:
                 break
             nearby = src[max(0, idx - 300):idx + 50]
-            assert "isCompanyReport" in nearby or "_srIsCompanyReport" in nearby, \
-                f"HOW THIS PLAYS OUT at {idx} must be gated by isCompanyReport"
+            assert "isTradePlan" in nearby or "_srIsTradePlan" in nearby or "_srIsCompanyReport" in nearby, \
+                f"HOW THIS PLAYS OUT at {idx} must be gated by isTradePlan"
             start = idx + 1
 
     def test_failure_modes_card_gated_for_company_report(self):
         src = self._src()
-        # WHAT BREAKS THIS must only render when !isCompanyReport
-        # Check that every occurrence is gated
+        # WHAT BREAKS THIS must only render for trade_plan
         start = 0
         while True:
             idx = src.find("WHAT BREAKS THIS", start)
             if idx == -1:
                 break
             nearby = src[max(0, idx - 400):idx + 50]
-            assert "isCompanyReport" in nearby or "_srIsCompanyReport" in nearby, \
-                f"WHAT BREAKS THIS at {idx} must be gated by isCompanyReport"
+            assert "isTradePlan" in nearby or "_srIsTradePlan" in nearby, \
+                f"WHAT BREAKS THIS at {idx} must be gated by isTradePlan"
             start = idx + 1
 
     def test_quickstats_strip_gated_for_company_report(self):
         src = self._src()
-        # QuickStatsStrip must be conditionally rendered
-        assert "!isCompanyReport" in src
-        # Check that QuickStatsStrip is conditional
+        # QuickStatsStrip must be conditionally rendered — only for trade_plan
+        assert "isTradePlan" in src
         idx = src.find("QuickStatsStrip data=")
         nearby = src[max(0, idx - 100):idx + 80]
-        assert "isCompanyReport" in nearby, \
-            "QuickStatsStrip must be gated by isCompanyReport (hidden for company_report)"
+        assert "isTradePlan" in nearby, \
+            "QuickStatsStrip must be gated by isTradePlan (trade cards only for trade_plan)"
 
     def test_the_setup_gated_for_company_report(self):
         src = self._src()
@@ -240,14 +237,14 @@ class TestUICompanyReportPaperRenderer:
             if idx == -1:
                 break
             nearby = src[max(0, idx - 200):idx + 50]
-            assert "isCompanyReport" in nearby or "_srIsCompanyReport" in nearby, \
-                f"THE SETUP at {idx} must be gated by isCompanyReport"
+            assert "isTradePlan" in nearby or "_srIsTradePlan" in nearby, \
+                f"THE SETUP at {idx} must be gated by isTradePlan"
             start = idx + 1
 
     def test_your_rules_gated_for_company_report(self):
         src = self._src()
         assert "YOUR RULES" in src
-        assert "!isCompanyReport" in src
+        assert "isTradePlan" in src
 
     def test_download_report_button_for_company_report(self):
         src = self._src()
@@ -262,10 +259,8 @@ class TestUICompanyReportPaperRenderer:
 
     def test_standalone_report_scenarios_gated(self):
         src = self._src()
-        # In generateStandaloneReport, scenarios must be gated
-        assert "_srIsCompanyReport" in src
-        idx = src.find("HOW THIS PLAYS OUT")
-        # Find last occurrence (standalone report version)
+        # In generateStandaloneReport, scenarios must be gated by _srIsTradePlan
+        assert "_srIsTradePlan" in src
         all_idxs = []
         start = 0
         while True:
@@ -276,8 +271,8 @@ class TestUICompanyReportPaperRenderer:
             start = i + 1
         for idx in all_idxs:
             nearby = src[max(0, idx - 300):idx + 50]
-            assert "_srIsCompanyReport" in nearby or "!isCompanyReport" in nearby, \
-                f"HOW THIS PLAYS OUT at position {idx} is not gated by company_report check"
+            assert "_srIsTradePlan" in nearby or "isTradePlan" in nearby, \
+                f"HOW THIS PLAYS OUT at position {idx} is not gated by trade_plan check"
 
 
 # ── PHASE 4 — Quality firewall bleed + repair ────────────────────────────────

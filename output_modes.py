@@ -8,6 +8,7 @@ import re
 
 # ── Constants ────────────────────────────────────────────────────────────────
 OUTPUT_CHAT            = "chat"
+OUTPUT_GENERAL_CHAT    = "general_chat"
 OUTPUT_FINANCE_ANSWER  = "finance_answer"
 OUTPUT_COMPANY_REPORT  = "company_report"
 OUTPUT_DOCUMENT        = "document"
@@ -17,6 +18,7 @@ OUTPUT_TRADE_PLAN      = "trade_plan"
 
 NON_TRADE_MODES: frozenset[str] = frozenset({
     OUTPUT_CHAT,
+    OUTPUT_GENERAL_CHAT,
     OUTPUT_FINANCE_ANSWER,
     OUTPUT_COMPANY_REPORT,
     OUTPUT_DOCUMENT,

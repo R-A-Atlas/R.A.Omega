@@ -376,7 +376,8 @@ class TestUICompanyReportRenderer:
 
     def test_trade_cards_gated_for_company_report(self):
         src = self._get_src()
-        assert "!isCompanyReport" in src, "Trade cards must be gated by !isCompanyReport"
+        # Gate is now isTradePlan — trade cards only appear for trade_plan output mode
+        assert "isTradePlan" in src, "Trade cards must be gated by isTradePlan"
 
     def test_output_mode_read_from_data(self):
         src = self._get_src()
@@ -385,9 +386,9 @@ class TestUICompanyReportRenderer:
     def test_your_rules_gated(self):
         src = self._get_src()
         assert "YOUR RULES" in src
-        assert "!isCompanyReport" in src
+        assert "isTradePlan" in src
 
     def test_the_setup_gated(self):
         src = self._get_src()
         assert "THE SETUP" in src
-        assert "!isCompanyReport" in src
+        assert "isTradePlan" in src

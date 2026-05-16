@@ -211,25 +211,21 @@ class TestUICardMapper:
     def test_setup_card_gated_for_company_report(self):
         src = self._get_src()
         assert "isCompanyReport" in src, "isCompanyReport variable missing from ra_omega_app.html"
-        assert "!isCompanyReport" in src, "Trade card gate missing from ra_omega_app.html"
+        # Gate is now isTradePlan (trade cards only for trade_plan mode)
+        assert "isTradePlan" in src, "Trade card gate (isTradePlan) missing from ra_omega_app.html"
 
     def test_your_rules_card_gated(self):
         src = self._get_src()
-        # Both the React component and the standalone generator must gate YOUR RULES
-        # React: "!isCompanyReport" guards "YOUR RULES"
-        # Template: "!_srIsCompanyReport" guards "YOUR RULES"
-        assert "!isCompanyReport" in src or "!_srIsCompanyReport" in src
-        # Verify the guard is specifically near the YOUR RULES label
+        # React uses isTradePlan; standalone template uses _srIsTradePlan
+        assert "isTradePlan" in src or "_srIsTradePlan" in src
         assert "YOUR RULES" in src
-        # The YOUR RULES string must appear only inside gated blocks
-        assert ("!isCompanyReport" in src and "!_srIsCompanyReport" in src), \
-            "Both React and template YOUR RULES must be gated (isCompanyReport / _srIsCompanyReport)"
+        assert "isTradePlan" in src and "_srIsTradePlan" in src, \
+            "Both React and template YOUR RULES must be gated (isTradePlan / _srIsTradePlan)"
 
     def test_what_breaks_this_gated_for_company_report(self):
         src = self._get_src()
-        # failureModes card must be hidden (not shown) for company_report
-        # Implementation: !isCompanyReport gate OR _srIsCompanyReport gate in standalone template
-        assert "!isCompanyReport" in src or "_srIsCompanyReport" in src
+        # failureModes card must be hidden for non-trade modes
+        assert "isTradePlan" in src or "_srIsTradePlan" in src
 
     def test_quickstats_strip_renamed_for_company_report(self):
         src = self._get_src()
@@ -242,7 +238,8 @@ class TestUICardMapper:
 
     def test_rating_suppressed_for_company_report(self):
         src = self._get_src()
-        assert "!isCompanyReport" in src
+        # Rating line gated by isTradePlan (only shown for trade_plan)
+        assert "isTradePlan" in src
 
 
 # ── PHASE 4: Quality firewall trade bleed detection ──────────────────────────
