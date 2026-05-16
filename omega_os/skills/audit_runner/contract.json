@@ -1,0 +1,26 @@
+{
+  "skill": "audit_runner",
+  "version": "1.0",
+  "score_formula": "overall = readiness_pct * 0.60 + benchmark_score * 0.40",
+  "verdict_thresholds": {
+    "90": "PRODUCTION READY — ship it",
+    "75": "BETA READY — invite beta users",
+    "60": "ALPHA — internal testing only",
+    "0":  "BUILDING — keep shipping"
+  },
+  "output_shape": {
+    "overall_score":     "float 0–100",
+    "overall_grade":     "A/B+/B/B-/C+/C/D",
+    "overall_verdict":   "string",
+    "readiness_score":   "float 0–100",
+    "benchmark_score":   "float 0–100",
+    "benchmark_rank":    "int 1–5",
+    "top_advantages":    "list[str]",
+    "top_gaps":          "list[str]",
+    "priority_fixes":    "list of {category, fix}"
+  },
+  "report_path": "atlas_vault/03-Outputs/omega_audit_YYYY-MM-DD.md",
+  "cadence_slug": "weekly_omega_os_audit",
+  "depends_on": ["ai_benchmarker", "product_readiness_audit"],
+  "side_effects": "writes dated .md report to atlas_vault/03-Outputs/"
+}

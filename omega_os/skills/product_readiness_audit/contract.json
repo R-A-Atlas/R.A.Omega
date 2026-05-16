@@ -1,0 +1,30 @@
+{
+  "skill": "product_readiness_audit",
+  "version": "1.0",
+  "categories": [
+    {"slug": "auth",    "name": "Auth & Security",         "max_points": 20},
+    {"slug": "billing", "name": "Billing",                 "max_points": 10},
+    {"slug": "ai",      "name": "Core AI Quality",         "max_points": 20},
+    {"slug": "ux",      "name": "UI/UX",                   "max_points": 15},
+    {"slug": "data",    "name": "Data Layer",              "max_points": 15},
+    {"slug": "infra",   "name": "Infrastructure",          "max_points": 10},
+    {"slug": "testing", "name": "Test Coverage",           "max_points":  5},
+    {"slug": "memory",  "name": "Memory & Personalization","max_points":  5}
+  ],
+  "total_max_points": 100,
+  "verdict_thresholds": {
+    "90": "PRODUCTION READY",
+    "75": "BETA READY",
+    "55": "ALPHA / STAGING",
+    "0":  "NOT READY"
+  },
+  "output_shape": {
+    "total_score":     "int 0–100",
+    "pct":             "float 0–100",
+    "grade":           "A/B+/B/C+/C/D",
+    "verdict":         "string",
+    "categories":      "list of CategoryResult with score/max/pct/checks",
+    "priority_fixes":  "list of (category, fix) tuples"
+  },
+  "side_effects": "none — read-only"
+}

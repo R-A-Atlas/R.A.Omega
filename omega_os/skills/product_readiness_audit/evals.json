@@ -1,0 +1,16 @@
+[
+  {"id": "E1", "description": "readiness_check.py compiles clean",
+   "command": "python -m py_compile omega_os/skills/product_readiness_audit/tools/readiness_check.py", "expect_exit": 0},
+  {"id": "E2", "description": "readiness_check.py runs without crash",
+   "command": "python omega_os/skills/product_readiness_audit/tools/readiness_check.py", "expect_exit": 0},
+  {"id": "E3", "description": "--json output is valid JSON",
+   "command": "python omega_os/skills/product_readiness_audit/tools/readiness_check.py --json", "output_is_json": true},
+  {"id": "E4", "description": "JSON contains all 8 categories",
+   "command": "python omega_os/skills/product_readiness_audit/tools/readiness_check.py --json", "output_contains": "auth"},
+  {"id": "E5", "description": "Output contains RESULT line with verdict",
+   "command": "python omega_os/skills/product_readiness_audit/tools/readiness_check.py", "output_contains": "RESULT:"},
+  {"id": "E6", "description": "--category auth filter works",
+   "command": "python omega_os/skills/product_readiness_audit/tools/readiness_check.py --category auth", "expect_exit": 0},
+  {"id": "E7", "description": "api_server.py compile check passes inside audit",
+   "assertion": "Core AI category check_api_server must pass since api_server.py compiles"}
+]

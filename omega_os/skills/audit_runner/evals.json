@@ -1,0 +1,14 @@
+[
+  {"id": "E1", "description": "run_audit.py compiles clean",
+   "command": "python -m py_compile omega_os/skills/audit_runner/tools/run_audit.py", "expect_exit": 0},
+  {"id": "E2", "description": "run_audit.py --quick exits 0 (skips benchmark)",
+   "command": "python omega_os/skills/audit_runner/tools/run_audit.py --quick --no-save", "expect_exit": 0},
+  {"id": "E3", "description": "--json --quick --no-save outputs valid JSON",
+   "command": "python omega_os/skills/audit_runner/tools/run_audit.py --json --quick --no-save", "output_is_json": true},
+  {"id": "E4", "description": "JSON contains overall_score and verdict",
+   "command": "python omega_os/skills/audit_runner/tools/run_audit.py --json --quick --no-save", "output_contains": "overall_score"},
+  {"id": "E5", "description": "JSON contains priority_fixes list",
+   "command": "python omega_os/skills/audit_runner/tools/run_audit.py --json --quick --no-save", "output_contains": "priority_fixes"},
+  {"id": "E6", "description": "Full run (with benchmark) exits 0",
+   "command": "python omega_os/skills/audit_runner/tools/run_audit.py --no-save", "expect_exit": 0}
+]

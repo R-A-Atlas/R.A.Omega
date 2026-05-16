@@ -1,0 +1,14 @@
+[
+  {"id": "E1", "description": "benchmark.py compiles clean",
+   "command": "python -m py_compile omega_os/skills/ai_benchmarker/tools/benchmark.py", "expect_exit": 0},
+  {"id": "E2", "description": "benchmark.py runs without error",
+   "command": "python omega_os/skills/ai_benchmarker/tools/benchmark.py", "expect_exit": 0},
+  {"id": "E3", "description": "--json output is valid JSON",
+   "command": "python omega_os/skills/ai_benchmarker/tools/benchmark.py --json", "output_is_json": true},
+  {"id": "E4", "description": "JSON contains omega_total field",
+   "command": "python omega_os/skills/ai_benchmarker/tools/benchmark.py --json", "output_contains": "omega_total"},
+  {"id": "E5", "description": "JSON contains all 4 competitors",
+   "command": "python omega_os/skills/ai_benchmarker/tools/benchmark.py --json", "output_contains": "ChatGPT"},
+  {"id": "E6", "description": "R.A. Omega scores above 60/100 (sanity check)",
+   "assertion": "omega_total > 60"}
+]

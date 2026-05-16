@@ -60,10 +60,17 @@ def _run_session_briefing() -> None:
 
 
 def _run_route_audit() -> None:
-    """weekly_omega_os_audit — uses route_audit.py + health_scorer (implemented)."""
-    script = ROOT / "omega_os" / "skills" / "route_map" / "tools" / "route_audit.py"
-    result = subprocess.run([sys.executable, str(script)], cwd=ROOT, capture_output=True, text=True, timeout=30)
-    logger.info("weekly_omega_os_audit:\n%s", result.stdout[:800])
+    """weekly_omega_os_audit — runs master audit (benchmark + readiness + route check)."""
+    audit_script = ROOT / "omega_os" / "skills" / "audit_runner" / "tools" / "run_audit.py"
+    result = subprocess.run(
+        [sys.executable, str(audit_script), "--no-save"],
+        cwd=ROOT, capture_output=True, text=True,
+        encoding="utf-8", errors="replace", timeout=120,
+    )
+    if result.returncode != 0:
+        logger.error("weekly_omega_os_audit failed: %s", result.stderr[:300])
+    else:
+        logger.info("weekly_omega_os_audit completed:\n%s", result.stdout[:1000])
 
 
 def _stub_runner(slug: str):

@@ -1,0 +1,27 @@
+{
+  "skill": "ai_benchmarker",
+  "version": "1.0",
+  "competitors": ["ChatGPT", "Claude", "Gemini", "Perplexity"],
+  "dimensions": [
+    {"slug": "finance_depth",          "weight": 15},
+    {"slug": "output_structure",       "weight": 15},
+    {"slug": "memory_personalization", "weight": 10},
+    {"slug": "cost_efficiency",        "weight": 10},
+    {"slug": "ux_completeness",        "weight": 12},
+    {"slug": "domain_breadth",         "weight": 10},
+    {"slug": "data_freshness",         "weight": 10},
+    {"slug": "api_quality",            "weight": 10},
+    {"slug": "production_readiness",   "weight":  8}
+  ],
+  "score_range": "0–10 per dimension; 0–100 weighted total",
+  "competitor_data": "static — based on public documentation",
+  "omega_scores": "auto-detected from codebase inspection",
+  "output_shape": {
+    "omega_total":       "float 0–100",
+    "omega_grade":       "A/B+/B/C+/C/D",
+    "omega_rank":        "int 1–5",
+    "competitor_totals": "dict[str, float]",
+    "top_advantages":    "list[str]",
+    "top_gaps":          "list[str]"
+  }
+}
