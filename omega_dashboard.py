@@ -121,6 +121,18 @@ def _get_skills_summary() -> list[dict[str, str]]:
     return raw or []
 
 
+def _get_agentic_os_status() -> dict[str, Any]:
+    """Return agentic OS worker metadata for dashboard."""
+    raw = _safe(lambda: __import__("omega_agentic_os").get_agentic_os_status(), {})
+    return raw or {
+        "agentic_workers_count":     0,
+        "agentic_workers_available": 0,
+        "always_on_hosting_status":  "planned",
+        "workers":                   [],
+        "suggested_agentic_actions": [],
+    }
+
+
 def _get_google_workspace_status() -> dict[str, Any]:
     """Return Google Workspace configuration status."""
     raw = _safe(lambda: __import__("omega_google_workspace").get_google_workspace_status(), {})
@@ -207,10 +219,11 @@ def build_command_center_snapshot() -> dict[str, Any]:
 
     All fields are always present — subsystem failures produce empty/default values.
     """
-    four_c      = _get_four_c_scores()
-    connections = _get_connection_status()
-    cadence     = _get_cadence_status()
-    persistence = _get_persistence_status()
+    four_c        = _get_four_c_scores()
+    connections   = _get_connection_status()
+    cadence       = _get_cadence_status()
+    persistence   = _get_persistence_status()
+    agentic_os    = _get_agentic_os_status()
 
     return {
         # Four C audit scores
@@ -236,6 +249,13 @@ def build_command_center_snapshot() -> dict[str, Any]:
 
         # Skills registry
         "skills_summary":   _get_skills_summary(),
+
+        # Agentic OS workers
+        "agentic_workers_count":     agentic_os.get("agentic_workers_count", 0),
+        "agentic_workers_available": agentic_os.get("agentic_workers_available", 0),
+        "always_on_hosting_status":  agentic_os.get("always_on_hosting_status", "planned"),
+        "agentic_os_status":         agentic_os,
+        "suggested_agentic_actions": agentic_os.get("suggested_agentic_actions", []),
 
         # Guidance
         "suggested_next_actions": _build_suggested_next_actions(
