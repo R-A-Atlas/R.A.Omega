@@ -71,14 +71,15 @@ def resolve_output_mode(raw_query: str, intent: str) -> str:
     if intent == "HTML_ARTIFACT":
         return OUTPUT_HTML_ARTIFACT
 
+    # Intent-confirmed company research wins over any keyword triggers
+    if intent == "COMPANY_RESEARCH":
+        return OUTPUT_COMPANY_REPORT
+
     if intent == "DOCUMENT_GENERATION" or _has_any(q, DOCUMENT_TRIGGER_WORDS):
         return OUTPUT_DOCUMENT
 
     if intent in ("TRADING_ANALYSIS", "MARKET_DEEP_DIVE") or user_explicitly_requested_trade(q):
         return OUTPUT_TRADE_PLAN
-
-    if intent == "COMPANY_RESEARCH":
-        return OUTPUT_COMPANY_REPORT
 
     if intent == "GENERAL_FINANCE":
         # Check if query mentions a known company → treat as company_report
