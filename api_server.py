@@ -1613,7 +1613,13 @@ def dispatch_query_request(
                 return _finalize_query_response(body, req, user_id, background_tasks, q_store, start)
         shaped = _ensure_query_ui_envelope(raw, q_store)
         _intent = (shaped.get("parsed_query") or {}).get("intent_route", "GENERAL_FINANCE")
-        _output_mode = resolve_output_mode(q_store, _intent)
+        try:
+            from omega_pipeline import select_output_mode as _pipeline_select_om
+            _output_mode = _pipeline_select_om(
+                q_store, _intent, {"research_mode": mode}
+            )
+        except Exception:
+            _output_mode = resolve_output_mode(q_store, _intent)
         shaped["_output_mode"] = _output_mode
 
         # ── Quality firewall + response judge (one repair log) ────────────────

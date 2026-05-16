@@ -2183,14 +2183,14 @@ last_updated
         if agent_system_prompt:
             prompt = agent_system_prompt + "\n\n" + prompt
 
-        # output_mode-based prompt constraints — use OUTPUT_CONTRACTS for required/forbidden
+        # output_mode-based prompt constraints — routed through omega_pipeline
         try:
-            from output_modes import resolve_output_mode as _resolve_output_mode_new
-            _output_mode = _resolve_output_mode_new(query, domain)
+            from omega_pipeline import select_output_mode as _pipeline_select_om
+            _output_mode = _pipeline_select_om(query, domain, {})
         except Exception:
             try:
-                from query_router import resolve_output_mode as _resolve_output_mode
-                _output_mode = _resolve_output_mode(query, domain)
+                from output_modes import resolve_output_mode as _resolve_output_mode_new
+                _output_mode = _resolve_output_mode_new(query, domain)
             except Exception:
                 _output_mode = "finance_answer"
 

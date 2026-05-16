@@ -1,0 +1,160 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,sans-serif);background:transparent;padding:16px;color:var(--color-text-primary)}
+h2{font-size:15px;font-weight:500;text-align:center;margin-bottom:4px}
+p.sub{font-size:12px;color:var(--color-text-secondary);text-align:center;margin-bottom:20px}
+.flow{display:flex;flex-direction:column;align-items:center;gap:0}
+.layer{width:100%;max-width:680px;margin-bottom:0}
+.lhead{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--color-text-tertiary);padding:0 4px;margin-bottom:4px}
+.boxes{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.box{border-radius:8px;padding:8px 12px;font-size:12px;font-weight:500;text-align:center;flex:1;min-width:100px;max-width:200px;line-height:1.4}
+.box small{display:block;font-size:10px;font-weight:400;opacity:.75;margin-top:2px}
+.arr{font-size:18px;text-align:center;margin:4px 0;line-height:1;width:100%;max-width:680px}
+.arr.multi{display:flex;gap:8px;justify-content:center;max-width:680px;width:100%}
+.arr span{flex:1;text-align:center;font-size:13px;color:var(--color-text-tertiary)}
+
+/* colors */
+.teal{background:#0F6E56;color:#fff;border:1.5px solid #1D9E75}
+.gold{background:#854F0B;color:#fff;border:1.5px solid #BA7517}
+.red{background:#791F1F;color:#fff;border:1.5px solid #A32D2D}
+.blue{background:#0C447C;color:#fff;border:1.5px solid #185FA5}
+.purple{background:#3C3489;color:#fff;border:1.5px solid #534AB7}
+.gray{background:var(--color-background-secondary);color:var(--color-text-primary);border:1px solid var(--color-border-secondary)}
+.dashed{border-style:dashed}
+
+.divider{width:100%;max-width:680px;border:none;border-top:1px dashed var(--color-border-tertiary);margin:12px 0}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:10px;color:var(--color-text-secondary);margin-top:16px;justify-content:center}
+.leg{display:flex;align-items:center;gap:4px}
+.ldot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+</style>
+
+<h2>R.A. Omega — Pipeline Architecture</h2>
+<p class="sub">Chat-driven finance intelligence OS · Hermes 24/7 operator layer (future)</p>
+
+<div class="flow">
+
+<!-- L1 USER -->
+<div class="layer"><div class="lhead">Layer 1 — User inputs</div>
+<div class="boxes">
+  <div class="box purple">User / R.A.<small>entry point</small></div>
+</div></div>
+<div class="arr">↓</div>
+<div class="layer"><div class="boxes">
+  <div class="box teal">Dashboard Chat<small>/app · current</small></div>
+  <div class="box teal">Command Center<small>/ · dashboard</small></div>
+  <div class="box gold dashed">Telegram<small>future</small></div>
+  <div class="box gold dashed">Voice Note<small>future · Whisper</small></div>
+  <div class="box gold dashed">Obsidian Vault<small>manual memory</small></div>
+</div></div>
+
+<div class="arr">↓</div>
+
+<!-- L2 API -->
+<div class="layer"><div class="lhead">Layer 2 — API gateway</div>
+<div class="boxes">
+  <div class="box teal" style="max-width:500px;min-width:260px">FastAPI Server — api_server.py<small>POST /query · GET /health · /omega-os/dashboard · /omega-os/brain · /history/reports</small></div>
+</div></div>
+
+<div class="arr">↓</div>
+
+<!-- L3 INTENT -->
+<div class="layer"><div class="lhead">Layer 3 — Intent + pipeline planning</div>
+<div class="boxes">
+  <div class="box teal" style="max-width:300px">Query Router — query_router.py<small>Receives raw query ONLY · classifies intent</small></div>
+  <div class="box blue" style="max-width:300px">Pipeline Planner — omega_pipeline.py<small>Decides output_mode · workflow · tools · renderer</small></div>
+</div></div>
+
+<div class="arr multi">
+  <span>↓ GENERAL_CHAT</span>
+  <span>↓ COMPANY_RESEARCH</span>
+  <span>↓ TRADE_SETUP</span>
+  <span>↓ DOCUMENT_REQUEST</span>
+  <span>↓ DEEP_RESEARCH*</span>
+</div>
+
+<!-- L4 WORKFLOWS -->
+<div class="layer"><div class="lhead">Layer 4 — Workflow executor</div>
+<div class="boxes">
+  <div class="box teal">General Answer<small>GENERAL_CHAT</small></div>
+  <div class="box teal">Company Report<small>COMPANY_RESEARCH</small></div>
+  <div class="box teal">Trade Analysis<small>TRADE_SETUP</small></div>
+  <div class="box blue">Document Gen<small>DOCUMENT_REQUEST</small></div>
+  <div class="box gold">Deep Research<small>*explicit only</small></div>
+  <div class="box blue">Dashboard Gen<small>DASHBOARD_REQUEST</small></div>
+</div></div>
+
+<div class="arr">↓</div>
+
+<!-- L5 TOOLS -->
+<div class="layer"><div class="lhead">Layer 5 — Tools + data sources</div>
+<div class="boxes">
+  <div class="box gray">General<small>Base model · light context</small></div>
+  <div class="box teal">Company<small>SEC EDGAR · Web · yfinance</small></div>
+  <div class="box teal">Trade<small>market_scanner · Options · Price</small></div>
+  <div class="box blue">Document<small>Markdown · HTML · PDF</small></div>
+  <div class="box gold">Deep Research<small>deep_research.py · RAG · Web</small></div>
+</div></div>
+
+<div class="arr">↓</div>
+
+<!-- L6 PROMPT + MODEL -->
+<div class="layer"><div class="lhead">Layer 6 — Prompt builder + model</div>
+<div class="boxes">
+  <div class="box teal" style="max-width:320px">Prompt Builder — prompt_builder.py<small>SYSTEM · OUTPUT MODE · RAW QUERY · INTENT · MEMORY · LIVE DATA · OUTPUT CONTRACT · FORBIDDEN SECTIONS</small></div>
+  <div class="box teal" style="max-width:280px">Model Layer<small>gemini-flash → chat / simple queries<br>gemini-pro → deep research / trade</small></div>
+</div></div>
+
+<div class="arr">↓</div>
+
+<!-- L7 QUALITY -->
+<div class="layer"><div class="lhead">Layer 7 — Quality control ⚠ safety boundary</div>
+<div class="boxes">
+  <div class="box red">Output Contracts<small>output_contracts.py<br>required + forbidden per mode</small></div>
+  <div class="box red">Quality Firewall<small>quality_firewall.py<br>blocks trade bleed</small></div>
+  <div class="box red">Response Judge<small>response_judge.py<br>PASS or FAIL</small></div>
+</div></div>
+<div style="text-align:center;font-size:10px;color:#A32D2D;margin:4px 0">↻ FAIL → one repair pass → back to model · never infinite loop</div>
+
+<div class="arr">↓ PASS</div>
+
+<!-- L8 RENDERERS -->
+<div class="layer"><div class="lhead">Layer 8 — Renderers (output format depends on output_mode)</div>
+<div class="boxes">
+  <div class="box gray">Chat Bubble<small>general_chat</small></div>
+  <div class="box teal">Paper Report<small>company_report<br>deep_research</small></div>
+  <div class="box teal">Trade Cards<small>trade_plan ONLY</small></div>
+  <div class="box blue">Document<small>document mode</small></div>
+  <div class="box blue">Dashboard<small>dashboard mode</small></div>
+</div></div>
+
+<div class="arr">↓</div>
+
+<!-- L9 OUTPUT -->
+<div class="layer"><div class="lhead">Layer 9 — User output + export</div>
+<div class="boxes">
+  <div class="box purple" style="max-width:180px">User sees answer<small>Chat · Report · Dashboard</small></div>
+  <div class="box blue">Download<small>.md · .html now<br>Google Drive later</small></div>
+  <div class="box teal">Persistence<small>omega_persistence.py<br>Supabase · JSON · Reports</small></div>
+</div></div>
+
+<hr class="divider"/>
+
+<!-- SIDE SYSTEMS -->
+<div class="layer"><div class="lhead">Supporting systems — feed into pipeline above</div>
+<div class="boxes">
+  <div class="box purple" style="max-width:200px">Omega OS Memory<small>about_user · risk_profile<br>portfolio · decisions<br>→ feeds Prompt Builder</small></div>
+  <div class="box blue" style="max-width:200px">Command Center<small>omega_dashboard.py<br>/omega-os/dashboard<br>observes · does not control</small></div>
+  <div class="box gold dashed" style="max-width:200px">Hermes Operator<small>future · 24/7 chief of staff<br>Telegram · Obsidian<br>Claude Code · GitHub</small></div>
+  <div class="box red dashed" style="max-width:200px">Safety Boundaries<small>No broker trades<br>No email sends<br>No deploys without confirm<br>Draft-only risky actions</small></div>
+</div></div>
+
+</div>
+
+<div class="legend">
+  <div class="leg"><div class="ldot" style="background:#0F6E56;border:1px solid #1D9E75"></div>Main pipeline</div>
+  <div class="leg"><div class="ldot" style="background:#854F0B;border:1px solid #BA7517"></div>Future / optional</div>
+  <div class="leg"><div class="ldot" style="background:#791F1F;border:1px solid #A32D2D"></div>Safety / quality</div>
+  <div class="leg"><div class="ldot" style="background:#0C447C;border:1px solid #185FA5"></div>Planning / persistence</div>
+  <div class="leg"><div class="ldot" style="background:#3C3489;border:1px solid #534AB7"></div>Memory / OS context</div>
+</div>
