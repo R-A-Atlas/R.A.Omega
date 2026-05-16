@@ -1,0 +1,23 @@
+{
+  "name": "company_report",
+  "description": "Institutional-grade company research report",
+  "output_mode": "company_report",
+  "renderer_type": "paper_report",
+  "auto_invocable": true,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [
+    "executive_summary",
+    "bull_thesis",
+    "bear_thesis",
+    "key_risks"
+  ],
+  "forbidden_sections": [
+    "trade_cards",
+    "action_stop_target_rows"
+  ],
+  "related_tools": [
+    "verify_company_report.py"
+  ]
+}

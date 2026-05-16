@@ -1,61 +1,58 @@
-# Skill: document_generator
+# skill: document_generator
 
 ## name
 document_generator
 
 ## description
-Generate a professional export document (PDF, Excel, or PowerPoint) from query results or
-a structured research request. Uses atlas_export/ builders.
+Generate a structured document — PDF, PPTX, XLSX, or formatted text report — on demand.
 
 ## when_to_use
-- User asks "make me a PDF report on [topic]"
-- User asks "generate an Excel spreadsheet for [data]"
-- User asks "create a PowerPoint deck on [topic]"
-- intent == DOCUMENT_GENERATION
-- output_mode == document
+- User explicitly requests a PDF, report document, presentation, or spreadsheet
+- output_mode is "document"
+- User says "make a report", "give me a PDF", "create a document"
+
+## when_not_to_use
+- User wants analysis inline in chat (use company_report or general_chat)
+- User wants an interactive HTML dashboard (use dashboard_generator)
 
 ## inputs_required
-- Topic or query (required)
-- Format: pdf | excel | pptx (required)
-- Optional: specific data to include (e.g., "include options chain")
-- Optional: company name or ticker
+- Subject or topic for the document
+- Optional: format preference (PDF, PPTX, XLSX)
+- Optional: sections to include
 
 ## steps
-1. Confirm output format from query (PDF / Excel / PowerPoint)
-2. Route to POST /export/{pdf|pptx|xlsx} with the same body as a /query request
-3. Run synthesis via OmegaAgent or FourLoopEngine depending on intent
-4. Apply OUTPUT_CONTRACTS["document"] — required sections, no forbidden phrases
-5. Build document using the appropriate atlas_export/ builder:
-   - pdf_render.py → WeasyPrint or browser print
-   - build_workbook.py → openpyxl Excel
-   - build_deck.py → python-pptx PowerPoint
-6. Save output to atlas_vault/03-Outputs/ with timestamp in filename
-7. Return download link or file path to user
+1. Confirm output_mode is document and user explicitly requested a file
+2. Gather or generate content (may call company_report internally)
+3. Build document structure: cover page, sections, data tables
+4. Export via atlas_export/ builder (pdf_render, build_deck, or build_workbook)
+5. Save to atlas_vault/03-Outputs/ and return download link
 
 ## outputs
-- Document file saved to atlas_vault/03-Outputs/
-- Download link or file path
-- Success confirmation with file size and page count
+- renderer_type: document
+- Format: structured document ready for export (PDF/PPTX/XLSX)
+- Tone: formal, professional
+- Saved to: atlas_vault/03-Outputs/
 
 ## safety_rules
-- Maximum file size: 50MB (reject oversized data requests)
-- Never include API keys, session tokens, or internal configs in documents
-- Do not include personal financial data unless explicitly requested by the user
-- Label all data with source and date — never present cached data as live
-- Do not auto-send documents via email without explicit user confirmation
-
-## related_files
-- atlas_export/pdf_render.py — PDF builder
-- atlas_export/build_deck.py — PowerPoint builder
-- atlas_export/build_workbook.py — Excel builder
-- api_server.py — POST /export/pdf, POST /export/pptx, POST /export/xlsx
-- atlas_vault/03-Outputs/ — output directory
-- omega_os/references/report_templates/README.md — document templates
+- Do not include raw API keys or credentials in any document
+- Label all data sources at the end of the document
+- Generated documents must include a timestamp and data-as-of date
 
 ## quality_checks
-- [ ] Correct file format generated (pdf / xlsx / pptx)
-- [ ] File saved to atlas_vault/03-Outputs/ with timestamp
-- [ ] File size under 50MB
-- [ ] No API keys or secrets in document
-- [ ] Data sources labeled with date
-- [ ] output_mode == "document" confirmed before generation
+- Document file was created and path returned
+- Cover page and timestamp present
+- Data sources labeled
+- No API keys or secrets in output
+
+## examples
+Input: "Make a PDF report on Microsoft"
+Output: PDF file saved to atlas_vault/03-Outputs/microsoft_report_20260515.pdf
+
+## repair_strategy
+If PDF render fails (WeasyPrint/GTK error), fall back to HTML export and notify user.
+If document is missing required sections, append them before export.
+
+## related_files
+- omega_os/skills/company_report/skill.md
+- omega_os/skills/report_export/skill.md
+- atlas_export/pdf_render.py

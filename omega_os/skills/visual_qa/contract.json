@@ -1,0 +1,13 @@
+{
+  "name": "visual_qa",
+  "description": "Answer questions about charts, graphs, and images",
+  "output_mode": "any",
+  "renderer_type": "chat_bubble",
+  "auto_invocable": false,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [],
+  "forbidden_sections": [],
+  "related_tools": []
+}

@@ -90,6 +90,7 @@ class PipelinePlan:
     renderer_type: str
     persistence_target: str
     reason: str
+    skill_name: str = ""  # populated by get_skill_for_output_mode(); empty = no skill matched
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -101,6 +102,7 @@ class PipelinePlan:
             "renderer_type":    self.renderer_type,
             "persistence_target": self.persistence_target,
             "reason":           self.reason,
+            "skill_name":       self.skill_name,
         }
 
 
@@ -295,7 +297,15 @@ def plan_request(
     required_tools = list(_WORKFLOW_TOOLS.get(workflow, []))
     persistence_target = _WORKFLOW_PERSISTENCE.get(workflow, "chat_log")
 
-    # 7. Human-readable reason
+    # 7. Skill mapping — output_mode → skill_name (never loads instructions here)
+    skill_name = ""
+    try:
+        from omega_skill_registry import get_skill_for_output_mode as _gsfom
+        skill_name = _gsfom(output_mode) or ""
+    except Exception:
+        pass
+
+    # 8. Human-readable reason
     reason = (
         f"intent={intent}, output_mode={output_mode}, workflow={workflow}, "
         f"use_deep_research={use_deep}, renderer={renderer_type}"
@@ -310,4 +320,5 @@ def plan_request(
         renderer_type=renderer_type,
         persistence_target=persistence_target,
         reason=reason,
+        skill_name=skill_name,
     )

@@ -185,6 +185,30 @@ def build_synthesis_prompt_meta(
         except Exception:
             pass  # omega_os unavailable — degrade gracefully
 
+        # Fallback: load only the relevant skill's instructions via omega_skill_registry
+        # Only fires when omega_os_loader produced no skill (or wasn't available).
+        # Never loads all skills — only the one matched to output_mode.
+        if not selected_skill:
+            try:
+                from omega_skill_registry import (
+                    get_skill_for_output_mode as _gsfom,
+                    load_skill_instructions as _lsi,
+                )
+                _matched_skill = _gsfom(output_mode)
+                if _matched_skill:
+                    selected_skill = _matched_skill
+                    _instructions = _lsi(_matched_skill)
+                    if _instructions:
+                        if omega_os_context:
+                            omega_os_context = omega_os_context + "\n\n" + _instructions
+                        else:
+                            omega_os_context = _instructions
+                        context_files_used = list(context_files_used) + [
+                            f"skills/{_matched_skill}/skill.md"
+                        ]
+            except Exception:
+                pass  # registry unavailable — degrade gracefully
+
     # SEC filings — only for company_report, never for casual/chat queries
     sec_filing_context = ""
     sec_meta: dict[str, Any] = {

@@ -1,0 +1,20 @@
+{
+  "name": "trade_plan",
+  "description": "Structured trade plan with entry, stop, targets, and options play",
+  "output_mode": "trade_plan",
+  "renderer_type": "trade_cards",
+  "auto_invocable": true,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [
+    "entry",
+    "stop_loss",
+    "targets",
+    "risk_reward"
+  ],
+  "forbidden_sections": [],
+  "related_tools": [
+    "verify_trade_plan.py"
+  ]
+}

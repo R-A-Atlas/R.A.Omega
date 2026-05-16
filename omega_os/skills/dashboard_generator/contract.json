@@ -1,0 +1,13 @@
+{
+  "name": "dashboard_generator",
+  "description": "Generate interactive HTML dashboards and data visualizations",
+  "output_mode": "html_artifact",
+  "renderer_type": "html_artifact",
+  "auto_invocable": false,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [],
+  "forbidden_sections": [],
+  "related_tools": []
+}

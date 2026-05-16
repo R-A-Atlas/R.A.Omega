@@ -190,6 +190,58 @@ def _validate(
             repair_instruction="Regenerate with a complete answer.",
         )
 
+    # ── Deterministic verifier — company_report ───────────────────────────────
+    if output_mode == "company_report":
+        try:
+            from omega_os.skills.company_report.tools.verify_company_report import verify as _vcr
+            _vr = _vcr(answer)
+            if not _vr.passed:
+                if _vr.forbidden_found:
+                    return QualityResult(
+                        passed=False,
+                        reason=f"Verifier: trade bleed in company_report: {_vr.forbidden_found}",
+                        repair_instruction=_COMPANY_REPORT_REPAIR,
+                        bleed_detected=True,
+                    )
+                if _vr.missing_sections:
+                    return QualityResult(
+                        passed=False,
+                        reason=f"Verifier: missing required sections: {_vr.missing_sections}",
+                        repair_instruction=(
+                            f"Regenerate as company_report. Include these required sections: "
+                            f"{', '.join(_vr.missing_sections)}."
+                        ),
+                    )
+        except Exception:
+            pass  # verifier unavailable — degrade gracefully
+
+    # ── Deterministic verifier — trade_plan ──────────────────────────────────
+    if output_mode == "trade_plan":
+        try:
+            from omega_os.skills.trade_plan.tools.verify_trade_plan import verify as _vtp
+            _vr = _vtp(answer)
+            if not _vr.passed:
+                if _vr.forbidden_found:
+                    return QualityResult(
+                        passed=False,
+                        reason=f"Verifier: forbidden pattern in trade_plan: {_vr.forbidden_found}",
+                        repair_instruction=(
+                            "Regenerate as trade_plan. Remove naked options. "
+                            "Always include a stop loss."
+                        ),
+                    )
+                if _vr.missing_sections:
+                    return QualityResult(
+                        passed=False,
+                        reason=f"Verifier: missing required sections in trade_plan: {_vr.missing_sections}",
+                        repair_instruction=(
+                            f"Regenerate as trade_plan. Include: {', '.join(_vr.missing_sections)}. "
+                            "A stop loss is required."
+                        ),
+                    )
+        except Exception:
+            pass  # verifier unavailable — degrade gracefully
+
     return QualityResult(passed=True, reason="Passed quality firewall.")
 
 

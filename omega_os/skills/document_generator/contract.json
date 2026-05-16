@@ -1,0 +1,17 @@
+{
+  "name": "document_generator",
+  "description": "Generate structured documents \u2014 PDF, PPTX, XLSX",
+  "output_mode": "document",
+  "renderer_type": "document",
+  "auto_invocable": false,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [],
+  "forbidden_sections": [],
+  "related_tools": [
+    "pdf_render.py",
+    "build_deck.py",
+    "build_workbook.py"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "source_verification",
+  "description": "Verify data sources cited in reports",
+  "output_mode": "any",
+  "renderer_type": "any",
+  "auto_invocable": true,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [],
+  "forbidden_sections": [],
+  "related_tools": [
+    "verify_company_report.py"
+  ]
+}

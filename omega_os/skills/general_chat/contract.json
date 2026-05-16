@@ -1,0 +1,19 @@
+{
+  "name": "general_chat",
+  "description": "Conversational plain-text answers \u2014 no trade cards, no report structure",
+  "output_mode": "chat",
+  "renderer_type": "chat_bubble",
+  "auto_invocable": true,
+  "user_invocable": true,
+  "requires_confirmation": false,
+  "destructive": false,
+  "required_sections": [],
+  "forbidden_sections": [
+    "the_setup",
+    "your_rules",
+    "what_breaks_this",
+    "action_stop_target_rows",
+    "trade_rating"
+  ],
+  "related_tools": []
+}
