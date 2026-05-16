@@ -34,7 +34,7 @@ TRADE_TRIGGER_WORDS: set[str] = {
 }
 
 DOCUMENT_TRIGGER_WORDS: set[str] = {
-    "report", "document", "pdf", "brief", "deck", "proposal", "memo",
+    "document", "pdf", "deck", "proposal", "memo",
     "presentation", "spreadsheet", "workbook",
 }
 
@@ -81,15 +81,15 @@ def resolve_output_mode(raw_query: str, intent: str) -> str:
     if intent in ("TRADING_ANALYSIS", "MARKET_DEEP_DIVE") or user_explicitly_requested_trade(q):
         return OUTPUT_TRADE_PLAN
 
-    if intent == "GENERAL_FINANCE":
-        # Check if query mentions a known company → treat as company_report
+    if intent in ("GENERAL_FINANCE", "GENERAL_CHAT"):
+        # Check if query mentions a known company/ticker → treat as company_report
         try:
             from query_router import detect_company_name as _detect_co
             if _detect_co(q):
                 return OUTPUT_COMPANY_REPORT
         except ImportError:
             pass
-        return OUTPUT_FINANCE_ANSWER
+        return OUTPUT_FINANCE_ANSWER if intent == "GENERAL_FINANCE" else OUTPUT_CHAT
 
     if intent == "MARKET_DATA":
         return OUTPUT_MARKET_SNAPSHOT

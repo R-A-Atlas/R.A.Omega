@@ -41,6 +41,18 @@ def _sec_edgar_status() -> str:
     return STATUS_CONFIGURED
 
 
+def _telegram_status() -> str:
+    """Return active if TELEGRAM_BOT_TOKEN and TELEGRAM_ALLOWED_USER_IDS are set, configured if token only."""
+    _placeholders = ("YOUR_", "your_", "placeholder", "PLACEHOLDER")
+    token = _os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token or any(p in token for p in _placeholders):
+        return STATUS_CONFIGURED
+    allowed = _os.getenv("TELEGRAM_ALLOWED_USER_IDS", "").strip()
+    if not allowed or any(p in allowed for p in _placeholders):
+        return STATUS_CONFIGURED
+    return STATUS_ACTIVE
+
+
 def _google_workspace_status() -> str:
     """Return active when GOOGLE_WORKSPACE_ENABLED=true and all credentials present, else planned."""
     enabled = _os.getenv("GOOGLE_WORKSPACE_ENABLED", "false").strip().lower()
@@ -283,15 +295,15 @@ _REGISTRY: list[Connection] = [
     Connection(
         name="Telegram",
         slug="telegram",
-        status=STATUS_PLANNED,
+        status=_telegram_status(),
         auth_method=AUTH_BOT_TOKEN,
-        env_vars_required=("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID"),
-        permissions_needed=("send_messages", "send_documents"),
-        can_read=False,
+        env_vars_required=("TELEGRAM_BOT_TOKEN", "TELEGRAM_ALLOWED_USER_IDS"),
+        permissions_needed=("receive_messages", "send_messages", "send_documents"),
+        can_read=True,
         can_write=True,
         is_destructive=False,
-        safety_notes="Send-only — do not receive commands via Telegram without explicit user-command whitelist. Never forward financial data to public Telegram groups. Use private chat or private channel only.",
-        use_cases=("daily brief delivery", "watchlist RED alerts", "research queue notifications"),
+        safety_notes="Webhook receiver gated by TELEGRAM_ALLOWED_USER_IDS allowlist — empty list rejects all users. Never forward financial data to public groups. Use private chat or private channel only.",
+        use_cases=("capture inbox via chat", "daily brief delivery", "watchlist RED alerts", "research queue notifications"),
     ),
 
     Connection(
