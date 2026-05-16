@@ -1,0 +1,66 @@
+{
+  "skill": "dev_session_guard",
+  "version": "1.0.0",
+  "intent": "DEV_SESSION_GUARD",
+  "modes": ["preflight", "pre_commit", "protected_only", "briefing"],
+  "inputs": {
+    "mode": {
+      "type": "string",
+      "enum": ["preflight", "pre_commit", "protected_only", "briefing"],
+      "default": "preflight"
+    },
+    "baseline_test_count": {
+      "type": "integer",
+      "description": "Minimum passing test count to accept. Defaults to 2387.",
+      "default": 2387
+    },
+    "min_health_score": {
+      "type": "integer",
+      "description": "Minimum health_scorer overall score to pass pre-commit. Default 75.",
+      "default": 75
+    }
+  },
+  "outputs": {
+    "session_brief": {
+      "type": "string",
+      "description": "Formatted session state summary printed to stdout"
+    },
+    "exit_code": {
+      "type": "integer",
+      "description": "0 = all clear, 1 = blockers found (pre-commit mode only)"
+    },
+    "blockers": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of specific issues preventing a safe commit"
+    }
+  },
+  "protected_files": [
+    "deep_research.py",
+    "gemini_limiter.py"
+  ],
+  "protected_databases": [
+    "atlas_memory.db",
+    "atlas_tracker.db"
+  ],
+  "protected_directories": [
+    "atlas_rag"
+  ],
+  "core_files_to_compile": [
+    "api_server.py",
+    "query_router.py",
+    "atlas_omega.py",
+    "output_modes.py",
+    "alerts.py",
+    "progress_state.py",
+    "omega_connections.py",
+    "omega_cadence.py"
+  ],
+  "safety": {
+    "never_modify_protected": true,
+    "never_commit_env": true,
+    "never_commit_databases": true,
+    "block_on_test_regression": true,
+    "block_on_broken_chain": true
+  }
+}

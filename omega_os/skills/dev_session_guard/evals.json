@@ -1,0 +1,58 @@
+[
+  {
+    "id": "e1",
+    "description": "run_preflight.py compiles without errors",
+    "command": "python -m py_compile omega_os/skills/dev_session_guard/tools/run_preflight.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "e2",
+    "description": "session_briefing.py compiles without errors",
+    "command": "python -m py_compile omega_os/skills/dev_session_guard/tools/session_briefing.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "e3",
+    "description": "run_preflight.py runs and exits 0 on a clean repo",
+    "command": "python omega_os/skills/dev_session_guard/tools/run_preflight.py",
+    "expect_exit": 0,
+    "expect_stdout_contains": "Session Brief"
+  },
+  {
+    "id": "e4",
+    "description": "session_briefing.py runs and prints branch name",
+    "command": "python omega_os/skills/dev_session_guard/tools/session_briefing.py",
+    "expect_exit": 0,
+    "expect_stdout_contains": "Branch"
+  },
+  {
+    "id": "e5",
+    "description": "pre-commit mode exits 0 on clean repo",
+    "command": "python omega_os/skills/dev_session_guard/tools/run_preflight.py --pre-commit",
+    "expect_exit": 0,
+    "expect_stdout_contains": "PASS"
+  },
+  {
+    "id": "e6",
+    "description": "protected-only mode detects deep_research.py is unmodified",
+    "command": "python omega_os/skills/dev_session_guard/tools/run_preflight.py --protected-only",
+    "expect_exit": 0,
+    "expect_stdout_contains": "deep_research.py"
+  },
+  {
+    "id": "e7",
+    "description": "SKILL.md exists and contains guardrails section",
+    "file_contains": {
+      "path": "omega_os/skills/dev_session_guard/SKILL.md",
+      "needle": "guardrails"
+    }
+  },
+  {
+    "id": "e8",
+    "description": "contract.json is valid JSON with protected_files field",
+    "file_contains": {
+      "path": "omega_os/skills/dev_session_guard/contract.json",
+      "needle": "protected_files"
+    }
+  }
+]
