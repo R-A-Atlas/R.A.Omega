@@ -178,9 +178,11 @@ def cancel_job(job_id: str, user_id: str | None = None) -> dict[str, Any] | None
 
 
 def activity_from_job(job: dict[str, Any]) -> dict[str, Any]:
+    status = job.get("status")
     return {
         "job_id": job.get("job_id"),
-        "status": job.get("status"),
+        "status": status,
+        "final_response_available": status in {"completed", "failed", "cancelled"},
         "route_band": job.get("route_band"),
         "progress_pct": job.get("progress_pct"),
         "current_stage": job.get("current_stage"),

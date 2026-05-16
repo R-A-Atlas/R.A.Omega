@@ -150,9 +150,10 @@ def test_tsla_trade_not_company_research():
 
 def test_company_report_contract_has_required_sections():
     contract = OUTPUT_CONTRACTS["company_report"]
-    assert "Overview" in contract.required_sections
+    assert "Company Overview" in contract.required_sections
     assert "Business Model" in contract.required_sections
-    assert "Leadership" in contract.required_sections
+    assert "Key Executives" in contract.required_sections
+    assert "Financial Snapshot" in contract.required_sections
 
 def test_company_report_contract_forbids_trade_plan():
     contract = OUTPUT_CONTRACTS["company_report"]
@@ -185,13 +186,17 @@ def test_quality_firewall_passes_clean_company_report():
         intent="COMPANY_RESEARCH",
         output_mode="company_report",
         answer=(
-            "Overview: BlackRock is the world's largest asset manager. "
+            "Executive Summary: BlackRock is the world's largest asset manager. "
+            "Company Overview: World's largest asset manager with $10T AUM. "
+            "What They Do: Asset management and advisory. "
             "Business Model: They earn management fees on AUM. "
             "Financial Snapshot: $10T AUM. "
-            "Leadership: Larry Fink, CEO. "
+            "Key Executives: Larry Fink, CEO. "
             "Recent News: Expansion into private credit. "
-            "Risks: Regulatory scrutiny. "
-            "Competitive Position: Largest in the industry."
+            "Competitive Position: Largest in the industry. "
+            "Key Risks: Regulatory scrutiny. "
+            "Sources: Bloomberg, SEC filings. "
+            "Bottom Line: Strong institutional franchise."
         ),
     )
     assert result.passed is True
@@ -308,7 +313,7 @@ def test_prompt_builder_includes_company_instruction():
         company_name="blackrock",
     )
     assert "blackrock" in prompt.lower()
-    assert "LIVE COMPANY RESEARCH REQUIRED" in prompt
+    assert "company intelligence report" in prompt.lower()
 
 def test_prompt_builder_includes_forbidden_sections():
     prompt = build_synthesis_prompt(

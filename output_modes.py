@@ -37,7 +37,7 @@ DOCUMENT_TRIGGER_WORDS: set[str] = {
 }
 
 HTML_TRIGGER_WORDS: set[str] = {
-    "html", "dashboard", "landing page", "website", "interactive", "reactive",
+    "html", "dashboard", "chart", "landing page", "website", "interactive", "reactive",
     "visual", "ui component", "html report",
 }
 

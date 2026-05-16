@@ -581,6 +581,12 @@ _EXPLICIT_TRADE_RE = re.compile(
     re.I,
 )
 
+# Auto-promote to deep research when the user says so explicitly in the query
+_DEEP_RESEARCH_RE = re.compile(
+    r"\bdeep\s+research\b|\bfull\s+research\b|\bcomprehensive\s+research\b|\bexhaustive\s+research\b",
+    re.I,
+)
+
 
 def resolve_output_mode(raw_query: str, intent: str) -> str:
     """Resolve the output mode — delegates to output_modes.py when available."""
@@ -1081,7 +1087,7 @@ class QueryParser:
         "CEO", "CFO", "IPO", "ETF", "SP", "IV", "DTE", "ATM", "OTM", "ITM",
         "RSI", "EPS", "PE", "AI", "ML", "YOY", "QOQ", "GDP", "CPI", "FED",
         "SEC", "FDA", "ESG", "SMA", "EMA", "VWAP", "ATH", "Q1", "Q2", "Q3", "Q4",
-        "IM",
+        "IM", "ONN", "TV", "AH", "USA", "API", "PDF", "HTML",
     }
     _INTENT_KEYWORDS: dict[str, list[tuple[str, float]]] = {
         "OPTIONS_ANALYSIS": [
@@ -2364,11 +2370,19 @@ class QueryRouter:
                     except Exception as e:
                         log.warning("[QueryRouter] Omega data_cache route failed, continuing: %s", e)
 
+            # Auto-promote: if query text says "deep research" treat as deep mode
+            if research_mode != "deep" and _DEEP_RESEARCH_RE.search(raw_q):
+                research_mode = "deep"
+
             # Force 10-loop engine when user explicitly chose Deep mode
             if research_mode == "deep":
                 route_kind = INTENT_MARKET_DEEP_DIVE
             else:
                 route_kind = classify_intent_route(raw_q)
+                # In normal/web mode, only explicit trade requests use the 10-loop engine.
+                # Score-based MARKET_DEEP_DIVE falls back to Omega (fast path).
+                if route_kind == INTENT_MARKET_DEEP_DIVE and not _EXPLICIT_TRADE_RE.search(raw_q):
+                    route_kind = INTENT_GENERAL_FINANCE
             if route_kind in (
                 INTENT_GENERAL_FINANCE, INTENT_CASUAL, INTENT_GENERAL_CHAT,
                 INTENT_COMPANY_RESEARCH, INTENT_HTML_ARTIFACT, INTENT_DOCUMENT_GENERATION,

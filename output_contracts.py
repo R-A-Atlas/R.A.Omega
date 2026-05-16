@@ -18,6 +18,27 @@ COMMON_TRADE_FORBIDDEN: list[str] = [
     "options play",
 ]
 
+# Additional phrases forbidden in company_report context (trade bleed)
+COMPANY_REPORT_TRADE_FORBIDDEN: list[str] = [
+    *COMMON_TRADE_FORBIDDEN,
+    "the setup",
+    "your rules",
+    "what breaks this",
+    "hold period",
+    "action: buy",
+    "action: sell",
+    "action: avoid",
+    "action: short",
+    "rating: buy",
+    "rating: sell",
+    "rating: hold",
+    "rating: avoid",
+    "tripwire",
+    "how this plays out",
+    "position sizing",
+    "trade rating",
+]
+
 
 @dataclass(frozen=True)
 class OutputContract:
@@ -44,15 +65,19 @@ OUTPUT_CONTRACTS: dict[str, OutputContract] = {
 
     "company_report": OutputContract(
         required_sections=(
-            "Overview",
+            "Executive Summary",
+            "Company Overview",
+            "What They Do",
             "Business Model",
             "Financial Snapshot",
-            "Leadership",
+            "Key Executives",
             "Recent News",
-            "Risks",
             "Competitive Position",
+            "Key Risks",
+            "Sources",
+            "Bottom Line",
         ),
-        forbidden_phrases=tuple(COMMON_TRADE_FORBIDDEN),
+        forbidden_phrases=tuple(COMPANY_REPORT_TRADE_FORBIDDEN),
         tone="professional, structured, data-driven",
         requires_sources=True,
     ),

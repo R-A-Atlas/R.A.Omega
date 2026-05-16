@@ -706,6 +706,8 @@ def list_research_queries(
     limit: int = _MAX_REPORTS_PER_USER,
     session_id: Optional[str] = None,
 ) -> list[dict[str, Any]]:
+    if user_id == TEST_USER_LOCAL or not _is_uuidish(user_id):
+        return []
     client = get_supabase_client()
     if not client:
         return []

@@ -50,20 +50,25 @@ def build_synthesis_prompt(
     tone      = contract.tone if contract else "clear and helpful"
 
     company_instruction = ""
-    if output_mode == "company_report" and company_name:
-        company_instruction = f"""
-LIVE COMPANY RESEARCH REQUIRED:
-Search or use current data for {company_name}.
-Include:
-- What the company does
-- Business model
-- AUM / revenue / market cap when applicable
-- Key executives
-- Recent news
-- Risks
-- Competitive position
-- Sources
-""".strip()
+    if output_mode == "company_report":
+        company_parts = [
+            "COMPANY INTELLIGENCE REPORT MODE:",
+            "You are writing a professional company intelligence report in clean markdown.",
+            "This is not a trade plan. Do not write a trade plan.",
+            "Do not include entries, exits, position sizing, trade ratings, tripwires, or execution rules.",
+            "Do not use THE SETUP, YOUR RULES, WHAT BREAKS THIS, Entry, Stop Loss, Take Profit,",
+            "Action: buy/sell/avoid, or Rating: buy/sell/hold as section headers.",
+            "Use these sections: Title, Executive Summary, Company Overview, What They Do,",
+            "Business Model, Financial Snapshot, Key Executives, Recent News / Catalysts,",
+            "Competitive Position, Key Risks, Sources / Data Notes, Bottom Line.",
+        ]
+        if company_name:
+            company_parts += [
+                "",
+                f"COMPANY: {company_name}",
+                "Include: AUM / revenue / market cap when applicable, business model, key executives, recent news, risks, competitive position, and sources.",
+            ]
+        company_instruction = "\n".join(company_parts)
 
     required_block  = "\n".join(f"  - {s}" for s in required)  if required  else "None"
     forbidden_block = "\n".join(f"  - {p}" for p in forbidden) if forbidden else "None"

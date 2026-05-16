@@ -2231,11 +2231,12 @@ last_updated
 
             model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
             wait_for_slot("atlas_omega")
-            # Enable Google Search tool if we added a "Search the web" prefix
+            # Enable Google Search tool if we added a "Search the web" prefix.
+            # Gemini rejects combining tools with response_mime_type=application/json —
+            # when tools are active, instruct via prompt only (no MIME constraint).
             if query.lower().startswith("search the web"):
                 cfg = gtypes.GenerateContentConfig(
                     tools=[gtypes.Tool(google_search=gtypes.GoogleSearch())],
-                    response_mime_type="application/json",
                     temperature=0.15,
                     max_output_tokens=16384,
                 )

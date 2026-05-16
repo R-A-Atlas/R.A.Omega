@@ -371,13 +371,17 @@ class TestTradeplanContaminationBlocked:
     def test_quality_firewall_passes_clean_company_report(self):
         from quality_firewall import validate_response
         answer = (
-            "Overview: BlackRock is the world's largest asset manager with $10T AUM. "
+            "Executive Summary: BlackRock is a dominant global asset manager. "
+            "Company Overview: BlackRock is the world's largest asset manager with $10T AUM. "
+            "What They Do: Provides investment management and advisory services. "
             "Business Model: Fee-based investment management. "
             "Financial Snapshot: Revenue $19B, filed 10-K 2025-02-14. "
-            "Leadership: Larry Fink CEO. "
-            "Recent News: Strong ETF flows. "
-            "Risks: Rate sensitivity. "
-            "Competitive Position: #1 by AUM globally."
+            "Key Executives: Larry Fink CEO, Rob Kapito President. "
+            "Recent News: Strong ETF flows into iShares. "
+            "Competitive Position: #1 by AUM globally. "
+            "Key Risks: Rate sensitivity, fee compression. "
+            "Sources: SEC filings, Bloomberg. "
+            "Bottom Line: Dominant franchise with secular growth tailwinds."
         )
         result = validate_response("Tell me about BlackRock", "COMPANY_RESEARCH", "company_report", answer)
         assert result.passed is True

@@ -706,16 +706,18 @@
             const confGauge = confPct > 0 ? `<div class="conf-wrap"><div class="conf-label-row"><span class="mono muted small">Confidence</span><span class="mono small" style="color:#00AFFF">${esc(confLabel)}</span></div><div class="conf-track"><div class="conf-fill" style="width:${confPct}%"></div></div></div>` : '';
 
             // ── Assemble sections ────────────────────────────────────────
+            const _srOutputMode = data._output_mode || '';
+            const _srIsCompanyReport = _srOutputMode === 'company_report';
             const execText = fr.executive_summary || fr.executive_brief || '';
             const execSection = execText && `<section class="card sec-exec"><h2 class="card-label">Executive Summary</h2><div class="card-body prose content-editable" contenteditable="true">${esc(execText)}</div></section>`;
             const thesisSection = thesisBlock && `<section class="card sec-thesis"><h2 class="card-label">Bull vs Bear Thesis</h2><div class="card-body">${thesisBlock}</div></section>`;
-            const tpSection = tradePlanBlock && `<section class="card sec-tp"><h2 class="card-label">THE SETUP</h2><div class="card-body">${tradePlanBlock}</div></section>`;
+            const tpSection = (tradePlanBlock && !_srIsCompanyReport) && `<section class="card sec-tp"><h2 class="card-label">THE SETUP</h2><div class="card-body">${tradePlanBlock}</div></section>`;
             const optionsSection = optionsBlock && `<section class="card sec-options"><h2 class="card-label">Options Play</h2><div class="card-body">${optionsBlock}</div></section>`;
-            const scSection = scenariosBlock && `<section class="card sec-sc"><h2 class="card-label">HOW THIS PLAYS OUT</h2><div class="card-body">${scenariosBlock}</div></section>`;
+            const scSection = (scenariosBlock && !_srIsCompanyReport) && `<section class="card sec-sc"><h2 class="card-label">HOW THIS PLAYS OUT</h2><div class="card-body">${scenariosBlock}</div></section>`;
             const plSection = priceLevelsBar && `<section class="card sec-pl"><h2 class="card-label">Price Levels</h2><div class="card-body">${priceLevelsBar}</div></section>`;
             const krSection = keyRisksBlock && `<section class="card sec-kr"><h2 class="card-label">Key Risks</h2><div class="card-body kr-wrap">${keyRisksBlock}</div></section>`;
-            const rulesSection = rulesBlock && `<section class="card sec-rules"><h2 class="card-label">YOUR RULES</h2><div class="card-body rules-wrap">${rulesBlock}</div></section>`;
-            const fmSection = fmBlock && `<section class="card sec-fm"><h2 class="card-label">WHAT BREAKS THIS</h2><div class="card-body fm-wrap">${fmBlock}</div></section>`;
+            const rulesSection = (rulesBlock && !_srIsCompanyReport) && `<section class="card sec-rules"><h2 class="card-label">YOUR RULES</h2><div class="card-body rules-wrap">${rulesBlock}</div></section>`;
+            const fmSection = (fmBlock && !_srIsCompanyReport) && `<section class="card sec-fm"><h2 class="card-label">WHAT BREAKS THIS</h2><div class="card-body fm-wrap">${fmBlock}</div></section>`;
             const catSection = catalystBlock && `<section class="card sec-cat"><h2 class="card-label">Catalyst Timeline</h2><div class="cat-strip-wrap"><div class="cat-strip">${catalystBlock}</div></div></section>`;
             const analystSection = analystBlock && `<section class="card sec-analyst"><h2 class="card-label">Analyst Consensus</h2><div class="card-body">${analystBlock}</div></section>`;
             const hfSection = hfBlock && `<section class="card sec-hf memo-card memo-hf"><h2 class="card-label memo-hf-label">Hedge Fund Brief</h2><div class="card-body memo-body">${hfBlock}</div></section>`;
@@ -1128,8 +1130,9 @@ ${extendedBlock || ''}
             );
         }
 
-        const QuickStatsStrip = ({ data }) => {
+        const QuickStatsStrip = ({ data, outputMode }) => {
             const fr = data.final_report || {};
+            const isCompanyReport = outputMode === 'company_report';
 
             const riskLevel = (() => {
                 let hi = 0;
@@ -1177,14 +1180,18 @@ ${extendedBlock || ''}
             return (
                 <div className="flex gap-6 mb-3 px-4 py-2.5 rounded-lg border border-borderSubtle bg-surface/20">
                     <div className="flex-1">
-                        <div className="text-[10px] font-mono text-textMuted mb-1 uppercase tracking-widest">Risk Level</div>
+                        <div className="text-[10px] font-mono text-textMuted mb-1 uppercase tracking-widest">
+                            {isCompanyReport ? 'Research Confidence' : 'Risk Level'}
+                        </div>
                         <div className="w-full bg-surface/50 rounded-full h-1.5 mb-1">
                             <div className={`h-1.5 rounded-full transition-all ${meterColor[riskLevel]}`} style={{ width: riskW[riskLevel] }} />
                         </div>
                         <span className={`text-[10px] font-mono font-semibold ${tagColor[riskLevel]}`}>{riskLevel}</span>
                     </div>
                     <div className="flex-1">
-                        <div className="text-[10px] font-mono text-textMuted mb-1 uppercase tracking-widest">Financial Impact</div>
+                        <div className="text-[10px] font-mono text-textMuted mb-1 uppercase tracking-widest">
+                            {isCompanyReport ? 'Data Freshness' : 'Financial Impact'}
+                        </div>
                         <div className="w-full bg-surface/50 rounded-full h-1.5 mb-1">
                             <div className={`h-1.5 rounded-full transition-all ${impactMeter[impactLevel]}`} style={{ width: impactW[impactLevel] }} />
                         </div>
@@ -1196,6 +1203,8 @@ ${extendedBlock || ''}
 
         const StructuredResponse = ({ data }) => {
             const fr = data.final_report || {};
+            const outputMode = data._output_mode || '';
+            const isCompanyReport = outputMode === 'company_report';
             const listFrom = (key) =>
                 Array.isArray(data[key]) && data[key].length
                     ? data[key]
@@ -1219,15 +1228,18 @@ ${extendedBlock || ''}
 
             const ratingRaw = String(fr.overall_rating || fr.primary_recommendation || '').toLowerCase();
             let tldrBorder = 'border-accent-indigo';
-            if (ratingRaw) {
-                if (/\bstrong_buy|strong buy|\bbuy\b/.test(ratingRaw)) tldrBorder = 'border-emerald-500';
-                else if (/\bstrong_sell|strong sell|\bsell\b|\bshort\b/.test(ratingRaw)) tldrBorder = 'border-red-500';
-                else if (/\bhold\b|\bneutral\b|\bwait\b/.test(ratingRaw)) tldrBorder = 'border-amber-400';
-            } else {
-                const tldrText = (data.tldr || fr.tldr || '').toLowerCase();
-                if (/\b(strong buy|buy|long|add)\b/.test(tldrText)) tldrBorder = 'border-emerald-500';
-                else if (/\b(strong sell|sell|exit|close|short)\b/.test(tldrText)) tldrBorder = 'border-red-500';
-                else if (/\b(hold|wait|monitor|watch|roll)\b/.test(tldrText)) tldrBorder = 'border-amber-400';
+            // Company reports use neutral color — not trade stance buy/sell/hold colors
+            if (!isCompanyReport) {
+                if (ratingRaw) {
+                    if (/\bstrong_buy|strong buy|\bbuy\b/.test(ratingRaw)) tldrBorder = 'border-emerald-500';
+                    else if (/\bstrong_sell|strong sell|\bsell\b|\bshort\b/.test(ratingRaw)) tldrBorder = 'border-red-500';
+                    else if (/\bhold\b|\bneutral\b|\bwait\b/.test(ratingRaw)) tldrBorder = 'border-amber-400';
+                } else {
+                    const tldrText = (data.tldr || fr.tldr || '').toLowerCase();
+                    if (/\b(strong buy|buy|long|add)\b/.test(tldrText)) tldrBorder = 'border-emerald-500';
+                    else if (/\b(strong sell|sell|exit|close|short)\b/.test(tldrText)) tldrBorder = 'border-red-500';
+                    else if (/\b(hold|wait|monitor|watch|roll)\b/.test(tldrText)) tldrBorder = 'border-amber-400';
+                }
             }
 
             const CardWrap = ({ title, children }) => (
@@ -1320,14 +1332,14 @@ ${extendedBlock || ''}
 
             return (
                 <div className="w-full">
-                    <QuickStatsStrip data={data} />
+                    {!isCompanyReport && <QuickStatsStrip data={data} outputMode={outputMode} />}
                     {topLine && (
                         <div className={`rounded-lg border-l-4 ${tldrBorder} bg-surface/30 border border-borderSubtle p-4 mb-3`}>
                             <div className="text-[10px] font-mono uppercase tracking-widest text-textMuted mb-2">
                                 {data.tldr ? 'BOTTOM LINE' : fr.primary_recommendation ? 'Recommendation' : 'Outlook'}
                             </div>
                             <div className="text-xl font-semibold text-textMain leading-snug">{topLine}</div>
-                            {fr.overall_rating &&
+                            {fr.overall_rating && !isCompanyReport &&
                                 String(fr.overall_rating).trim() !== String(topLine).trim() && (
                                     <div className="text-[11px] font-mono text-textMuted mt-2">Rating: {fr.overall_rating}</div>
                                 )}
@@ -1352,7 +1364,7 @@ ${extendedBlock || ''}
                         </CardWrap>
                     )}
 
-                    {fr.trade_plan && (
+                    {fr.trade_plan && !isCompanyReport && (
                         <CardWrap title="THE SETUP">
                             {typeof fr.trade_plan === 'object' && tradePlanRows.length > 0 ? (
                                 <div>
@@ -1389,7 +1401,7 @@ ${extendedBlock || ''}
                         </CardWrap>
                     )}
 
-                    {scenarios.length > 0 && (
+                    {scenarios.length > 0 && !isCompanyReport && (
                         <CardWrap title="HOW THIS PLAYS OUT">
                             <div className="space-y-3">
                                 {scenarios.map((sc, i) => {
@@ -1418,7 +1430,7 @@ ${extendedBlock || ''}
                         </CardWrap>
                     )}
 
-                    {executionRules.length > 0 && (
+                    {executionRules.length > 0 && !isCompanyReport && (
                         <CardWrap title="YOUR RULES">
                             {executionRules.map((rule, i) => (
                                 <div
@@ -1432,7 +1444,7 @@ ${extendedBlock || ''}
                         </CardWrap>
                     )}
 
-                    {failureModes.length > 0 && (
+                    {failureModes.length > 0 && !isCompanyReport && (
                         <CardWrap title="WHAT BREAKS THIS">
                             <div className="space-y-2">
                                 {failureModes.map((fm, i) => {
@@ -1890,11 +1902,21 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
             const actionBtn =
                 "inline-flex h-8 w-8 items-center justify-center rounded-md text-textMuted hover:text-textMain hover:bg-surfaceHover disabled:opacity-35 disabled:cursor-wait transition-colors";
-            // Export buttons are hidden — reports are generated on demand when user asks
-            // Only keep Copy JSON and Listen (TTS) as passive utilities
+            const isCompanyReport = (data._output_mode || '') === 'company_report';
             return (
                 <div className="flex justify-end mb-2 -mt-1">
                     <div className="inline-flex items-center gap-0.5 rounded-lg border border-borderSubtle bg-base/45 px-1 py-1 shadow-sm opacity-70 group-hover:opacity-100 transition-opacity">
+                        {isCompanyReport && (
+                            <button type="button"
+                                className="inline-flex h-8 items-center gap-1.5 px-2 rounded-md text-[11px] font-medium text-textMuted hover:text-textMain hover:bg-surfaceHover transition-colors"
+                                onClick={openHTMLReport}
+                                title="Download company report as HTML"
+                                aria-label="Download Report"
+                            >
+                                <Icon name="FileText" size={13} />
+                                <span>Report</span>
+                            </button>
+                        )}
                         <button type="button" className={actionBtn} onClick={copyJSON} title={copied ? 'Copied' : 'Copy data'} aria-label={copied ? 'Copied' : 'Copy data'}>
                             <Icon name={copied ? 'Check' : 'Copy'} size={15} />
                         </button>
@@ -3814,7 +3836,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                 if (!sid || !processingBySession[sid]) return;
                 const activity = researchActivityBySession[sid];
                 const jobId = activity && activity.job_id;
-                if (!jobId || !['queued', 'in_progress'].includes(String(activity.status || ''))) return;
+                if (!jobId || !['queued', 'in_progress'].includes(String(activity.status || '')) || activity.final_response_available) return;
                 let cancelled = false;
                 const poll = async () => {
                     try {

@@ -934,8 +934,9 @@ def _build_research_activity_payload(query: str, route_decision: RouteDecision) 
     return {
         "job_id": None,
         "status": "completed",
+        "final_response_available": True,
         "route_band": route,
-        "progress_pct": 100 if route != "deep_research" else 35,
+        "progress_pct": 100,
         "current_stage": "Research plan and activity trail prepared",
         "current_message": "Showing the visible research plan and activity summaries, not hidden reasoning.",
         "search_count": min(route_decision.tool_budget * 4, 40),
@@ -1589,6 +1590,7 @@ def dispatch_query_request(
             user_id=user_id,
             session_id=req.session_id,
             crypto_snapshot=req.crypto_snapshot,
+            research_mode=mode,
             progress_callback=progress_callback if job else None,
             cancel_check=cancel_check if job else None,
         )
