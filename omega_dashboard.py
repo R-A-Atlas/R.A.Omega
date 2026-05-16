@@ -121,6 +121,38 @@ def _get_skills_summary() -> list[dict[str, str]]:
     return raw or []
 
 
+def _get_capture_status() -> dict[str, Any]:
+    """Return capture inbox counts and latest captures for dashboard."""
+    status = _safe(lambda: __import__("omega_capture").get_capture_status(), {})
+    latest = _safe(lambda: __import__("omega_capture").get_capture_inbox(limit=5), [])
+    return {
+        "capture_inbox_count": (status or {}).get("inbox_count", 0),
+        "latest_captures":     latest or [],
+        "capture_by_type":     (status or {}).get("by_type", {}),
+        "capture_by_source":   (status or {}).get("by_source", {}),
+    }
+
+
+def _get_telegram_status() -> dict[str, Any]:
+    """Return Telegram adapter + voice capture status. No credentials required."""
+    raw = _safe(lambda: __import__("omega_telegram").get_telegram_status(), {})
+    if not raw:
+        return {
+            "configured":        False,
+            "status":            "not_configured",
+            "voice_enabled":     False,
+            "whisper_configured": False,
+        }
+    return {
+        "configured":           raw.get("configured", False),
+        "status":               raw.get("status", "not_configured"),
+        "voice_enabled":        raw.get("voice_enabled", False),
+        "whisper_configured":   raw.get("whisper_configured", False),
+        "allowed_users_count":  raw.get("allowed_users_count", 0),
+        "webhook_secret_set":   raw.get("webhook_secret_set", False),
+    }
+
+
 def _get_agentic_os_status() -> dict[str, Any]:
     """Return agentic OS worker metadata for dashboard."""
     raw = _safe(lambda: __import__("omega_agentic_os").get_agentic_os_status(), {})
@@ -224,6 +256,8 @@ def build_command_center_snapshot() -> dict[str, Any]:
     cadence       = _get_cadence_status()
     persistence   = _get_persistence_status()
     agentic_os    = _get_agentic_os_status()
+    capture       = _get_capture_status()
+    telegram      = _get_telegram_status()
 
     return {
         # Four C audit scores
@@ -249,6 +283,12 @@ def build_command_center_snapshot() -> dict[str, Any]:
 
         # Skills registry
         "skills_summary":   _get_skills_summary(),
+
+        # Capture inbox
+        "capture_inbox_count":  capture.get("capture_inbox_count", 0),
+        "latest_captures":      capture.get("latest_captures", []),
+        "telegram_status":      telegram,
+        "voice_capture_status": "enabled" if telegram.get("voice_enabled") else "disabled",
 
         # Agentic OS workers
         "agentic_workers_count":     agentic_os.get("agentic_workers_count", 0),

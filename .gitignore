@@ -34,6 +34,9 @@ atlas_vault/04-Projects/
 *.sqlite
 *.sqlite3
 
+# Omega OS runtime data (generated at runtime, not source)
+omega_os/archives/runtime/
+
 # Local/generated trading state
 paper_trades.json
 positions_cache.json

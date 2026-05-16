@@ -3409,6 +3409,126 @@ def omega_os_brain():
         raise HTTPException(status_code=500, detail=f"Brain snapshot failed: {exc}")
 
 
+# ── Capture inbox ─────────────────────────────────────────────────────────────
+
+@app.get("/omega-os/capture/status")
+def capture_status_endpoint():
+    """Return capture inbox status (counts by type/source). No credentials required."""
+    try:
+        from omega_capture import get_capture_status
+        return get_capture_status()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Capture status failed: {exc}")
+
+
+@app.get("/omega-os/capture/inbox")
+def capture_inbox_endpoint(limit: int = 20):
+    """Return recent unprocessed captures (status=inbox), newest first."""
+    try:
+        from omega_capture import get_capture_inbox
+        return {"captures": get_capture_inbox(limit=limit)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Capture inbox failed: {exc}")
+
+
+@app.post("/omega-os/capture")
+async def capture_save_endpoint(request: Request):
+    """
+    Manually save a text capture to the inbox.
+
+    Body: {"text": "...", "source": "web", "metadata": {...}}
+    """
+    try:
+        from omega_capture import save_capture
+        body: dict = {}
+        try:
+            body = await request.json()
+        except Exception:
+            pass
+        text = str(body.get("text", "")).strip()
+        if not text:
+            raise HTTPException(status_code=400, detail="'text' field is required")
+        source   = str(body.get("source", "web"))[:50]
+        metadata = body.get("metadata") if isinstance(body.get("metadata"), dict) else {}
+        capture  = save_capture(raw_text=text, source=source, metadata=metadata)
+        return {"status": "captured", "capture": capture}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Capture save failed: {exc}")
+
+
+@app.post("/omega-os/capture/{capture_id}/triage")
+def capture_triage_endpoint(capture_id: str):
+    """Mark a capture as triaged."""
+    try:
+        from omega_capture import triage_capture
+        result = triage_capture(capture_id)
+        if "error" in result:
+            raise HTTPException(status_code=404, detail=result["error"])
+        return result
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Triage failed: {exc}")
+
+
+# ── Telegram adapter ──────────────────────────────────────────────────────────
+
+@app.get("/omega-os/telegram/status")
+def telegram_status_endpoint():
+    """Return Telegram adapter status. No credentials required — returns not_configured when missing."""
+    try:
+        from omega_telegram import get_telegram_status
+        return get_telegram_status()
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Telegram status failed: {exc}")
+
+
+@app.post("/omega-os/telegram/webhook")
+async def telegram_webhook_endpoint(request: Request):
+    """
+    Receive Telegram webhook updates.
+
+    Routes text messages to the capture inbox.
+    Rejects unauthorized user IDs silently (returns 200 to avoid Telegram retries).
+    Voice messages fail safely when not configured.
+    """
+    try:
+        from omega_telegram import (
+            is_telegram_configured,
+            normalize_telegram_message,
+            process_telegram_text_message,
+            process_telegram_voice_message,
+        )
+
+        if not is_telegram_configured():
+            # Return 200 so Telegram doesn't retry; log the misconfiguration
+            return {"ok": False, "status": "not_configured"}
+
+        payload: dict = {}
+        try:
+            payload = await request.json()
+        except Exception:
+            return {"ok": False, "status": "invalid_payload"}
+
+        msg = normalize_telegram_message(payload)
+        message_type = msg.get("message_type", "invalid")
+
+        if message_type == "text":
+            result = process_telegram_text_message(payload)
+        elif message_type in ("voice", "audio"):
+            result = process_telegram_voice_message(payload)
+        else:
+            result = {"status": "ignored", "message_type": message_type}
+
+        return {"ok": True, "result": result}
+
+    except Exception as exc:
+        # Never 500 a Telegram webhook — Telegram will retry on errors
+        return {"ok": False, "status": "error", "detail": str(exc)}
+
+
 # ── Dev entry point ───────────────────────────────────────────────────────────
 if __name__ == "__main__":
     import uvicorn
