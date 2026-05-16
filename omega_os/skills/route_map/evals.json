@@ -1,0 +1,62 @@
+[
+  {
+    "id": "e1",
+    "description": "route_audit.py compiles without errors",
+    "command": "python -m py_compile omega_os/skills/route_map/tools/route_audit.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "e2",
+    "description": "route_audit.py runs and exits 0",
+    "command": "python omega_os/skills/route_map/tools/route_audit.py",
+    "expect_exit": 0,
+    "expect_stdout_contains": "RESULT"
+  },
+  {
+    "id": "e3",
+    "description": "auth.html post-login redirect points to /command-center",
+    "file_contains": {
+      "path": "auth.html",
+      "needle": "/command-center"
+    }
+  },
+  {
+    "id": "e4",
+    "description": "auth.html does NOT redirect to /option1",
+    "file_not_contains": {
+      "path": "auth.html",
+      "needle": "location.href = '/option1'"
+    }
+  },
+  {
+    "id": "e5",
+    "description": "/v2 route exists in api_server.py",
+    "file_contains": {
+      "path": "api_server.py",
+      "needle": "/v2"
+    }
+  },
+  {
+    "id": "e6",
+    "description": "/command-center route exists in api_server.py",
+    "file_contains": {
+      "path": "api_server.py",
+      "needle": "/command-center"
+    }
+  },
+  {
+    "id": "e7",
+    "description": "ra_omega_app.html has a Home link to /command-center",
+    "file_contains": {
+      "path": "ra_omega_app.html",
+      "needle": "/command-center"
+    }
+  },
+  {
+    "id": "e8",
+    "description": "route_audit --json outputs valid JSON",
+    "command": "python omega_os/skills/route_map/tools/route_audit.py --json",
+    "expect_exit": 0,
+    "expect_stdout_contains": "page_routes"
+  }
+]

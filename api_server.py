@@ -2091,6 +2091,7 @@ def serve_pricing():
 
 
 @app.get("/dashboard")
+@app.get("/v2")
 def serve_dashboard_v4():
     if not ATLAS_DASHBOARD_V4.is_file():
         raise HTTPException(

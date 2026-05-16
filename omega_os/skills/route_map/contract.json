@@ -1,0 +1,35 @@
+{
+  "skill": "route_map",
+  "version": "1.0.0",
+  "post_login_redirect": "/command-center",
+  "required_routes": [
+    "/",
+    "/auth",
+    "/command-center",
+    "/app",
+    "/v2",
+    "/dashboard",
+    "/omega-os/brain-network",
+    "/design_system.css"
+  ],
+  "required_html_files": [
+    "index_1778228972988.html",
+    "auth.html",
+    "omega_command_center.html",
+    "ra_omega_app.html",
+    "atlas_dashboard_v4.html",
+    "omega_brain_network.html",
+    "design_system.css"
+  ],
+  "ignore_orphans": [
+    "atlas_dashboard_v2.html",
+    "atlas_dashboard_v3.html",
+    "dashboard.html",
+    "ATLAS_OUTPUT_MAP.html",
+    "ATLAS_OVERVIEW.html",
+    "CANVAS_1_Roadmap.html",
+    "CANVAS_3_ATLAS_vs_World.html",
+    "CANVAS_4_Intelligence_Layers.html"
+  ],
+  "auth_redirect_must_not_be": ["/option1", "/app"]
+}

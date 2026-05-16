@@ -223,7 +223,7 @@
             setLoading('btn-signin', false);
             if (error) { showError(error.message); return; }
             localStorage.setItem('atlas_access_token', data.session.access_token);
-            window.location.href = '/option1';
+            window.location.href = '/command-center';
         }
 
         async function signUp() {
@@ -241,7 +241,7 @@
             if (error) { showError(error.message); return; }
             if (data.session) {
                 localStorage.setItem('atlas_access_token', data.session.access_token);
-                window.location.href = '/option1';
+                window.location.href = '/command-center';
             } else {
                 showError('Check your email for a confirmation link, then sign in.');
             }
