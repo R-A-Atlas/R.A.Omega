@@ -18,10 +18,10 @@ CLI:
 """
 from __future__ import annotations
 
+import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 _ROOT = Path(__file__).resolve().parents[4]
 sys.path.insert(0, str(_ROOT))
@@ -171,7 +171,7 @@ def _trace_resolve_output_mode(query: str, intent: str) -> tuple[str, list[Routi
                 return "company_report", steps
         except Exception:
             pass
-        steps.append(RoutingStep("GENERAL_FINANCE → finance_answer", "finance_answer", "intent"))
+        steps.append(RoutingStep("GENERAL_FINANCE -> finance_answer", "finance_answer", "intent"))
         return "finance_answer", steps
 
     if intent == "MARKET_DATA":
@@ -183,9 +183,6 @@ def _trace_resolve_output_mode(query: str, intent: str) -> tuple[str, list[Routi
 
 
 # ── Problem detector ──────────────────────────────────────────────────────────
-
-_EXPECTED_FOR_COMPANY = {"company_report"}
-_EXPECTED_FOR_TRADE   = {"trade_plan"}
 
 def _detect_problems(
     query: str,
@@ -202,24 +199,7 @@ def _detect_problems(
             f"Expected output_mode='{expected}' but got '{output_mode}'"
         )
 
-    # Document trigger false positive
-    doc_steps = [s for s in steps if s.is_problem and s.value == "document"]
-    for s in doc_steps:
-        problems.append(
-            f"DOCUMENT trigger fired on '{s.triggered_by}' before COMPANY_RESEARCH check — "
-            f"words like 'report', 'brief', 'document' in DOCUMENT_TRIGGER_WORDS are "
-            f"intercepting company queries."
-        )
-
-    # Trade trigger false positive when intent is company research
-    trade_steps = [s for s in steps if s.is_problem and s.value == "trade_plan"]
-    for s in trade_steps:
-        problems.append(
-            f"TRADE trigger fired on '{s.triggered_by}' even though intent={intent}. "
-            f"Trade keyword check runs before intent-based company_report check."
-        )
-
-    # Trade plan when no trade signals and query looks like company research
+    # Trade plan with no trade signals — intent classifier misfire
     if output_mode == "trade_plan" and not _find_trade_triggers(query) and intent == "COMPANY_RESEARCH":
         problems.append(
             f"Output is trade_plan but query has no trade keywords and intent=COMPANY_RESEARCH. "
@@ -244,13 +224,13 @@ def _suggest_fixes(
     doc_triggers = _find_document_triggers(query)
     trade_triggers = _find_trade_triggers(query)
 
-    target = expected or "company_report"
+    # Only generate targeted fixes when the user told us what they expected
+    target = expected
 
-    # Fix 1: rephrase query to avoid trigger words
-    if doc_triggers and output_mode == "document":
+    # Fix 1: document keywords intercepted a non-document query
+    if doc_triggers and output_mode == "document" and target and target != "document":
         clean = query
         for w in doc_triggers:
-            import re
             clean = re.sub(re.escape(w), "", clean, flags=re.I).strip()
         rephrased = f"Give me everything on {clean}" if clean else query
         fixes.append(
@@ -259,17 +239,10 @@ def _suggest_fixes(
         )
         fixes.append(
             f"OR: remove '{doc_triggers}' from DOCUMENT_TRIGGER_WORDS in output_modes.py "
-            f"(line ~37) since 'report' is ambiguous for company queries."
+            f"(line ~37) since these words are ambiguous for non-document queries."
         )
 
-    if trade_triggers and output_mode == "trade_plan" and target == "company_report":
-        fixes.append(
-            f"Query contains trade trigger words {trade_triggers}. "
-            f"These fire before the COMPANY_RESEARCH intent check in resolve_output_mode(). "
-            f"Fix: reorder checks in output_modes.py so COMPANY_RESEARCH intent wins over "
-            f"keyword triggers, OR remove ambiguous words from your query."
-        )
-
+    # Fix 2: intent classifier thinks it's a trade request but user expected company research
     if intent in ("TRADING_ANALYSIS", "MARKET_DEEP_DIVE") and target == "company_report":
         fixes.append(
             f"Intent classifier returned '{intent}' — it thinks this is a trade request. "
@@ -277,8 +250,8 @@ def _suggest_fixes(
             f"'Tell me everything about [company]' or 'Company profile: [company]'."
         )
 
-    # Fix 2: use output_mode_override (request_controls)
-    if problems:
+    # Fix 3: force override via request_controls
+    if problems and target:
         fixes.append(
             f"Force output mode via request_controls: pass "
             f"{{\"output_mode_override\": \"{target}\"}} with your query to bypass routing."
