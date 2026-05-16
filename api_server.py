@@ -2161,6 +2161,15 @@ def serve_brain_network():
     return FileResponse(path, media_type="text/html; charset=utf-8")
 
 
+@app.get("/command-center")
+def serve_command_center():
+    """Serve the R.A. Omega user-facing product dashboard."""
+    path = BASE_DIR / "omega_command_center.html"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Missing omega_command_center.html")
+    return FileResponse(path, media_type="text/html; charset=utf-8")
+
+
 @app.post("/jobs/plan")
 def create_research_plan(req: ResearchPlanRequest, user_id: AtlasUserId):
     """Create a visible research plan/job before a long research request starts."""

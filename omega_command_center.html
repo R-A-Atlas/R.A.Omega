@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>R.A. Omega — Finance Intelligence</title>
+  <link rel="stylesheet" href="/design_system.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans, 'Inter', -apple-system, BlinkMacSystemFont, sans-serif);
+      background: var(--color-bg, #0D1117);
+      color: var(--color-text-primary, #E6EDF3);
+      height: 100vh;
+      display: grid;
+      grid-template-rows: 56px 1fr;
+      grid-template-columns: 260px 1fr 300px;
+      grid-template-areas:
+        "nav  nav  nav"
+        "side main panel";
+      overflow: hidden;
+    }
+
+    /* ── Top Nav ──────────────────────────────────────────────── */
+    #top-nav {
+      grid-area: nav;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      background: var(--color-surface, #161B22);
+      border-bottom: 1px solid var(--color-border-solid, #30363D);
+      z-index: 20;
+    }
+
+    .nav-logo {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 16px;
+      letter-spacing: -0.3px;
+      text-decoration: none;
+      color: var(--color-text-primary, #E6EDF3);
+    }
+
+    .nav-logo svg { color: var(--color-accent, #18C6C8); flex-shrink: 0; }
+
+    .nav-spacer { flex: 1; }
+
+    .regime-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.2px;
+      background: rgba(24,198,200,0.1);
+      border: 1px solid rgba(24,198,200,0.3);
+      color: var(--color-accent, #18C6C8);
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+      white-space: nowrap;
+    }
+
+    .regime-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--color-accent, #18C6C8);
+      flex-shrink: 0;
+      animation: blink 2.4s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.35; }
+    }
+
+    .alerts-btn {
+      position: relative;
+      background: none;
+      border: 1px solid var(--color-border-solid, #30363D);
+      border-radius: 8px;
+      padding: 5px 10px;
+      cursor: pointer;
+      color: var(--color-text-secondary, #8B949E);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .alerts-btn:hover {
+      border-color: var(--color-accent, #18C6C8);
+      color: var(--color-text-primary, #E6EDF3);
+    }
+
+    .alerts-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #F87171;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      min-width: 16px;
+      height: 16px;
+      border-radius: 8px;
+      padding: 0 3px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-app-btn {
+      padding: 6px 14px;
+      background: var(--color-accent, #18C6C8);
+      color: #000;
+      font-weight: 700;
+      font-size: 12px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .nav-app-btn:hover { opacity: 0.85; }
+
+    .nav-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #18C6C8, #3B82F6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 13px;
+      color: #fff;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: box-shadow 0.15s;
+    }
+
+    .nav-avatar:hover { box-shadow: 0 0 0 2px var(--color-accent, #18C6C8); }
+
+    /* ── Left Sidebar ─────────────────────────────────────────── */
+    #left-sidebar {
+      grid-area: side;
+      background: var(--color-surface, #161B22);
+      border-right: 1px solid var(--color-border-solid, #30363D);
+      overflow-y: auto;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .new-chat-btn {
+      width: 100%;
+      padding: 9px 14px;
+      background: var(--color-accent, #18C6C8);
+      color: #000;
+      font-weight: 700;
+      font-size: 13px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .new-chat-btn:hover   { opacity: 0.88; transform: translateY(-1px); }
+    .new-chat-btn:active  { transform: translateY(0); }
+
+    .sb-section { display: flex; flex-direction: column; gap: 7px; }
+
+    .sb-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-text-secondary, #8B949E);
+      padding: 0 6px;
+    }
+
+    .session-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 7px 8px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--color-text-primary, #E6EDF3);
+      transition: background 0.12s;
+    }
+
+    .session-item:hover { background: rgba(255,255,255,0.055); }
+
+    .session-icon {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: rgba(24,198,200,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    .session-body { flex: 1; min-width: 0; }
+
+    .session-title {
+      font-size: 12px;
+      font-weight: 500;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .session-meta {
+      font-size: 11px;
+      color: var(--color-text-secondary, #8B949E);
+      margin-top: 1px;
+    }
+
+    .ticker-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 9px;
+      border-radius: 8px;
+      border: 1px solid var(--color-border-solid, #30363D);
+      background: rgba(255,255,255,0.02);
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+
+    .ticker-row:hover {
+      border-color: var(--color-accent, #18C6C8);
+      background: rgba(24,198,200,0.05);
+    }
+
+    .ticker-sym { font-size: 12px; font-weight: 700; letter-spacing: 0.3px; }
+    .ticker-arr { color: var(--color-text-secondary, #8B949E); font-size: 14px; }
+
+    .add-ticker-btn {
+      width: 100%;
+      padding: 6px 9px;
+      background: none;
+      border: 1px dashed var(--color-border-solid, #30363D);
+      border-radius: 8px;
+      color: var(--color-text-secondary, #8B949E);
+      font-family: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      transition: border-color 0.12s, color 0.12s;
+    }
+
+    .add-ticker-btn:hover {
+      border-color: var(--color-accent, #18C6C8);
+      color: var(--color-accent, #18C6C8);
+    }
+
+    /* ── Main Center ──────────────────────────────────────────── */
+    #center-main {
+      grid-area: main;
+      overflow-y: auto;
+      padding: 44px 52px 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+
+    .welcome-block { text-align: center; }
+
+    .welcome-heading {
+      font-size: 30px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      margin-bottom: 7px;
+    }
+
+    .welcome-sub {
+      font-size: 15px;
+      color: var(--color-text-secondary, #8B949E);
+    }
+
+    /* Query box */
+    .query-wrap {
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .query-box {
+      background: var(--color-surface, #161B22);
+      border: 1.5px solid var(--color-border-solid, #30363D);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .query-box:focus-within {
+      border-color: var(--color-accent, #18C6C8);
+      box-shadow: 0 0 0 3px rgba(24,198,200,0.11);
+    }
+
+    #query-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--color-text-primary, #E6EDF3);
+      font-family: inherit;
+      font-size: 15px;
+      line-height: 1.5;
+      resize: none;
+      min-height: 24px;
+      max-height: 148px;
+      overflow-y: auto;
+    }
+
+    #query-input::placeholder { color: var(--color-text-secondary, #8B949E); }
+
+    .query-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-shrink: 0;
+    }
+
+    .mode-btn {
+      padding: 5px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--color-border-solid, #30363D);
+      background: none;
+      color: var(--color-text-secondary, #8B949E);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.12s;
+    }
+
+    .mode-btn.active,
+    .mode-btn:hover {
+      border-color: var(--color-accent, #18C6C8);
+      color: var(--color-accent, #18C6C8);
+      background: rgba(24,198,200,0.08);
+    }
+
+    .send-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--color-accent, #18C6C8);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      flex-shrink: 0;
+      transition: opacity 0.15s;
+    }
+
+    .send-btn:hover    { opacity: 0.84; }
+    .send-btn:disabled { opacity: 0.28; cursor: not-allowed; }
+
+    /* Quick prompts */
+    .prompts-row {
+      max-width: 700px;
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .prompt-chip {
+      padding: 6px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--color-border-solid, #30363D);
+      background: var(--color-surface, #161B22);
+      color: var(--color-text-secondary, #8B949E);
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.14s;
+    }
+
+    .prompt-chip:hover {
+      border-color: var(--color-accent, #18C6C8);
+      color: var(--color-text-primary, #E6EDF3);
+      background: rgba(24,198,200,0.07);
+    }
+
+    /* Recent analyses */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-text-secondary, #8B949E);
+    }
+
+    .section-link {
+      font-size: 12px;
+      color: var(--color-accent, #18C6C8);
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .section-link:hover { text-decoration: underline; }
+
+    .reports-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 14px;
+    }
+
+    .report-card {
+      background: var(--color-surface, #161B22);
+      border: 1px solid var(--color-border-solid, #30363D);
+      border-radius: 12px;
+      padding: 15px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
+    }
+
+    .report-card:hover {
+      border-color: var(--color-accent, #18C6C8);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.28);
+    }
+
+    .rc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+    }
+
+    .intent-badge {
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .intent-deep    { background: rgba(59,130,246,0.14);  color: #60A5FA; }
+    .intent-omega   { background: rgba(168,85,247,0.14);  color: #C084FC; }
+    .intent-macro   { background: rgba(245,166,35,0.14);  color: #F5A623; }
+    .intent-default { background: rgba(24,198,200,0.1);   color: #18C6C8; }
+
+    .rc-time  { font-size: 11px; color: var(--color-text-secondary, #8B949E); }
+
+    .rc-query {
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .rc-tldr {
+      font-size: 12px;
+      color: var(--color-text-secondary, #8B949E);
+      line-height: 1.45;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .rc-footer {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      margin-top: auto;
+    }
+
+    .conf-track {
+      flex: 1;
+      height: 3px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .conf-fill {
+      height: 100%;
+      background: var(--color-accent, #18C6C8);
+      border-radius: 2px;
+    }
+
+    .conf-pct { font-size: 11px; color: var(--color-text-secondary, #8B949E); }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding: 40px 16px;
+      text-align: center;
+    }
+
+    .empty-icon  { font-size: 38px; opacity: 0.28; }
+    .empty-title { font-size: 14px; font-weight: 600; color: var(--color-text-secondary, #8B949E); }
+    .empty-sub   { font-size: 12px; color: var(--color-text-secondary, #8B949E); opacity: 0.7; }
+
+    /* ── Right Panel ──────────────────────────────────────────── */
+    #right-panel {
+      grid-area: panel;
+      background: var(--color-surface, #161B22);
+      border-left: 1px solid var(--color-border-solid, #30363D);
+      overflow-y: auto;
+      padding: 18px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .panel-section { display: flex; flex-direction: column; gap: 10px; }
+
+    .panel-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--color-text-secondary, #8B949E);
+    }
+
+    .regime-card {
+      background: rgba(24,198,200,0.06);
+      border: 1px solid rgba(24,198,200,0.2);
+      border-radius: 10px;
+      padding: 13px;
+    }
+
+    .regime-card-label {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--color-accent, #18C6C8);
+      letter-spacing: -0.2px;
+      margin-bottom: 4px;
+    }
+
+    .regime-card-desc {
+      font-size: 12px;
+      color: var(--color-text-secondary, #8B949E);
+      line-height: 1.4;
+    }
+
+    .index-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 9px;
+      border-radius: 7px;
+      border: 1px solid var(--color-border-solid, #30363D);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .idx-name { font-size: 12px; font-weight: 600; }
+    .idx-val  { font-size: 12px; font-weight: 600; }
+    .idx-val.up   { color: #2ED47A; }
+    .idx-val.down { color: #F87171; }
+    .idx-val.flat { color: var(--color-text-secondary, #8B949E); }
+
+    .alert-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 9px;
+      padding: 9px;
+      border-radius: 8px;
+      border: 1px solid var(--color-border-solid, #30363D);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .alert-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      margin-top: 5px;
+      flex-shrink: 0;
+    }
+
+    .alert-dot.price  { background: #F5A623; }
+    .alert-dot.active { background: #2ED47A; }
+
+    .alert-body  { flex: 1; min-width: 0; }
+    .alert-title { font-size: 12px; font-weight: 500; }
+    .alert-meta  { font-size: 11px; color: var(--color-text-secondary, #8B949E); margin-top: 2px; }
+
+    .no-alerts {
+      padding: 14px;
+      text-align: center;
+      font-size: 12px;
+      color: var(--color-text-secondary, #8B949E);
+      border: 1px dashed var(--color-border-solid, #30363D);
+      border-radius: 8px;
+      line-height: 1.5;
+    }
+
+    .quick-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--color-border-solid, #30363D);
+      background: rgba(255,255,255,0.02);
+      text-decoration: none;
+      color: var(--color-text-primary, #E6EDF3);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s;
+    }
+
+    .quick-link:hover {
+      border-color: var(--color-accent, #18C6C8);
+      background: rgba(24,198,200,0.05);
+    }
+
+    .ql-label { display: flex; align-items: center; gap: 8px; }
+
+    /* Skeleton */
+    .skel {
+      background: linear-gradient(
+        90deg,
+        rgba(255,255,255,0.04) 25%,
+        rgba(255,255,255,0.09) 50%,
+        rgba(255,255,255,0.04) 75%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 1.6s infinite;
+      border-radius: 6px;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    /* ── Responsive ───────────────────────────────────────────── */
+    @media (max-width: 1100px) {
+      body {
+        grid-template-columns: 240px 1fr 0;
+        grid-template-areas: "nav nav nav" "side main main";
+      }
+      #right-panel { display: none; }
+    }
+
+    @media (max-width: 720px) {
+      body {
+        grid-template-columns: 1fr;
+        grid-template-rows: 56px auto 1fr;
+        grid-template-areas: "nav" "side" "main";
+        height: auto;
+        min-height: 100vh;
+        overflow-y: auto;
+      }
+      #left-sidebar {
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        height: auto;
+        padding: 10px 14px;
+        border-right: none;
+        border-bottom: 1px solid var(--color-border-solid, #30363D);
+        gap: 12px;
+      }
+      #center-main { padding: 24px 18px 32px; }
+      .reports-grid { grid-template-columns: 1fr; }
+      .prompts-row  { justify-content: flex-start; }
+    }
+
+    ::-webkit-scrollbar        { width: 4px; }
+    ::-webkit-scrollbar-track  { background: transparent; }
+    ::-webkit-scrollbar-thumb  { background: rgba(255,255,255,0.1); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Nav ──────────────────────────────────────────────────────────────── -->
+<nav id="top-nav">
+  <a class="nav-logo" href="/command-center">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <polygon points="12 2 2 7 12 12 22 7 12 2"/>
+      <polyline points="2 17 12 22 22 17"/>
+      <polyline points="2 12 12 17 22 12"/>
+    </svg>
+    R.A. Omega
+  </a>
+
+  <div class="nav-spacer"></div>
+
+  <div class="regime-pill" id="regime-pill">
+    <div class="regime-dot" id="regime-dot"></div>
+    <span id="regime-text">Live</span>
+  </div>
+
+  <button class="alerts-btn" onclick="window.location.href='/app'" title="Alerts">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+    </svg>
+    <span id="alerts-badge" class="alerts-badge"></span>
+  </button>
+
+  <button class="nav-app-btn" onclick="window.location.href='/app'">Open Chat →</button>
+
+  <div class="nav-avatar" id="nav-avatar" title="Account">A</div>
+</nav>
+
+<!-- ── Left Sidebar ─────────────────────────────────────────────────────────── -->
+<aside id="left-sidebar">
+
+  <button class="new-chat-btn" onclick="window.location.href='/app'">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+    </svg>
+    New Analysis
+  </button>
+
+  <div class="sb-section">
+    <div class="sb-label">Recent</div>
+    <div id="sessions-list">
+      <div class="skel" style="height:36px;margin-bottom:5px"></div>
+      <div class="skel" style="height:36px;margin-bottom:5px"></div>
+      <div class="skel" style="height:36px"></div>
+    </div>
+  </div>
+
+  <div class="sb-section">
+    <div class="sb-label">Watchlist</div>
+    <div id="watchlist-list">
+      <div class="skel" style="height:32px;margin-bottom:5px"></div>
+      <div class="skel" style="height:32px;margin-bottom:5px"></div>
+      <div class="skel" style="height:32px"></div>
+    </div>
+    <button class="add-ticker-btn" onclick="window.location.href='/app'">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+      </svg>
+      Add ticker
+    </button>
+  </div>
+
+</aside>
+
+<!-- ── Main Center ───────────────────────────────────────────────────────────── -->
+<main id="center-main">
+
+  <div class="welcome-block">
+    <h1 class="welcome-heading" id="welcome-heading">Good morning.</h1>
+    <p class="welcome-sub">What do you want to know about your money?</p>
+  </div>
+
+  <div class="query-wrap">
+    <div class="query-box">
+      <textarea
+        id="query-input"
+        rows="1"
+        placeholder="Ask anything — stocks, rates, mortgages, crypto, your portfolio..."
+      ></textarea>
+      <div class="query-actions">
+        <button class="mode-btn active" id="mode-normal" onclick="setMode('normal')">Normal</button>
+        <button class="mode-btn"        id="mode-deep"   onclick="setMode('deep')">Deep</button>
+        <button class="send-btn" id="send-btn" onclick="submitQuery()" disabled>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="5" y1="12" x2="19" y2="12"/>
+            <polyline points="12 5 19 12 12 19"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="prompts-row">
+    <button class="prompt-chip" onclick="fire(this)">Analyze NVDA — current setup and trade plan</button>
+    <button class="prompt-chip" onclick="fire(this)">How will the next Fed meeting impact markets?</button>
+    <button class="prompt-chip" onclick="fire(this)">Best high-yield savings accounts right now</button>
+    <button class="prompt-chip" onclick="fire(this)">SPY options flow this week</button>
+    <button class="prompt-chip" onclick="fire(this)">Explain the latest CPI report</button>
+    <button class="prompt-chip" onclick="fire(this)">Top dividend stocks for passive income</button>
+  </div>
+
+  <div>
+    <div class="section-header">
+      <span class="section-title">Recent Analyses</span>
+      <a class="section-link" href="/app">View all →</a>
+    </div>
+    <div class="reports-grid" id="reports-grid">
+      <div class="skel" style="height:130px;border-radius:12px"></div>
+      <div class="skel" style="height:130px;border-radius:12px"></div>
+      <div class="skel" style="height:130px;border-radius:12px"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── Right Panel ───────────────────────────────────────────────────────────── -->
+<aside id="right-panel">
+
+  <div class="panel-section">
+    <div class="panel-label">Market Pulse</div>
+    <div class="regime-card">
+      <div class="regime-card-label" id="regime-card-label">Loading...</div>
+      <div class="regime-card-desc"  id="regime-card-desc">Fetching live regime data...</div>
+    </div>
+    <div class="index-row">
+      <span class="idx-name">S&amp;P 500</span>
+      <span class="idx-val flat" id="spy-val">—</span>
+    </div>
+    <div class="index-row">
+      <span class="idx-name">Nasdaq 100</span>
+      <span class="idx-val flat" id="qqq-val">—</span>
+    </div>
+    <div class="index-row">
+      <span class="idx-name">VIX</span>
+      <span class="idx-val flat" id="vix-val">—</span>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">Active Alerts</div>
+    <div id="alerts-list">
+      <div class="skel" style="height:50px;margin-bottom:7px"></div>
+      <div class="skel" style="height:50px"></div>
+    </div>
+  </div>
+
+  <div class="panel-section">
+    <div class="panel-label">Quick Access</div>
+
+    <a class="quick-link" href="/app">
+      <span class="ql-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        Chat Interface
+      </span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <a class="quick-link" href="/v2">
+      <span class="ql-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+
+    <a class="quick-link" href="/omega-os/brain-network">
+      <span class="ql-label">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="3"/>
+          <circle cx="12" cy="3" r="1.5"/><circle cx="21" cy="9" r="1.5"/>
+          <circle cx="21" cy="15" r="1.5"/><circle cx="12" cy="21" r="1.5"/>
+          <circle cx="3" cy="15" r="1.5"/><circle cx="3" cy="9" r="1.5"/>
+          <line x1="12" y1="4.5" x2="12" y2="9"/>
+          <line x1="19.5" y1="9.5" x2="14.5" y2="11"/>
+          <line x1="19.5" y1="14.5" x2="14.5" y2="13"/>
+          <line x1="12" y1="15" x2="12" y2="19.5"/>
+          <line x1="9.5" y1="13" x2="4.5" y2="14.5"/>
+          <line x1="9.5" y1="11" x2="4.5" y2="9.5"/>
+        </svg>
+        Brain Network
+      </span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </a>
+  </div>
+
+</aside>
+
+<script>
+"use strict";
+
+// ── Greeting ──────────────────────────────────────────────────────────────────
+(function() {
+  const h = new Date().getHours();
+  const g = h < 12 ? "Good morning." : h < 17 ? "Good afternoon." : "Good evening.";
+  document.getElementById("welcome-heading").textContent = g;
+})();
+
+// ── Auth helpers ──────────────────────────────────────────────────────────────
+function _authHeaders() {
+  try {
+    const keys = ["sb-auth-token", "supabase.auth.token"];
+    for (const k of keys) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const token  = parsed?.access_token
+                  || parsed?.currentSession?.access_token
+                  || null;
+      if (token) return { "Authorization": "Bearer " + token };
+    }
+  } catch (_) {}
+  return {};
+}
+
+(function initAvatar() {
+  try {
+    const keys = ["sb-auth-token", "supabase.auth.token"];
+    for (const k of keys) {
+      const raw = localStorage.getItem(k);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const email  = parsed?.user?.email
+                  || parsed?.currentSession?.user?.email
+                  || null;
+      if (email) {
+        const el = document.getElementById("nav-avatar");
+        el.textContent = email[0].toUpperCase();
+        el.title = email;
+        return;
+      }
+    }
+  } catch (_) {}
+})();
+
+// ── Mode toggle ───────────────────────────────────────────────────────────────
+let currentMode = "normal";
+
+function setMode(m) {
+  currentMode = m;
+  document.getElementById("mode-normal").classList.toggle("active", m === "normal");
+  document.getElementById("mode-deep").classList.toggle("active", m === "deep");
+}
+
+// ── Query input ───────────────────────────────────────────────────────────────
+const qInput  = document.getElementById("query-input");
+const sendBtn = document.getElementById("send-btn");
+
+qInput.addEventListener("input", function() {
+  this.style.height = "auto";
+  this.style.height = Math.min(this.scrollHeight, 148) + "px";
+  sendBtn.disabled = !this.value.trim();
+});
+
+qInput.addEventListener("keydown", function(e) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    if (this.value.trim()) submitQuery();
+  }
+});
+
+function submitQuery() {
+  const q = qInput.value.trim();
+  if (!q) return;
+  try {
+    sessionStorage.setItem("omega_pending_query", q);
+    sessionStorage.setItem("omega_query_mode", currentMode);
+  } catch (_) {}
+  window.location.href = "/app";
+}
+
+function fire(btn) {
+  const q = btn.textContent.trim();
+  qInput.value = q;
+  sendBtn.disabled = false;
+  qInput.style.height = "auto";
+  qInput.style.height = Math.min(qInput.scrollHeight, 148) + "px";
+  qInput.focus();
+  setTimeout(submitQuery, 120);
+}
+
+// ── Utilities ─────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function relTime(ts) {
+  if (!ts) return "";
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 60000)     return "just now";
+  if (diff < 3600000)   return Math.floor(diff / 60000)   + "m ago";
+  if (diff < 86400000)  return Math.floor(diff / 3600000)  + "h ago";
+  if (diff < 604800000) return Math.floor(diff / 86400000) + "d ago";
+  return new Date(ts).toLocaleDateString();
+}
+
+function intentBadge(route) {
+  const r = String(route || "").toUpperCase();
+  if (r.includes("DEEP") || r.includes("MARKET"))
+    return '<span class="intent-badge intent-deep">DEEP</span>';
+  if (r.includes("OMEGA") || r.includes("GENERAL"))
+    return '<span class="intent-badge intent-omega">OMEGA</span>';
+  if (r.includes("MACRO") || r.includes("GLOBAL") || r.includes("LIQUIDITY"))
+    return '<span class="intent-badge intent-macro">MACRO</span>';
+  return '<span class="intent-badge intent-default">RESEARCH</span>';
+}
+
+function sessionIcon(title) {
+  const t = (title || "").toLowerCase();
+  if (t.includes("option") || t.includes("call") || t.includes("put")) return "⚡";
+  if (t.includes("crypto") || t.includes("btc") || t.includes("eth"))  return "₿";
+  if (t.includes("fed") || t.includes("rate") || t.includes("macro"))  return "🏛️";
+  if (t.includes("real estate") || t.includes("mortgage"))              return "🏠";
+  if (t.includes("portfolio") || t.includes("position"))               return "💼";
+  return "📈";
+}
+
+// ── Data loaders ──────────────────────────────────────────────────────────────
+
+async function loadRegime() {
+  try {
+    const res = await fetch("/regime", { headers: _authHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data = await res.json();
+
+    const label = data.regime || data.label || data.market_regime || "LIVE";
+    const desc  = data.description || data.summary || data.detail
+               || "Real-time market regime analysis active.";
+
+    document.getElementById("regime-text").textContent       = label;
+    document.getElementById("regime-card-label").textContent = label;
+    document.getElementById("regime-card-desc").textContent  = String(desc).slice(0, 130);
+
+    const pill = document.getElementById("regime-pill");
+    const dot  = document.getElementById("regime-dot");
+    if (label.toUpperCase().includes("BULL")) {
+      pill.style.cssText = "display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.2px;white-space:nowrap;background:rgba(46,212,122,0.1);border:1px solid rgba(46,212,122,0.3);color:#2ED47A;";
+      dot.style.background = "#2ED47A";
+    } else if (label.toUpperCase().includes("BEAR") || label.toUpperCase().includes("RISK")) {
+      pill.style.cssText = "display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;letter-spacing:0.2px;white-space:nowrap;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#F87171;";
+      dot.style.background = "#F87171";
+    }
+
+    if (data.spy_change !== undefined) _setIdx("spy-val", data.spy_change);
+    if (data.qqq_change !== undefined) _setIdx("qqq-val", data.qqq_change);
+    if (data.vix        !== undefined) {
+      const el = document.getElementById("vix-val");
+      el.textContent = Number(data.vix).toFixed(1);
+      el.className   = "idx-val flat";
+    }
+  } catch (_) {
+    document.getElementById("regime-card-label").textContent = "Market Pulse";
+    document.getElementById("regime-card-desc").textContent  =
+      "Start an analysis to get the live regime read.";
+  }
+}
+
+function _setIdx(elId, change) {
+  const el  = document.getElementById(elId);
+  const pct = Number(change);
+  if (isNaN(pct)) { el.textContent = "—"; return; }
+  const sign = pct >= 0 ? "+" : "";
+  el.textContent = sign + pct.toFixed(2) + "%";
+  el.className   = "idx-val " + (pct > 0 ? "up" : pct < 0 ? "down" : "flat");
+}
+
+async function loadSessions() {
+  try {
+    const res = await fetch("/sessions", { headers: _authHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data     = await res.json();
+    const sessions = Array.isArray(data) ? data : (data.sessions || []);
+    const el       = document.getElementById("sessions-list");
+
+    if (!sessions.length) {
+      el.innerHTML = '<div style="font-size:12px;color:#8B949E;padding:6px 4px;line-height:1.5">No sessions yet.<br>Start your first analysis!</div>';
+      return;
+    }
+
+    el.innerHTML = sessions.slice(0, 8).map(s => {
+      const title = escHtml(s.title || s.context_topic || s.query || "Untitled");
+      const time  = relTime(s.updated_at || s.created_at);
+      const icon  = sessionIcon(title);
+      const sid   = escHtml(String(s.id || ""));
+      return `
+        <div class="session-item" onclick="openSession('${sid}')">
+          <div class="session-icon">${icon}</div>
+          <div class="session-body">
+            <div class="session-title">${title}</div>
+            <div class="session-meta">${time}</div>
+          </div>
+        </div>`;
+    }).join("");
+  } catch (_) {
+    document.getElementById("sessions-list").innerHTML =
+      '<div style="font-size:12px;color:#8B949E;padding:6px 4px">Sign in to see your history</div>';
+  }
+}
+
+function openSession(id) {
+  if (id) { try { sessionStorage.setItem("omega_session_id", id); } catch(_) {} }
+  window.location.href = "/app";
+}
+
+async function loadWatchlist() {
+  try {
+    const res     = await fetch("/watchlist", { headers: _authHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data    = await res.json();
+    const tickers = Array.isArray(data) ? data : (data.tickers || data.watchlist || []);
+    const el      = document.getElementById("watchlist-list");
+
+    if (!tickers.length) {
+      el.innerHTML = '<div style="font-size:12px;color:#8B949E;padding:4px 2px">No tickers added yet</div>';
+      return;
+    }
+
+    el.innerHTML = tickers.slice(0, 7).map(item => {
+      const sym = escHtml(typeof item === "string" ? item : (item.ticker || item.symbol || String(item)));
+      return `
+        <div class="ticker-row" onclick="analyzeTicker('${sym}')">
+          <span class="ticker-sym">${sym}</span>
+          <span class="ticker-arr">›</span>
+        </div>`;
+    }).join("");
+  } catch (_) {
+    document.getElementById("watchlist-list").innerHTML =
+      '<div style="font-size:12px;color:#8B949E;padding:4px 2px">Add tickers via chat</div>';
+  }
+}
+
+function analyzeTicker(sym) {
+  const q = `Analyze ${sym} — current setup and trade plan`;
+  try { sessionStorage.setItem("omega_pending_query", q); } catch(_) {}
+  window.location.href = "/app";
+}
+
+async function loadAlerts() {
+  try {
+    const res    = await fetch("/alerts", { headers: _authHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data   = await res.json();
+    const alerts = Array.isArray(data) ? data : (data.alerts || []);
+    const badge  = document.getElementById("alerts-badge");
+    const el     = document.getElementById("alerts-list");
+
+    if (!alerts.length) {
+      badge.style.display = "none";
+      el.innerHTML = '<div class="no-alerts">No active alerts.<br>Try: "Alert me when NVDA hits $900"</div>';
+      return;
+    }
+
+    badge.textContent   = Math.min(alerts.length, 9) + (alerts.length > 9 ? "+" : "");
+    badge.style.display = "flex";
+
+    el.innerHTML = alerts.slice(0, 5).map(a => {
+      const ticker    = escHtml(a.ticker || a.symbol || "—");
+      const condition = escHtml(a.condition || (a.price ? `${a.direction || "at"} $${a.price}` : ""));
+      const time      = relTime(a.created_at || a.timestamp);
+      return `
+        <div class="alert-item">
+          <div class="alert-dot price"></div>
+          <div class="alert-body">
+            <div class="alert-title">${ticker} ${condition}</div>
+            <div class="alert-meta">Set ${time}</div>
+          </div>
+        </div>`;
+    }).join("");
+  } catch (_) {
+    document.getElementById("alerts-list").innerHTML =
+      '<div class="no-alerts">Set price alerts via the chat interface.</div>';
+  }
+}
+
+async function loadReports() {
+  try {
+    const res     = await fetch("/history/reports?limit=6", { headers: _authHeaders() });
+    if (!res.ok) throw new Error(res.status);
+    const data    = await res.json();
+    const reports = Array.isArray(data) ? data : (data.reports || data.queries || []);
+    const el      = document.getElementById("reports-grid");
+
+    if (!reports.length) {
+      el.innerHTML = `
+        <div class="empty-state" style="grid-column:1/-1">
+          <div class="empty-icon">📊</div>
+          <div class="empty-title">No analyses yet</div>
+          <div class="empty-sub">Ask your first finance question above to get started.</div>
+        </div>`;
+      return;
+    }
+
+    el.innerHTML = reports.slice(0, 6).map(r => {
+      const query  = escHtml(r.query || r.user_query || "Untitled query");
+      const tldr   = escHtml(r.tldr  || r.result_summary || r.summary || "");
+      const raw    = r.confidence || (r.result_json && r.result_json.confidence) || 0;
+      const pct    = Math.min(typeof raw === "number" ? (raw > 1 ? raw : raw * 100) : 0, 100);
+      const route  = r.intent_route || (r.result_json && r.result_json.intent_route) || "";
+      const time   = relTime(r.created_at || r.timestamp);
+      const id     = escHtml(String(r.id || ""));
+      return `
+        <div class="report-card" onclick="openReport('${id}')">
+          <div class="rc-header">
+            ${intentBadge(route)}
+            <span class="rc-time">${time}</span>
+          </div>
+          <div class="rc-query">${query}</div>
+          ${tldr ? `<div class="rc-tldr">${tldr}</div>` : ""}
+          <div class="rc-footer">
+            <div class="conf-track">
+              <div class="conf-fill" style="width:${Math.round(pct)}%"></div>
+            </div>
+            <span class="conf-pct">${Math.round(pct)}%</span>
+          </div>
+        </div>`;
+    }).join("");
+  } catch (_) {
+    document.getElementById("reports-grid").innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1">
+        <div class="empty-icon">📊</div>
+        <div class="empty-title">Ready when you are</div>
+        <div class="empty-sub">Type a question above or pick a quick prompt.</div>
+      </div>`;
+  }
+}
+
+function openReport(id) {
+  if (id) { try { sessionStorage.setItem("omega_report_id", id); } catch(_) {} }
+  window.location.href = "/app";
+}
+
+// ── Bootstrap ─────────────────────────────────────────────────────────────────
+(async function init() {
+  await Promise.allSettled([
+    loadRegime(),
+    loadSessions(),
+    loadWatchlist(),
+    loadAlerts(),
+    loadReports(),
+  ]);
+  // Refresh live data every 60s
+  setInterval(() => { loadRegime(); loadAlerts(); }, 60000);
+  // Refresh history every 5 min
+  setInterval(() => { loadSessions(); loadReports(); }, 300000);
+})();
+</script>
+</body>
+</html>
