@@ -2143,6 +2143,24 @@ def serve_data_map():
     return FileResponse(path, media_type="text/html; charset=utf-8")
 
 
+@app.get("/design_system.css")
+def serve_design_system_css():
+    """Serve the shared ATLAS design token stylesheet."""
+    path = BASE_DIR / "design_system.css"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Missing design_system.css")
+    return FileResponse(path, media_type="text/css; charset=utf-8")
+
+
+@app.get("/omega-os/brain-network")
+def serve_brain_network():
+    """Serve the Omega Brain Live Network visualization page."""
+    path = BASE_DIR / "omega_brain_network.html"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Missing omega_brain_network.html")
+    return FileResponse(path, media_type="text/html; charset=utf-8")
+
+
 @app.post("/jobs/plan")
 def create_research_plan(req: ResearchPlanRequest, user_id: AtlasUserId):
     """Create a visible research plan/job before a long research request starts."""

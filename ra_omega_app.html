@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R.A. Omega - Financial Intelligence</title>
     
+    <link rel="stylesheet" href="/design_system.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
@@ -189,8 +190,14 @@
         const Icon = ({ name, size = 18, className = "", strokeWidth = 1.5 }) => {
             const iconData = lucide.icons[name];
             if (!iconData) {
-                console.warn(`Icon '${name}' not found.`);
-                return <span className={`inline-block ${className}`} style={{ width: size, height: size }}></span>;
+                // Visible fallback — a subtle square so missing icons don't silently disappear
+                return (
+                    <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" strokeWidth={strokeWidth}
+                         strokeLinecap="round" strokeLinejoin="round" className={className} aria-label={name}>
+                        <rect x="3" y="3" width="18" height="18" rx="3" opacity="0.4" />
+                    </svg>
+                );
             }
             const elements = (Array.isArray(iconData) && typeof iconData[0] === 'string') ? iconData[1] : iconData;
             
@@ -4082,33 +4089,60 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                         <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 pt-12 pb-6 sm:px-6 lg:px-10 lg:pt-14 lg:pb-8 scroll-smooth">
                             <div className="max-w-4xl mx-auto space-y-10 pb-4">
                                 {logs.length <= 1 && !activeIsProcessing && (
-                                    <div className="rounded-xl border border-borderSubtle bg-base/35 p-5 sm:p-6">
-                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                                    <div className="rounded-2xl border border-borderSubtle p-5 sm:p-7"
+                                         style={{background:'linear-gradient(135deg,rgba(11,16,32,0.92) 0%,rgba(16,24,39,0.88) 100%)'}}>
+                                        {/* Header row */}
+                                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between mb-4">
                                             <div>
-                                                <div className="text-[10px] font-mono uppercase tracking-[0.24em] text-accent-indigo">R.A. Omega</div>
-                                                <h1 className="mt-2 text-2xl sm:text-3xl font-semibold text-textMain">Finance-first AI. Normal conversation. Structured decisions.</h1>
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="text-[10px] font-mono uppercase tracking-[0.24em] text-accent-indigo">R.A. Omega</span>
+                                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border border-accent-indigo/25 text-accent-indigo/75">
+                                                        10 data loops · ~$0.017/query
+                                                    </span>
+                                                </div>
+                                                <h1 className="text-2xl sm:text-3xl font-semibold text-textMain leading-tight">
+                                                    Finance-first AI.<br className="hidden sm:block" /> Normal conversation. Structured decisions.
+                                                </h1>
                                             </div>
-                                            <div className="text-[11px] font-mono text-textMuted sm:text-right">
-                                                markets / debt / credit / business / tax / risk
+                                            {/* Quick links */}
+                                            <div className="flex items-center gap-2 shrink-0">
+                                                <a href="/omega-os/brain-network" target="_blank" rel="noopener"
+                                                   className="flex items-center gap-1.5 text-[11px] font-mono text-textMuted hover:text-accent-indigo transition-colors px-2.5 py-1.5 rounded-lg border border-borderSubtle hover:border-accent-indigo/30">
+                                                    <Icon name="Network" size={12} />
+                                                    Brain
+                                                </a>
+                                                <a href="/dashboard" target="_blank" rel="noopener"
+                                                   className="flex items-center gap-1.5 text-[11px] font-mono text-textMuted hover:text-accent-indigo transition-colors px-2.5 py-1.5 rounded-lg border border-borderSubtle hover:border-accent-indigo/30">
+                                                    <Icon name="LayoutDashboard" size={12} />
+                                                    Dashboard
+                                                </a>
                                             </div>
                                         </div>
-                                        <p className="mt-3 max-w-2xl text-sm leading-relaxed text-textMuted">
-                                            Ask naturally. Omega will stay conversational for simple messages and switch into deeper financial analysis when the question needs data, risk checks, scenarios, and exportable output.
+
+                                        <p className="max-w-2xl text-sm leading-relaxed text-textMuted mb-5">
+                                            Ask naturally. Omega stays conversational for simple messages and switches into deeper financial analysis — data, risk checks, scenarios, and exportable output — when the question calls for it.
                                         </p>
-                                        <div className="mt-5 grid gap-2 sm:grid-cols-2">
+
+                                        {/* Prompt cards */}
+                                        <div className="grid gap-2 sm:grid-cols-2">
                                             {[
-                                                'Analyze NVDA for a 30-day swing trade with risk levels.',
-                                                'Build a debt payoff plan from highest-interest cards first.',
-                                                'Compare buying a rental property vs putting cash into SPY.',
-                                                'Create a lean LLC launch plan with tax and cash-flow risks.',
-                                            ].map((promptText) => (
+                                                { label: 'Equities', text: 'Analyze NVDA for a 30-day swing trade with risk levels.' },
+                                                { label: 'Personal', text: 'Build a debt payoff plan from highest-interest cards first.' },
+                                                { label: 'Real Estate', text: 'Compare buying a rental property vs putting cash into SPY.' },
+                                                { label: 'Business', text: 'Create a lean LLC launch plan with tax and cash-flow risks.' },
+                                            ].map((item) => (
                                                 <button
-                                                    key={promptText}
+                                                    key={item.text}
                                                     type="button"
-                                                    onClick={() => setInputValue(promptText)}
-                                                    className="rounded-lg border border-borderSubtle bg-surface/45 px-3 py-3 text-left text-sm text-textMain/90 hover:border-accent-indigo/45 hover:bg-surfaceHover transition-colors"
+                                                    onClick={() => setInputValue(item.text)}
+                                                    className="group rounded-xl border border-borderSubtle bg-surface/40 px-4 py-3 text-left hover:border-accent-indigo/40 hover:bg-surfaceHover transition-all"
                                                 >
-                                                    {promptText}
+                                                    <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-accent-indigo/60 group-hover:text-accent-indigo mb-1 transition-colors">
+                                                        {item.label}
+                                                    </div>
+                                                    <div className="text-sm text-textMain/80 group-hover:text-textMain transition-colors leading-snug">
+                                                        {item.text}
+                                                    </div>
                                                 </button>
                                             ))}
                                         </div>
@@ -4185,16 +4219,43 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                                 })}
 
                                 {activeIsProcessing && (
-                                    <div className="flex gap-4 animate-pulse-slow">
+                                    <div className="flex gap-4">
+                                        {/* Avatar */}
                                         <div className="shrink-0 pt-1">
                                             <div className="w-8 h-8 rounded bg-accent-indigo/10 border border-accent-indigo/30 flex items-center justify-center">
                                                 <Icon name="Loader2" size={16} className="text-accent-indigo animate-spin" />
                                             </div>
                                         </div>
-                                        <div className="flex-1 flex flex-col gap-1.5 justify-center min-w-0">
-                                            <span className="text-sm font-medium text-textMain">R.A. Omega</span>
-                                            <span className="text-[14px] text-textMain/95 leading-snug">{liveLoopLine}</span>
-                                            <span className="text-[12px] font-mono text-textMuted">Advances about every 10s while the engine cross-checks data, risk, and execution context.</span>
+                                        {/* Content */}
+                                        <div className="flex-1 min-w-0 rounded-xl border border-borderSubtle bg-surface/50 p-4" style={{backdropFilter:'blur(4px)'}}>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <span className="text-sm font-semibold text-textMain">R.A. Omega</span>
+                                                <span className="text-[11px] font-mono px-2 py-0.5 rounded-full bg-accent-indigo/12 text-accent-indigo border border-accent-indigo/20">
+                                                    Processing
+                                                </span>
+                                            </div>
+                                            {/* Live loop line */}
+                                            <p className="text-[14px] text-textMain/90 leading-snug mb-3">{liveLoopLine}</p>
+                                            {/* Animated progress bar */}
+                                            <div className="relative h-1 rounded-full overflow-hidden mb-3" style={{background:'rgba(255,255,255,0.06)'}}>
+                                                <div style={{
+                                                    position:'absolute', top:0, left:0, bottom:0,
+                                                    width:'40%',
+                                                    background:'linear-gradient(90deg,transparent,#18C6C8,transparent)',
+                                                    backgroundSize:'200% 100%',
+                                                    animation:'shimmer 1.8s linear infinite',
+                                                }} />
+                                            </div>
+                                            {/* Skeleton content lines */}
+                                            <div className="space-y-2">
+                                                {[85, 65, 45].map((w, i) => (
+                                                    <div key={i} className="h-2.5 rounded-full animate-pulse-slow"
+                                                         style={{width:`${w}%`, background:`rgba(255,255,255,${0.06 - i*0.01})`}} />
+                                                ))}
+                                            </div>
+                                            <p className="mt-3 text-[11px] font-mono text-textMuted">
+                                                Advances every ~10s while the engine cross-checks data, risk, and execution context.
+                                            </p>
                                             <div className="mt-3 xl:hidden">
                                                 <ResearchActivityPanel
                                                     activity={lastResearchMeta.activity}

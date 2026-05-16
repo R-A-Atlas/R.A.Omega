@@ -1,0 +1,251 @@
+/*
+  design_system.css — R.A. Omega / ATLAS Design Tokens
+  Single source of truth for all colors, fonts, spacing, radii, shadows, and animation.
+  Import once per HTML page:  <link rel="stylesheet" href="/design_system.css">
+  ------------------------------------------------------------------
+  Token groups:
+    --color-*      Surface / text / accent palette
+    --font-*       Font families and size scale
+    --radius-*     Border radius scale
+    --space-*      Spacing scale
+    --shadow-*     Box shadows
+    --anim-*       Durations / easings
+    --node-*       Brain network node colors (per group)
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  /* ── Backgrounds ──────────────────────────────────────── */
+  --color-bg:            #0B1020;
+  --color-surface:       #101827;
+  --color-surface-hover: #172235;
+  --color-surface-raise: #1C2A40;
+  --color-overlay:       rgba(11, 16, 32, 0.80);
+
+  /* ── Borders ──────────────────────────────────────────── */
+  --color-border:        rgba(220, 226, 235, 0.11);
+  --color-border-strong: rgba(220, 226, 235, 0.20);
+  --color-border-solid:  #30363D;
+
+  /* ── Text ─────────────────────────────────────────────── */
+  --color-text:          #F4F7FB;
+  --color-text-secondary:#E6EDF3;
+  --color-text-muted:    rgba(157, 169, 183, 0.78);
+  --color-text-faint:    #8B949E;
+
+  /* ── Accent — Cyan / Teal (primary) ──────────────────── */
+  --color-accent:        #18C6C8;
+  --color-accent-dim:    rgba(24, 198, 200, 0.18);
+  --color-accent-glow:   rgba(24, 198, 200, 0.32);
+
+  /* ── Accent — Emerald / Green (positive) ─────────────── */
+  --color-emerald:       #2ED47A;
+  --color-emerald-dim:   rgba(46, 212, 122, 0.18);
+
+  /* ── Accent — Gold / Amber (pipeline / warning) ──────── */
+  --color-gold:          #F5A623;
+  --color-gold-dim:      rgba(245, 166, 35, 0.18);
+
+  /* ── Accent — Purple (agents) ────────────────────────── */
+  --color-purple:        #A855F7;
+  --color-purple-dim:    rgba(168, 85, 247, 0.18);
+
+  /* ── Accent — Coral / Red (outputs / alerts) ─────────── */
+  --color-coral:         #F87171;
+  --color-coral-dim:     rgba(248, 113, 113, 0.18);
+
+  /* ── Accent — Slate / Violet (secondary elements) ────── */
+  --color-slate:         #7C8AA0;
+
+  /* ── Node colors (Brain Network) ─────────────────────── */
+  --node-core:        #18C6C8;   /* Core engine         — cyan     */
+  --node-pipeline:    #F5A623;   /* Pipeline            — gold     */
+  --node-skill:       #3B82F6;   /* Skills              — blue     */
+  --node-agent:       #A855F7;   /* Agents              — purple   */
+  --node-integration: #2ED47A;   /* Integrations        — green    */
+  --node-output:      #F87171;   /* Outputs             — coral    */
+
+  /* ── Fonts ────────────────────────────────────────────── */
+  --font-sans:  'Space Grotesk', 'Inter', system-ui, sans-serif;
+  --font-body:  'Inter', system-ui, sans-serif;
+  --font-mono:  'JetBrains Mono', 'Fira Mono', monospace;
+
+  /* Font size scale (fluid-ish) */
+  --text-xs:   0.6875rem;   /* 11px */
+  --text-sm:   0.8125rem;   /* 13px */
+  --text-base: 0.9375rem;   /* 15px */
+  --text-md:   1rem;        /* 16px */
+  --text-lg:   1.125rem;    /* 18px */
+  --text-xl:   1.375rem;    /* 22px */
+  --text-2xl:  1.75rem;     /* 28px */
+  --text-3xl:  2.25rem;     /* 36px */
+
+  /* ── Spacing ──────────────────────────────────────────── */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* ── Radii ────────────────────────────────────────────── */
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-2xl: 24px;
+  --radius-pill: 999px;
+
+  /* ── Shadows ──────────────────────────────────────────── */
+  --shadow-sm:   0 1px 3px rgba(0,0,0,0.35);
+  --shadow-md:   0 4px 12px rgba(0,0,0,0.45);
+  --shadow-lg:   0 8px 32px rgba(0,0,0,0.55);
+  --shadow-glow: 0 0 16px rgba(24, 198, 200, 0.20);
+  --shadow-glow-gold:   0 0 16px rgba(245, 166, 35, 0.25);
+  --shadow-glow-purple: 0 0 16px rgba(168, 85, 247, 0.25);
+  --shadow-glow-green:  0 0 16px rgba(46, 212, 122, 0.25);
+
+  /* ── Animation ────────────────────────────────────────── */
+  --anim-fast:   120ms;
+  --anim-normal: 200ms;
+  --anim-slow:   350ms;
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ── Global resets and base ───────────────────────────────────────────────── */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  font-family: var(--font-sans);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Minimalist scrollbar */
+::-webkit-scrollbar          { width: 4px; height: 4px; }
+::-webkit-scrollbar-track    { background: transparent; }
+::-webkit-scrollbar-thumb    { background: rgba(255,255,255,0.10); border-radius: var(--radius-pill); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.22); }
+
+/* Selection */
+::selection { background: var(--color-accent-glow); color: #fff; }
+
+/* ── Utility classes ──────────────────────────────────────────────────────── */
+
+.atlas-surface {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.atlas-surface-raise {
+  background: var(--color-surface-raise);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.atlas-accent-glow { box-shadow: var(--shadow-glow); }
+
+.atlas-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pill-active   { background: var(--color-emerald-dim); color: var(--color-emerald); }
+.pill-warn     { background: var(--color-gold-dim);    color: var(--color-gold); }
+.pill-inactive { background: rgba(255,255,255,0.06);   color: var(--color-text-faint); }
+.pill-error    { background: var(--color-coral-dim);   color: var(--color-coral); }
+
+.atlas-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-md);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: opacity var(--anim-fast) var(--ease-out),
+              background var(--anim-fast) var(--ease-out);
+}
+
+.atlas-btn-primary {
+  background: var(--color-accent);
+  color: #000;
+}
+.atlas-btn-primary:hover { opacity: 0.88; }
+
+.atlas-btn-ghost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+.atlas-btn-ghost:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.atlas-divider {
+  height: 1px;
+  background: var(--color-border);
+  border: none;
+  margin: var(--space-4) 0;
+}
+
+/* Mono / code */
+.atlas-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-accent);
+}
+
+/* Gradient backgrounds */
+.atlas-gradient-bg {
+  background-image:
+    radial-gradient(circle at 50% -12%, rgba(24, 198, 200, 0.12) 0%, rgba(11, 16, 32, 0) 40%),
+    linear-gradient(180deg, #111A2C 0%, #0B1020 48%, #0C1324 100%);
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+
+@keyframes atlas-pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+@keyframes atlas-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes atlas-shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
+}
+
+@keyframes atlas-float {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
+}
+
+.anim-pulse    { animation: atlas-pulse   2s var(--ease-in-out) infinite; }
+.anim-spin     { animation: atlas-spin    1s linear infinite; }
+.anim-spin-slow{ animation: atlas-spin    8s linear infinite; }
+.anim-float    { animation: atlas-float   4s var(--ease-in-out) infinite; }

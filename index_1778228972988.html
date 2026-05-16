@@ -5,27 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>R.A. Omega - Financial Intelligence</title>
  
+    <link rel="stylesheet" href="/design_system.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Three.js deferred so it doesn't block first paint -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
- 
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
  
     <style>
         :root {
-            --cobalt: #18C6C8;
-            --cerulean: #2ED47A;
-            --void: #0B1020;
+            /* Legacy aliases — kept for existing selectors below */
+            --cobalt: var(--color-accent);
+            --cerulean: var(--color-emerald);
+            --void: var(--color-bg);
         }
- 
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
- 
+
         body {
             overflow: hidden;
-            background-color: var(--void);
+            background-color: var(--color-bg);
             color: #fff;
             font-family: 'Space Grotesk', sans-serif;
             -webkit-font-smoothing: antialiased;
@@ -191,7 +192,8 @@
  
         @media (max-width: 900px) {
             body {
-                overflow-y: auto;
+                overflow-y: scroll;          /* force scroll — prevents iOS momentum lock */
+                -webkit-overflow-scrolling: touch;
                 height: auto;
                 min-height: 100vh;
             }
