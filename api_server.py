@@ -2337,7 +2337,7 @@ async def run_query(req: QueryRequest, background_tasks: BackgroundTasks, user_i
 
     Example body: {"query": "Should I hold my SOUN $14 call expiring June 18?"}
     """
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     return await loop.run_in_executor(
         None, lambda: dispatch_query_request(req, user_id, background_tasks)
     )

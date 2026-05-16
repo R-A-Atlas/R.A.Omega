@@ -61,8 +61,8 @@ def _notify(title: str, message: str, urgent: bool = False) -> None:
     try:
         with open(_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(log_line + "\n")
-    except Exception:
-        pass
+    except Exception as exc:
+        log.debug("Alert log write failed: %s", exc)
 
     # Desktop notification via plyer
     try:
@@ -89,8 +89,8 @@ def _notify(title: str, message: str, urgent: bool = False) -> None:
                     time.sleep(0.1)
             else:
                 winsound.Beep(800, 300)
-    except Exception:
-        pass
+    except Exception as exc:
+        log.debug("Audio alert skipped: %s", exc)
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -174,8 +174,8 @@ class AlertMonitor:
             with self._lock:
                 data = [a.to_dict() for a in self._alerts]
             _ALERTS_FILE.write_text(json.dumps(data, indent=2), encoding="utf-8")
-        except Exception:
-            pass
+        except Exception as exc:
+            log.warning("Failed to persist alerts to file: %s", exc)
 
     # ── Alert management ─────────────────────────────────────────────────────
     def add(self, ticker: str, alert_type: str, trigger_value: float,
@@ -255,8 +255,8 @@ class AlertMonitor:
                 self.add(ticker, "PRICE_BELOW", float(stop),
                          f"{ticker} hit stop loss ${stop} — consider exiting position!")
                 count += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Failed to add stop loss alert for %s: %s", ticker, exc)
 
         # Target 1 alert
         t1 = tp.get("target_1") or pl.get("immediate_resistance")
@@ -265,8 +265,8 @@ class AlertMonitor:
                 self.add(ticker, "PRICE_ABOVE", float(t1),
                          f"{ticker} reached target 1 ${t1} — consider taking partial profit!")
                 count += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Failed to add target 1 alert for %s: %s", ticker, exc)
 
         # Target 2 alert
         t2 = tp.get("target_2") or pl.get("strong_resistance")
@@ -275,8 +275,8 @@ class AlertMonitor:
                 self.add(ticker, "PRICE_ABOVE", float(t2),
                          f"{ticker} hit target 2 ${t2} — full profit target reached!")
                 count += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Failed to add target 2 alert for %s: %s", ticker, exc)
 
         # Earnings day alert
         next_e = ea.get("next_date") or mkt.get("next_earnings")
@@ -288,8 +288,8 @@ class AlertMonitor:
                     self.add(ticker, "EARNINGS_TODAY", 0,
                              f"{ticker} earnings today ({next_e}) — check your position size!")
                     count += 1
-            except Exception:
-                pass
+            except Exception as exc:
+                log.warning("Failed to add earnings alert for %s: %s", ticker, exc)
 
         log.info("Auto-setup %d alerts for %s", count, ticker)
         return count

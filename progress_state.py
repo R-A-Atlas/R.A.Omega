@@ -5,7 +5,7 @@ Prevents fake/frozen progress after the final answer appears.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Callable, Optional
 
@@ -49,7 +49,7 @@ class JobProgress:
         self.state = state
         self.message = message
         self.error = error
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         if self._emit is not None:
             try:
                 self._emit(self.to_dict())
