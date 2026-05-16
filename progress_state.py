@@ -33,7 +33,7 @@ class JobProgress:
     job_id: str
     state: ProgressState = ProgressState.QUEUED
     message: str = ""
-    updated_at: datetime = field(default_factory=datetime.utcnow)
+    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     error: Optional[str] = None
     _emit: Optional[Callable[[dict], None]] = field(default=None, repr=False, compare=False)
 

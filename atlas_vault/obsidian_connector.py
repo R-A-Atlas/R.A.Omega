@@ -24,7 +24,7 @@ from __future__ import annotations
 import json
 import logging
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -63,13 +63,13 @@ def load_vault(vault_path: str) -> dict:
     """
     path = Path(vault_path)
     if not path.exists():
-        return {"notes": [], "indexed_at": datetime.utcnow().isoformat(), "count": 0}
+        return {"notes": [], "indexed_at": datetime.now(timezone.utc).isoformat(), "count": 0}
 
     try:
         md_files = list(path.rglob("*.md"))
     except PermissionError as exc:
         log.warning("load_vault permission error at %s: %s", path, exc)
-        return {"notes": [], "indexed_at": datetime.utcnow().isoformat(), "count": 0}
+        return {"notes": [], "indexed_at": datetime.now(timezone.utc).isoformat(), "count": 0}
 
     notes: list[dict[str, Any]] = []
     for md_file in md_files:
@@ -79,7 +79,7 @@ def load_vault(vault_path: str) -> dict:
             wikilinks = _WIKILINK_RE.findall(content)
             md_pairs = _MDLINK_RE.findall(content)
             links = wikilinks + [text for text, _url in md_pairs]
-            mtime = datetime.utcfromtimestamp(md_file.stat().st_mtime).isoformat()
+            mtime = datetime.fromtimestamp(md_file.stat().st_mtime, tz=timezone.utc).isoformat()
             notes.append(
                 {
                     "filename": md_file.name,
@@ -95,7 +95,7 @@ def load_vault(vault_path: str) -> dict:
 
     return {
         "notes": notes,
-        "indexed_at": datetime.utcnow().isoformat(),
+        "indexed_at": datetime.now(timezone.utc).isoformat(),
         "count": len(notes),
     }
 
