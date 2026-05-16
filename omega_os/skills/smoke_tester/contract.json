@@ -1,0 +1,27 @@
+{
+  "skill": "smoke_tester",
+  "version": "1.0",
+  "default_base_url": "http://127.0.0.1:8000",
+  "timeout_seconds": 8,
+  "endpoints": [
+    {"method": "GET", "path": "/",                    "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/auth",                "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/command-center",      "expected_status": 200, "content_check": "R.A. Omega"},
+    {"method": "GET", "path": "/app",                 "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/v2",                  "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/design_system.css",   "expected_status": 200, "content_check": "--color-accent"},
+    {"method": "GET", "path": "/omega-os/brain-network", "expected_status": 200, "content_check": "omega"},
+    {"method": "GET", "path": "/health",              "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/regime",              "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/alerts",              "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/watchlist",           "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/sessions",            "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/omega-os/dashboard",  "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/omega-os/skills",     "expected_status": 200, "content_check": ""},
+    {"method": "GET", "path": "/sandbox/agent-health","expected_status": 200, "content_check": ""}
+  ],
+  "notes": {
+    "/app": "200 or 302 both accepted — auth redirect is OK in dev",
+    "requires": "Server must be running before smoke_test.py is called"
+  }
+}

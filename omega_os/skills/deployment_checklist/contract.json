@@ -1,0 +1,29 @@
+{
+  "skill": "deployment_checklist",
+  "version": "1.0",
+  "required_env_vars": ["SUPABASE_URL", "SUPABASE_KEY", "GEMINI_API_KEY"],
+  "optional_env_vars": ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET", "TELEGRAM_BOT_TOKEN", "OPENAI_API_KEY"],
+  "required_html_files": [
+    "index_1778228972988.html",
+    "auth.html",
+    "omega_command_center.html",
+    "ra_omega_app.html",
+    "atlas_dashboard_v4.html",
+    "omega_brain_network.html",
+    "design_system.css"
+  ],
+  "required_py_files": [
+    "api_server.py",
+    "query_router.py",
+    "atlas_omega.py",
+    "deep_research.py",
+    "gemini_limiter.py"
+  ],
+  "required_databases": ["atlas_memory.db", "atlas_tracker.db"],
+  "forbidden_env_values": {
+    "ATLAS_DISABLE_AUTH": "true"
+  },
+  "auth_redirect_must_point_to": "/command-center",
+  "procfile_must_contain": ["uvicorn", "api_server"],
+  "exit_code_on_blockers": 1
+}

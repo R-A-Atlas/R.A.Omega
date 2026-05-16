@@ -1,0 +1,28 @@
+[
+  {
+    "id": "E1",
+    "description": "smoke_test.py compiles clean",
+    "command": "python -m py_compile omega_os/skills/smoke_tester/tools/smoke_test.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E2",
+    "description": "smoke_test.py --json outputs valid JSON when server is down",
+    "command": "python omega_os/skills/smoke_tester/tools/smoke_test.py --json",
+    "output_is_json": true,
+    "expect_exit": 1,
+    "note": "Exit 1 expected — server not running; JSON still emitted"
+  },
+  {
+    "id": "E3",
+    "description": "smoke_test.py JSON output contains endpoint keys",
+    "command": "python omega_os/skills/smoke_tester/tools/smoke_test.py --json",
+    "output_contains": "endpoint"
+  },
+  {
+    "id": "E4",
+    "description": "smoke_test.py --help exits 0",
+    "command": "python omega_os/skills/smoke_tester/tools/smoke_test.py --help",
+    "expect_exit": 0
+  }
+]

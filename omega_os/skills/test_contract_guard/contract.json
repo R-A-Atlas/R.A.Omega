@@ -1,0 +1,39 @@
+{
+  "skill": "test_contract_guard",
+  "version": "1.0",
+  "tests_root": "tests/",
+  "test_file_pattern": "test_*.py",
+  "fragile_patterns": [
+    {
+      "name": "hex_color_assertion",
+      "severity": "high",
+      "description": "Asserting exact hex color strings that break on CSS token migration"
+    },
+    {
+      "name": "implementation_detail_string",
+      "severity": "high",
+      "description": "Asserting /option1 redirect alias instead of semantic /command-center"
+    },
+    {
+      "name": "hardcoded_line_count",
+      "severity": "medium",
+      "description": "Asserting exact line counts that break on formatting changes"
+    },
+    {
+      "name": "magic_number_test_count",
+      "severity": "medium",
+      "description": "Asserting >= N tests where N drifts with every test addition"
+    },
+    {
+      "name": "raw_css_property_assertion",
+      "severity": "medium",
+      "description": "Asserting raw CSS property strings instead of CSS variable names"
+    },
+    {
+      "name": "exact_version_string",
+      "severity": "low",
+      "description": "Asserting exact version number strings that break on every release"
+    }
+  ],
+  "high_severity_must_fix_before_release": true
+}

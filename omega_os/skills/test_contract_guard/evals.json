@@ -1,0 +1,38 @@
+[
+  {
+    "id": "E1",
+    "description": "test_fragility_scan.py compiles clean",
+    "command": "python -m py_compile omega_os/skills/test_contract_guard/tools/test_fragility_scan.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E2",
+    "description": "test_fragility_scan.py runs and exits 0",
+    "command": "python omega_os/skills/test_contract_guard/tools/test_fragility_scan.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E3",
+    "description": "--json output is valid JSON array",
+    "command": "python omega_os/skills/test_contract_guard/tools/test_fragility_scan.py --json",
+    "output_is_json": true
+  },
+  {
+    "id": "E4",
+    "description": "--fix-hints flag works without error",
+    "command": "python omega_os/skills/test_contract_guard/tools/test_fragility_scan.py --fix-hints",
+    "expect_exit": 0
+  },
+  {
+    "id": "E5",
+    "description": "--high-only flag works without error",
+    "command": "python omega_os/skills/test_contract_guard/tools/test_fragility_scan.py --high-only",
+    "expect_exit": 0
+  },
+  {
+    "id": "E6",
+    "description": "Output contains RESULT line",
+    "command": "python omega_os/skills/test_contract_guard/tools/test_fragility_scan.py",
+    "output_contains": "RESULT:"
+  }
+]

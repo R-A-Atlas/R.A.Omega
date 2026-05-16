@@ -1,0 +1,31 @@
+[
+  {
+    "id": "E1",
+    "description": "verify_contracts.py compiles clean",
+    "command": "python -m py_compile omega_os/skills/api_contract_guard/tools/verify_contracts.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E2",
+    "description": "verify_contracts.py runs without crashing",
+    "command": "python omega_os/skills/api_contract_guard/tools/verify_contracts.py",
+    "expect_exit_in": [0, 1]
+  },
+  {
+    "id": "E3",
+    "description": "JSON output is valid JSON array",
+    "command": "python omega_os/skills/api_contract_guard/tools/verify_contracts.py --json",
+    "output_is_json": true
+  },
+  {
+    "id": "E4",
+    "description": "health_scorer check always runs (module must exist)",
+    "command": "python omega_os/skills/api_contract_guard/tools/verify_contracts.py --json",
+    "output_contains": "health_scorer"
+  },
+  {
+    "id": "E5",
+    "description": "FAIL exits 1, PASS exits 0",
+    "assertion": "exit code reflects actual contract state"
+  }
+]

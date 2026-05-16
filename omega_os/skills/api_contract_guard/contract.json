@@ -1,0 +1,38 @@
+{
+  "skill": "api_contract_guard",
+  "version": "1.0",
+  "checked_modules": [
+    {
+      "module": "omega_os.skills.dev_session_guard.tools.health_scorer",
+      "required_attrs": ["overall"],
+      "attr_types": {"overall": "numeric"}
+    },
+    {
+      "module": "omega_os.skills.improve_system.tools.upgrade_scanner",
+      "required_functions": ["scan"],
+      "return_attrs": ["opportunities"]
+    },
+    {
+      "module": "omega_os.skills.route_map.tools.chain_mapper",
+      "required_classes": ["DeadWire"],
+      "deadwire_attrs": ["category", "target", "detail"]
+    },
+    {
+      "module": "omega_os.skills.route_map.tools.ui_audit",
+      "required_functions": ["run_audit"],
+      "file_report_attrs": ["filename", "overall", "exists"]
+    },
+    {
+      "module": "omega_os.skills.dev_session_guard.tools.session_briefing",
+      "required_functions": ["brief"],
+      "max_lines": 40,
+      "required_sections": ["Branch", "Health"]
+    },
+    {
+      "module": "omega_os.skills.route_map.tools.route_audit",
+      "required_functions": ["audit"],
+      "audit_report_attrs": ["routes", "auth_redirect_ok"]
+    }
+  ],
+  "exit_code_on_failure": 1
+}

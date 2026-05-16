@@ -541,7 +541,6 @@ def test_app_redirects_without_cookie_when_auth_enabled(
         "/atlas_option1.html",
         "/atlas_dashboard_v4.html",
         "/atlas_dashboard_v2.html",
-        "/v2",
         "/v4",
         "/chat",
         "/ra-omega",
@@ -550,6 +549,11 @@ def test_app_redirects_without_cookie_when_auth_enabled(
 def test_removed_legacy_page_routes_return_404(client: TestClient, path: str) -> None:
     r = client.get(path)
     assert r.status_code == 404
+
+
+def test_v2_serves_dashboard(client: TestClient) -> None:
+    r = client.get("/v2")
+    assert r.status_code == 200
 
 
 def test_option1_redirects_to_app(client: TestClient) -> None:

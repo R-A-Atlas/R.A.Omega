@@ -1,0 +1,15 @@
+{
+  "skill": "stub_completor",
+  "version": "1.0",
+  "skills_root": "omega_os/skills/",
+  "full_skill_definition": "has at least one .py file under tools/",
+  "stub_skill_definition": "has SKILL.md but no tools/*.py",
+  "priority_formula": "cadence_refs * 10 + skill_refs * 5 + has_skill_md * 2 + has_evals + has_contract",
+  "cadence_source": "omega_cadence.py",
+  "template_skill": "dev_session_guard",
+  "required_outputs": {
+    "full_count": "integer >= 0",
+    "stub_count": "integer >= 0",
+    "stubs_sorted_by_priority_desc": true
+  }
+}

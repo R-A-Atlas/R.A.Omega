@@ -2787,6 +2787,7 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
 
             const [inputValue, setInputValue] = useState('');
             const scrollRef = useRef(null);
+            const pendingQueryRef = useRef(null);  // set by command-center sessionStorage handoff
 
             const [logsBySession, setLogsBySession] = useState({});
             const [loopStepBySession, setLoopStepBySession] = useState({});
@@ -3873,6 +3874,26 @@ ${autoPrint ? `<script>window.addEventListener('load',()=>{setTimeout(()=>window
                     clearInterval(id);
                 };
             }, [activeSessionId, processingBySession, researchActivityBySession]);
+
+            // ── Pending query pickup — reads sessionStorage set by /command-center ──
+            useEffect(() => {
+                try {
+                    const q = (sessionStorage.getItem('omega_pending_query') || '').trim();
+                    if (q) {
+                        sessionStorage.removeItem('omega_pending_query');
+                        sessionStorage.removeItem('omega_query_mode');
+                        pendingQueryRef.current = q;
+                        setInputValue(q);
+                    }
+                } catch (_) {}
+            }, []);
+
+            useEffect(() => {
+                if (!pendingQueryRef.current || inputValue !== pendingQueryRef.current) return;
+                pendingQueryRef.current = null;
+                const t = setTimeout(() => handleCommand({ preventDefault: () => {} }), 300);
+                return () => clearTimeout(t);
+            }, [inputValue]); // handleCommand re-creates each render; closure captures fresh inputValue
 
             return (
                 <div className="flex h-full w-full gap-3 lg:gap-4">

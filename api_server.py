@@ -227,6 +227,12 @@ async def lifespan(app: FastAPI):
         start_digest_worker()
     except Exception as e:
         log.warning("Digest worker not started: %s", e)
+    try:
+        from omega_os.skills.cadence_wirer.tools.start_cadence import start_cadence_if_enabled
+
+        start_cadence_if_enabled()
+    except Exception as e:
+        log.warning("Cadence wirer not started: %s", e)
     yield
     log.info("R.A. Omega API Server shutting down.")
 

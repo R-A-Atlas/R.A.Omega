@@ -1,0 +1,32 @@
+[
+  {
+    "id": "E1",
+    "description": "stub_audit.py compiles clean",
+    "command": "python -m py_compile omega_os/skills/stub_completor/tools/stub_audit.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E2",
+    "description": "stub_audit.py runs and prints a report",
+    "command": "python omega_os/skills/stub_completor/tools/stub_audit.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E3",
+    "description": "--json output is valid JSON array",
+    "command": "python omega_os/skills/stub_completor/tools/stub_audit.py --json",
+    "output_is_json": true
+  },
+  {
+    "id": "E4",
+    "description": "JSON output contains name and is_full fields",
+    "command": "python omega_os/skills/stub_completor/tools/stub_audit.py --json",
+    "output_contains": "is_full"
+  },
+  {
+    "id": "E5",
+    "description": "dev_session_guard appears as a full skill (has tools)",
+    "command": "python omega_os/skills/stub_completor/tools/stub_audit.py --json",
+    "output_contains": "dev_session_guard"
+  }
+]

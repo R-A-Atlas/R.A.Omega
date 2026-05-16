@@ -1,0 +1,25 @@
+{
+  "skill": "cadence_wirer",
+  "version": "1.0",
+  "activation_env_var": "OMEGA_CADENCE_ENABLED",
+  "activation_value": "true",
+  "schedules": {
+    "daily_market_brief":             {"day_of_week": "mon-fri", "hour": 11, "minute": 0},
+    "daily_priority_brief":           {"day_of_week": "mon-fri", "hour": 12, "minute": 30},
+    "weekly_portfolio_review":        {"day_of_week": "sun",     "hour": 22, "minute": 0},
+    "weekly_omega_os_audit":          {"day_of_week": "mon",     "hour": 13, "minute": 0},
+    "weekly_product_review":          {"day_of_week": "mon",     "hour": 14, "minute": 0},
+    "monthly_finance_report":         {"day": 1,                 "hour": 12, "minute": 0},
+    "monthly_product_roadmap_review": {"day": "last fri",        "hour": 19, "minute": 0}
+  },
+  "real_runners": ["daily_market_brief", "weekly_omega_os_audit"],
+  "stub_runners_log_only": true,
+  "apscheduler_required": true,
+  "misfire_grace_time_seconds": 300,
+  "scheduler_timezone": "UTC",
+  "safe_import": true,
+  "notes": {
+    "safe_import": "start_cadence_if_enabled() has no side effects when env var is not set",
+    "times_are_utc": "All hours are UTC; convert ET = UTC-4 summer / UTC-5 winter"
+  }
+}

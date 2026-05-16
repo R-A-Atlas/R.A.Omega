@@ -108,28 +108,28 @@ def test_session_briefing_compiles():
 def test_preflight_protected_only_exits_zero():
     result = subprocess.run(
         [sys.executable, str(RUN_PREFLIGHT), "--protected-only"],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert result.returncode == 0, result.stdout + result.stderr
 
 def test_preflight_protected_only_prints_pass():
     result = subprocess.run(
         [sys.executable, str(RUN_PREFLIGHT), "--protected-only"],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "PASS" in result.stdout
 
 def test_preflight_protected_only_checks_deep_research():
     result = subprocess.run(
         [sys.executable, str(RUN_PREFLIGHT), "--protected-only"],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "deep_research.py" in result.stdout
 
 def test_preflight_protected_only_checks_databases():
     result = subprocess.run(
         [sys.executable, str(RUN_PREFLIGHT), "--protected-only"],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "atlas_memory.db" in result.stdout
 
@@ -139,42 +139,42 @@ def test_preflight_protected_only_checks_databases():
 def test_session_briefing_exits_zero():
     result = subprocess.run(
         [sys.executable, str(SESSION_BRIEFING)],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert result.returncode == 0, result.stdout + result.stderr
 
 def test_session_briefing_prints_branch():
     result = subprocess.run(
         [sys.executable, str(SESSION_BRIEFING)],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "Branch" in result.stdout
 
 def test_session_briefing_prints_health():
     result = subprocess.run(
         [sys.executable, str(SESSION_BRIEFING)],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "Health" in result.stdout
 
 def test_session_briefing_prints_next_priority():
     result = subprocess.run(
         [sys.executable, str(SESSION_BRIEFING)],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "priority" in result.stdout.lower() or "PRIORITY" in result.stdout
 
 def test_session_briefing_prints_recent_commits():
     result = subprocess.run(
         [sys.executable, str(SESSION_BRIEFING)],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     assert "commits" in result.stdout.lower() or "Recent" in result.stdout
 
 def test_session_brief_fits_one_screen():
     result = subprocess.run(
         [sys.executable, str(SESSION_BRIEFING)],
-        cwd=ROOT, capture_output=True, text=True, timeout=30,
+        cwd=ROOT, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
     )
     lines = result.stdout.splitlines()
     assert len(lines) <= 40, f"Brief is {len(lines)} lines — must fit in one screen (<=40)"

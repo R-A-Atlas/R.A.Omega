@@ -1,0 +1,33 @@
+[
+  {
+    "id": "E1",
+    "description": "deploy_check.py compiles clean",
+    "command": "python -m py_compile omega_os/skills/deployment_checklist/tools/deploy_check.py",
+    "expect_exit": 0
+  },
+  {
+    "id": "E2",
+    "description": "deploy_check.py runs without crashing (may fail due to missing env)",
+    "command": "python omega_os/skills/deployment_checklist/tools/deploy_check.py",
+    "expect_exit_in": [0, 1]
+  },
+  {
+    "id": "E3",
+    "description": "ATLAS_DISABLE_AUTH=true causes a blocker",
+    "command": "ATLAS_DISABLE_AUTH=true python omega_os/skills/deployment_checklist/tools/deploy_check.py",
+    "expect_exit": 1,
+    "output_contains": "ATLAS_DISABLE_AUTH"
+  },
+  {
+    "id": "E4",
+    "description": "deploy_check.py --strict exits 0 or 1 (not crash)",
+    "command": "python omega_os/skills/deployment_checklist/tools/deploy_check.py --strict",
+    "expect_exit_in": [0, 1]
+  },
+  {
+    "id": "E5",
+    "description": "Output contains RESULT line",
+    "command": "python omega_os/skills/deployment_checklist/tools/deploy_check.py",
+    "output_contains": "RESULT:"
+  }
+]
