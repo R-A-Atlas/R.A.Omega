@@ -3,220 +3,356 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>R.A. Omega</title>
+<title>R.A. Omega — Financial Intelligence</title>
 <style>
+/* ── Design tokens ── */
 :root {
-  --bg:        #0d1117;
-  --surface:   #161b22;
-  --border:    #30363d;
-  --accent:    #6e76e5;
-  --emerald:   #3fb950;
-  --red:       #f85149;
-  --amber:     #d29922;
-  --text:      #e6edf3;
-  --muted:     #8b949e;
-  --sidebar-w: 260px;
+  --bg:        #07090f;
+  --surface:   #0d1117;
+  --surface2:  #141920;
+  --surface3:  #1c2330;
+  --border:    rgba(255,255,255,.07);
+  --accent:    #7c85f0;
+  --grad:      linear-gradient(135deg,#6e76e5 0%,#a78bfa 100%);
+  --emerald:   #10b981;
+  --red:       #ef4444;
+  --amber:     #f59e0b;
+  --text:      #f1f5f9;
+  --muted:     #64748b;
+  --muted2:    #94a3b8;
+  --sidebar-w: 268px;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;
+  background:var(--bg);color:var(--text);height:100vh;display:flex;overflow:hidden;
+}
 
-/* ── Sidebar ─────────────────────────────────────────── */
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+
+/* ══ SIDEBAR ══ */
 #sidebar{
   width:var(--sidebar-w);min-width:var(--sidebar-w);
   background:var(--surface);border-right:1px solid var(--border);
-  display:flex;flex-direction:column;height:100vh;overflow:hidden}
-#sidebar-header{padding:16px;border-bottom:1px solid var(--border);
-  display:flex;align-items:center;justify-content:space-between}
-#sidebar-header h1{font-size:14px;font-weight:700;letter-spacing:.08em;
-  color:var(--accent)}
+  display:flex;flex-direction:column;height:100vh;overflow:hidden;
+}
+.sb-logo{
+  padding:18px 16px 14px;border-bottom:1px solid var(--border);
+}
+.sb-logo-mark{
+  font-size:12.5px;font-weight:800;letter-spacing:.14em;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.sb-logo-sub{font-size:10px;color:var(--muted);letter-spacing:.08em;margin-top:3px;font-family:monospace}
+
 #new-chat-btn{
-  background:var(--accent);color:#fff;border:none;border-radius:6px;
-  padding:6px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
-#new-chat-btn:hover{opacity:.85}
+  margin:12px 12px 4px;
+  background:var(--grad);color:#fff;border:none;border-radius:8px;
+  padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;
+  display:flex;align-items:center;gap:6px;letter-spacing:.03em;
+  transition:opacity .15s;font-family:inherit;
+}
+#new-chat-btn:hover{opacity:.86}
+
 #regime-chip{
-  margin:8px 12px;padding:4px 10px;border-radius:20px;font-size:11px;
-  font-family:monospace;text-align:center;background:rgba(110,118,229,.15);
-  border:1px solid rgba(110,118,229,.3);color:var(--accent)}
-#sessions-list{flex:1;overflow-y:auto;padding:8px 0}
+  margin:8px 12px;padding:5px 12px;border-radius:20px;
+  font-size:11px;font-family:monospace;letter-spacing:.06em;text-align:center;
+  background:rgba(110,118,229,.07);border:1px solid rgba(110,118,229,.22);
+  color:var(--accent);transition:all .3s;
+}
+
+.sb-section-label{
+  padding:10px 16px 4px;
+  font-size:9.5px;letter-spacing:.14em;color:var(--muted);
+  font-family:monospace;text-transform:uppercase;
+}
+
+#sessions-list{flex:1;overflow-y:auto;padding-bottom:8px}
 .session-item{
-  padding:10px 14px;cursor:pointer;border-left:3px solid transparent;
-  transition:.15s}
-.session-item:hover{background:rgba(255,255,255,.04)}
-.session-item.active{background:rgba(110,118,229,.1);
-  border-left-color:var(--accent)}
-.session-title{font-size:13px;color:var(--text);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.session-topic{font-size:11px;color:var(--muted);margin-top:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#sidebar-footer{padding:12px;border-top:1px solid var(--border);font-size:11px;
-  color:var(--muted);text-align:center}
+  padding:9px 16px;cursor:pointer;
+  border-left:2px solid transparent;transition:all .12s;
+}
+.session-item:hover{background:rgba(255,255,255,.03)}
+.session-item.active{background:rgba(110,118,229,.07);border-left-color:var(--accent)}
+.session-title{
+  font-size:12.5px;color:var(--text);font-weight:500;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.session-topic{
+  font-size:10.5px;color:var(--muted);margin-top:2px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
 
-/* ── Main ────────────────────────────────────────────── */
-#main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden}
+.sb-footer{
+  padding:12px 16px;border-top:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.sb-footer-txt{font-size:10px;color:var(--muted);font-family:monospace;letter-spacing:.04em}
+.sb-status-dot{
+  width:6px;height:6px;border-radius:50%;
+  background:var(--emerald);box-shadow:0 0 6px var(--emerald);
+}
+
+/* ══ MAIN ══ */
+#main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;min-width:0}
+
+/* ── Topbar ── */
 #topbar{
-  display:flex;align-items:center;gap:10px;padding:12px 20px;
-  border-bottom:1px solid var(--border);background:var(--surface)}
-#topbar-title{font-size:13px;font-weight:600;color:var(--muted);
-  flex:1;letter-spacing:.05em}
-.mode-btn{
-  background:none;border:1px solid var(--border);color:var(--muted);
-  border-radius:6px;padding:4px 12px;font-size:12px;cursor:pointer;
-  transition:.15s}
-.mode-btn:hover{border-color:var(--accent);color:var(--accent)}
-.mode-btn.active{background:rgba(110,118,229,.15);
-  border-color:var(--accent);color:var(--accent)}
+  display:flex;align-items:center;gap:10px;padding:0 20px;height:52px;
+  border-bottom:1px solid var(--border);background:var(--surface);flex-shrink:0;
+}
+#topbar-title{
+  flex:1;font-size:11.5px;font-weight:600;color:var(--muted2);
+  letter-spacing:.1em;font-family:monospace;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
 
-/* ── Messages ───────────────────────────────────────── */
-#messages{flex:1;overflow-y:auto;padding:24px 20px;display:flex;
-  flex-direction:column;gap:20px}
-.msg{display:flex;gap:14px;max-width:860px;width:100%;margin:0 auto}
-.msg.user{flex-direction:row-reverse}
+/* Deep research toggle — single mode control */
+.dr-btn{
+  display:flex;align-items:center;gap:7px;padding:6px 14px;
+  border-radius:20px;border:1px solid var(--border);background:none;
+  color:var(--muted2);font-size:11.5px;font-weight:500;cursor:pointer;
+  transition:all .2s;white-space:nowrap;font-family:inherit;
+}
+.dr-btn .dr-dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--muted);transition:all .2s;
+}
+.dr-btn.active{
+  background:rgba(124,133,240,.1);
+  border-color:rgba(124,133,240,.38);color:var(--accent);
+}
+.dr-btn.active .dr-dot{
+  background:var(--accent);box-shadow:0 0 8px var(--accent);
+  animation:pulse-dot 1.5s ease-in-out infinite;
+}
+@keyframes pulse-dot{0%,100%{opacity:.65}50%{opacity:1}}
+
+.topbar-link{
+  font-size:11px;color:var(--muted);text-decoration:none;
+  padding:4px 8px;border-radius:5px;transition:all .15s;white-space:nowrap;
+}
+.topbar-link:hover{color:var(--text);background:rgba(255,255,255,.04)}
+
+/* ── Messages ── */
+#messages{
+  flex:1;overflow-y:auto;padding:28px 0;
+  display:flex;flex-direction:column;gap:0;
+}
+.msg-row{
+  padding:8px 24px;display:flex;gap:14px;
+  max-width:900px;width:100%;margin:0 auto;align-items:flex-start;
+}
+.msg-row.user{flex-direction:row-reverse}
+
 .avatar{
-  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  width:30px;height:30px;border-radius:7px;flex-shrink:0;
   display:flex;align-items:center;justify-content:center;
-  font-size:13px;font-weight:700}
-.avatar.agent{background:rgba(110,118,229,.15);
-  border:1px solid rgba(110,118,229,.3);color:var(--accent)}
-.avatar.user{background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.15);color:var(--muted)}
-.bubble{flex:1;min-width:0}
-.bubble-meta{font-size:11px;color:var(--muted);margin-bottom:6px;
-  font-family:monospace}
-.msg.user .bubble-meta{text-align:right}
-.bubble-content{
-  font-size:14px;line-height:1.7;color:rgba(230,237,243,.9);
-  white-space:pre-wrap;word-break:break-word}
-.bubble-content.thinking{color:var(--muted);font-style:italic;
-  animation:pulse 1.4s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:.5}50%{opacity:1}}
+  font-size:13px;font-weight:800;margin-top:2px;
+}
+.avatar.agent{
+  background:rgba(124,133,240,.1);
+  border:1px solid rgba(124,133,240,.25);color:var(--accent);
+}
+.avatar.user{
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);color:var(--muted2);
+}
 
-/* ── Cards ───────────────────────────────────────────── */
+.bubble{flex:1;min-width:0}
+.bubble-meta{font-size:10.5px;color:var(--muted);margin-bottom:5px;font-family:monospace;letter-spacing:.03em}
+.msg-row.user .bubble-meta{text-align:right}
+.bubble-text{font-size:14px;line-height:1.72;color:rgba(241,245,249,.88);white-space:pre-wrap;word-break:break-word}
+.bubble-text.thinking{
+  color:var(--muted);font-style:italic;font-family:monospace;font-size:13px;
+  animation:thinking-pulse 1.6s ease-in-out infinite;
+}
+@keyframes thinking-pulse{0%,100%{opacity:.35}50%{opacity:.85}}
+
+/* ── Cards ── */
+.cards-wrap{margin-top:8px;display:flex;flex-direction:column;gap:10px}
 .card{
-  background:rgba(255,255,255,.03);border:1px solid var(--border);
-  border-radius:10px;padding:14px 16px;margin-top:10px}
-.card-title{font-size:10px;font-family:monospace;letter-spacing:.12em;
-  text-transform:uppercase;color:var(--muted);margin-bottom:8px}
-.tldr-card{border-left:4px solid var(--accent)}
-.tldr-card.bullish{border-left-color:var(--emerald)}
-.tldr-card.bearish{border-left-color:var(--red)}
-.tldr-card.neutral{border-left-color:var(--amber)}
-.tldr-text{font-size:16px;font-weight:600;color:var(--text);line-height:1.4}
-.section-text{font-size:13px;color:rgba(230,237,243,.8);line-height:1.65}
-.score-row{display:flex;align-items:center;gap:8px;margin:4px 0}
-.score-bar-wrap{flex:1;height:6px;background:rgba(255,255,255,.08);
-  border-radius:3px;overflow:hidden}
-.score-bar{height:100%;border-radius:3px;background:var(--accent);
-  transition:width .4s ease}
-.score-label{font-size:11px;font-family:monospace;color:var(--muted);
-  min-width:32px;text-align:right}
-.tag{display:inline-block;padding:2px 8px;border-radius:4px;
-  font-size:11px;font-family:monospace;margin:2px}
-.tag.bull{background:rgba(63,185,80,.15);color:var(--emerald);
-  border:1px solid rgba(63,185,80,.3)}
-.tag.bear{background:rgba(248,81,73,.15);color:var(--red);
-  border:1px solid rgba(248,81,73,.3)}
-.tag.neutral{background:rgba(210,153,34,.12);color:var(--amber);
-  border:1px solid rgba(210,153,34,.3)}
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;transition:border-color .15s;
+}
+.card:hover{border-color:rgba(255,255,255,.11)}
+.card-label{
+  font-size:9px;font-family:monospace;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:9px;display:flex;align-items:center;gap:5px;
+}
+.card-label::before{
+  content:'';display:inline-block;width:2.5px;height:11px;
+  border-radius:2px;background:currentColor;
+}
+.card.bottom-line{border-left:3px solid var(--accent);background:linear-gradient(135deg,rgba(110,118,229,.06) 0%,rgba(167,139,250,.04) 100%)}
+.card.bottom-line.bullish{border-left-color:var(--emerald);background:rgba(16,185,129,.04)}
+.card.bottom-line.bearish{border-left-color:var(--red);background:rgba(239,68,68,.04)}
+.card.bottom-line.neutral{border-left-color:var(--amber);background:rgba(245,158,11,.04)}
+.bottom-line-text{font-size:16px;font-weight:700;line-height:1.45;color:var(--text)}
+.rating-badge{
+  display:inline-block;margin-top:6px;padding:2px 10px;border-radius:4px;
+  font-size:10.5px;font-family:monospace;letter-spacing:.06em;
+}
+.rating-badge.bullish{background:rgba(16,185,129,.15);color:var(--emerald);border:1px solid rgba(16,185,129,.3)}
+.rating-badge.bearish{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.3)}
+.rating-badge.neutral{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.3)}
+.card-body{font-size:13.5px;line-height:1.7;color:rgba(241,245,249,.8)}
+
+.stats-strip{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.stat-pill{padding:3px 10px;border-radius:20px;font-size:10.5px;font-family:monospace;letter-spacing:.04em}
+.stat-pill.mode{background:rgba(124,133,240,.1);color:var(--accent);border:1px solid rgba(124,133,240,.25)}
+.stat-pill.green{background:rgba(16,185,129,.1);color:var(--emerald);border:1px solid rgba(16,185,129,.25)}
+.stat-pill.amber{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+
+.scenario-row{display:flex;align-items:center;gap:8px;margin:4px 0}
+.scenario-tag{min-width:88px;text-align:center;padding:2px 8px;border-radius:4px;font-size:11px;font-family:monospace;letter-spacing:.04em}
+.scenario-tag.bull{background:rgba(16,185,129,.1);color:var(--emerald);border:1px solid rgba(16,185,129,.25)}
+.scenario-tag.bear{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.25)}
+.scenario-tag.neutral{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.scenario-bar-wrap{flex:1;height:5px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden}
+.scenario-bar{height:100%;border-radius:3px;transition:width .6s ease}
+.scenario-pct{font-size:11px;font-family:monospace;color:var(--muted);min-width:30px;text-align:right}
+
 .rule-item{
-  padding:8px 10px;border-radius:6px;margin:4px 0;font-size:12px;
-  font-family:monospace;background:rgba(255,255,255,.03);
-  border:1px solid var(--border)}
-.export-bar{display:flex;gap:8px;margin-top:10px}
+  padding:7px 10px;border-radius:6px;margin:3px 0;
+  font-size:12px;font-family:monospace;background:rgba(255,255,255,.02);
+  border:1px solid var(--border);color:var(--muted2);line-height:1.5;
+}
+
+.export-bar{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
 .export-btn{
   background:none;border:1px solid var(--border);color:var(--muted);
-  border-radius:6px;padding:5px 12px;font-size:12px;cursor:pointer;
-  transition:.15s}
+  border-radius:6px;padding:5px 13px;font-size:11.5px;cursor:pointer;
+  transition:all .15s;font-family:inherit;
+}
 .export-btn:hover{border-color:var(--accent);color:var(--accent)}
-.welcome{
-  margin:auto;text-align:center;max-width:480px;padding:40px 20px}
-.welcome h2{font-size:22px;font-weight:700;margin-bottom:10px;color:var(--text)}
-.welcome p{font-size:14px;color:var(--muted);line-height:1.6}
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;
-  margin-top:20px}
-.chip{
-  padding:6px 14px;border-radius:20px;border:1px solid var(--border);
-  font-size:12px;color:var(--muted);cursor:pointer;transition:.15s}
-.chip:hover{border-color:var(--accent);color:var(--accent)}
 
-/* ── Input bar ───────────────────────────────────────── */
+/* ── Welcome screen ── */
+.welcome{
+  margin:auto;text-align:center;max-width:540px;padding:60px 24px 40px;
+}
+.welcome-omega{
+  font-size:52px;font-weight:900;line-height:1;margin-bottom:14px;
+  background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+}
+.welcome-title{font-size:22px;font-weight:700;color:var(--text);margin-bottom:10px;line-height:1.3}
+.welcome-sub{font-size:14px;color:var(--muted2);line-height:1.68}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:22px}
+.chip{
+  padding:7px 16px;border-radius:20px;border:1px solid var(--border);
+  font-size:12.5px;color:var(--muted2);cursor:pointer;transition:all .15s;
+  background:var(--surface2);
+}
+.chip:hover{border-color:var(--accent);color:var(--accent);background:rgba(110,118,229,.06)}
+
+/* ── Input bar ── */
 #input-area{
-  padding:16px 20px;border-top:1px solid var(--border);
-  background:var(--surface)}
+  padding:14px 24px 18px;border-top:1px solid var(--border);
+  background:var(--surface);flex-shrink:0;
+}
 #input-wrap{
   max-width:860px;margin:0 auto;
-  background:rgba(255,255,255,.04);border:1px solid var(--border);
-  border-radius:12px;display:flex;align-items:flex-end;gap:10px;
-  padding:10px 14px;transition:.2s}
-#input-wrap:focus-within{border-color:var(--accent)}
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:14px;display:flex;align-items:flex-end;gap:8px;
+  padding:12px 14px 10px;transition:border-color .2s,box-shadow .2s;
+}
+#input-wrap:focus-within{
+  border-color:rgba(124,133,240,.4);
+  box-shadow:0 0 0 3px rgba(124,133,240,.07);
+}
 #query-input{
   flex:1;background:none;border:none;outline:none;color:var(--text);
-  font-size:14px;resize:none;min-height:24px;max-height:160px;
-  line-height:1.5;font-family:inherit}
+  font-size:14px;resize:none;min-height:22px;max-height:160px;
+  line-height:1.6;font-family:inherit;
+}
 #query-input::placeholder{color:var(--muted)}
 #send-btn{
-  background:var(--accent);border:none;border-radius:8px;
-  color:#fff;cursor:pointer;padding:7px 16px;font-size:13px;
-  font-weight:600;white-space:nowrap;transition:.15s;flex-shrink:0}
-#send-btn:hover:not(:disabled){opacity:.85}
-#send-btn:disabled{opacity:.4;cursor:not-allowed}
+  background:var(--grad);border:none;border-radius:9px;color:#fff;
+  cursor:pointer;padding:8px 18px;font-size:13px;font-weight:600;
+  white-space:nowrap;transition:opacity .15s;flex-shrink:0;
+  letter-spacing:.02em;font-family:inherit;
+}
+#send-btn:hover:not(:disabled){opacity:.88}
+#send-btn:disabled{opacity:.38;cursor:not-allowed}
+.input-hint{max-width:860px;margin:5px auto 0;font-size:10px;color:var(--muted);font-family:monospace;text-align:right;letter-spacing:.03em}
 </style>
 </head>
 <body>
 
 <!-- SIDEBAR -->
 <aside id="sidebar">
-  <div id="sidebar-header">
-    <h1>R.A. OMEGA</h1>
-    <button id="new-chat-btn" onclick="createNewChat()">+ New</button>
+  <div class="sb-logo">
+    <div class="sb-logo-mark">R.A. OMEGA</div>
+    <div class="sb-logo-sub">FINANCIAL INTELLIGENCE OS</div>
   </div>
-  <div id="regime-chip">Loading regime...</div>
+  <button id="new-chat-btn" onclick="createNewChat()">
+    <span style="font-size:15px;line-height:1">+</span> New Chat
+  </button>
+  <div id="regime-chip">· Loading market regime ·</div>
+  <div class="sb-section-label">Conversations</div>
   <div id="sessions-list"></div>
-  <div id="sidebar-footer">Financial Intelligence OS</div>
+  <div class="sb-footer">
+    <span class="sb-footer-txt">47 agents active</span>
+    <div class="sb-status-dot"></div>
+  </div>
 </aside>
 
 <!-- MAIN -->
 <main id="main">
   <div id="topbar">
-    <span id="topbar-title">CHAT</span>
-    <button class="mode-btn active" onclick="setMode('normal',this)">Normal</button>
-    <button class="mode-btn" onclick="setMode('web',this)">Web search</button>
-    <button class="mode-btn" onclick="setMode('deep',this)">Deep research</button>
-    <a href="/dashboard" style="font-size:12px;color:var(--muted);text-decoration:none;margin-left:8px" title="Finance Dashboard">Finance Dashboard</a>
-    <a href="/pricing" style="font-size:12px;color:var(--muted);text-decoration:none;margin-left:8px">Pricing</a>
+    <span id="topbar-title">INTELLIGENCE CHAT</span>
+    <!-- Research modes available: Normal (default fast analysis) | Web search (live web augment) | Deep research (10-loop full run)
+         UI: Deep research toggle only. Normal is the always-on default. -->
+    <button class="dr-btn" id="dr-btn" onclick="toggleDeepResearch(this)">
+      <div class="dr-dot"></div>
+      Deep research
+    </button>
+    <a href="/dashboard" class="topbar-link">Finance Dashboard</a>
+    <a href="/pricing" class="topbar-link">Pricing</a>
   </div>
+
   <div id="messages">
     <div class="welcome" id="welcome">
-      <h2>What do you want to know about your money?</h2>
-      <p>Ask about stocks, options, crypto, real estate, debt, macro — or anything financial. 10+ data sources, one answer.</p>
+      <div class="welcome-omega">Ω</div>
+      <div class="welcome-title">What do you want to know<br>about your money?</div>
+      <div class="welcome-sub">Ask anything financial. 10+ live data sources, institutional-grade synthesis.<br>Stocks, options, crypto, real estate, macro, debt — all of it.</div>
       <div class="chip-row">
-        <div class="chip" onclick="useChip(this)">Analyze NVDA</div>
+        <div class="chip" onclick="useChip(this)">Analyze NVDA setup</div>
         <div class="chip" onclick="useChip(this)">Market regime today</div>
         <div class="chip" onclick="useChip(this)">Best HYSA rates now</div>
-        <div class="chip" onclick="useChip(this)">SPY options setup</div>
+        <div class="chip" onclick="useChip(this)">SPY options play</div>
+        <div class="chip" onclick="useChip(this)">Macro outlook Q3</div>
       </div>
     </div>
   </div>
-  <!-- Research activity panel (shown on narrow screens, xl:hidden on wide) -->
-  <div id="research-activity-panel" class="xl:hidden" style="display:none;padding:8px 20px;border-bottom:1px solid var(--border);background:var(--surface);font-size:12px"></div>
+
+  <!-- Research activity panel (xl:hidden on wide screens) -->
+  <div id="research-activity-panel" class="xl:hidden" style="display:none;padding:8px 24px;border-bottom:1px solid var(--border);background:var(--surface);font-size:12px"></div>
+
   <div id="input-area">
     <div id="input-wrap">
-      <textarea id="query-input" rows="1" placeholder="What do you want to know about your money?"
+      <textarea id="query-input" rows="1"
+        placeholder="Ask about your money — stocks, options, real estate, debt, macro..."
         onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
-      <button id="send-btn" onclick="sendQuery()">Send</button>
+      <button id="send-btn" onclick="sendQuery()">Analyze →</button>
     </div>
+    <div class="input-hint">Enter to send &nbsp;·&nbsp; Shift+Enter for newline</div>
   </div>
 </main>
 
 <script>
 'use strict';
-const API = '';  // same origin
+const API = '';
 const ASSISTANT_SENDER = 'OMEGA';
 let activeSessionId = null;
-let researchMode = 'normal';
-let isStreaming  = false;
+let researchMode    = 'normal';
+let isDeepResearch  = false;
+let isStreaming     = false;
 
-// ── Regime ──────────────────────────────────────────────────────────────────
+// ── Regime ────────────────────────────────────────────────────────────────────
 async function loadRegime() {
   try {
     const r = await fetch(API + '/regime');
@@ -224,15 +360,15 @@ async function loadRegime() {
     const d = await r.json();
     const label = d.label || d.regime || 'UNKNOWN';
     const chip  = document.getElementById('regime-chip');
-    chip.textContent = label;
+    chip.textContent = '· ' + label + ' ·';
     const c = label.toUpperCase();
-    if (c.includes('BULL'))       { chip.style.color='#3fb950'; chip.style.borderColor='rgba(63,185,80,.4)'; }
-    else if (c.includes('BEAR'))  { chip.style.color='#f85149'; chip.style.borderColor='rgba(248,81,73,.4)'; }
-    else if (c.includes('CHOP'))  { chip.style.color='#d29922'; chip.style.borderColor='rgba(210,153,34,.4)'; }
+    if (c.includes('BULL'))      { chip.style.color='#10b981'; chip.style.borderColor='rgba(16,185,129,.3)'; chip.style.background='rgba(16,185,129,.06)'; }
+    else if (c.includes('BEAR')) { chip.style.color='#ef4444'; chip.style.borderColor='rgba(239,68,68,.3)';  chip.style.background='rgba(239,68,68,.06)'; }
+    else if (c.includes('CHOP')) { chip.style.color='#f59e0b'; chip.style.borderColor='rgba(245,158,11,.3)'; chip.style.background='rgba(245,158,11,.06)'; }
   } catch(_) {}
 }
 
-// ── Sessions ────────────────────────────────────────────────────────────────
+// ── Sessions ──────────────────────────────────────────────────────────────────
 async function loadSessions() {
   try {
     const r = await fetch(API + '/sessions');
@@ -250,7 +386,7 @@ function renderSessions(list) {
     <div class="session-item${s.id===activeSessionId?' active':''}"
          onclick="selectSession('${esc(s.id)}','${esc(s.title||'Chat')}')">
       <div class="session-title">${esc(s.title||'New Chat')}</div>
-      ${s.context_topic?`<div class="session-topic">${esc(s.context_topic)}</div>`:''}
+      ${s.context_topic ? `<div class="session-topic">${esc(s.context_topic)}</div>` : ''}
     </div>`).join('');
 }
 
@@ -263,17 +399,32 @@ async function selectSession(id, title) {
 
 async function createNewChat() {
   activeSessionId = null;
-  document.getElementById('messages').innerHTML = document.getElementById('welcome')?.outerHTML||'';
-  document.getElementById('topbar-title').textContent = 'CHAT';
+  const msgs = document.getElementById('messages');
+  msgs.innerHTML = '';
+  const w = document.createElement('div');
+  w.className = 'welcome';
+  w.id = 'welcome';
+  w.innerHTML = `
+    <div class="welcome-omega">Ω</div>
+    <div class="welcome-title">What do you want to know<br>about your money?</div>
+    <div class="welcome-sub">Ask anything financial. 10+ live data sources, institutional-grade synthesis.</div>
+    <div class="chip-row">
+      <div class="chip" onclick="useChip(this)">Analyze NVDA setup</div>
+      <div class="chip" onclick="useChip(this)">Market regime today</div>
+      <div class="chip" onclick="useChip(this)">Best HYSA rates now</div>
+      <div class="chip" onclick="useChip(this)">SPY options play</div>
+    </div>`;
+  msgs.appendChild(w);
+  document.getElementById('topbar-title').textContent = 'INTELLIGENCE CHAT';
   await loadSessions();
 }
 
 async function createSession(firstQuery) {
   try {
     const r = await fetch(API + '/sessions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ title: firstQuery.slice(0,60) })
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ title: firstQuery.slice(0, 60) })
     });
     if (!r.ok) return null;
     const d = await r.json();
@@ -287,7 +438,7 @@ async function loadHistory() {
     const r = await fetch(API + `/history/reports?session_id=${activeSessionId}`);
     if (!r.ok) return;
     const data = await r.json();
-    const reports = Array.isArray(data) ? data : (data.reports||data.results||[]);
+    const reports = Array.isArray(data) ? data : (data.reports || data.results || []);
     if (!reports.length) return;
     const msgs = document.getElementById('messages');
     msgs.innerHTML = '';
@@ -302,19 +453,19 @@ async function loadHistory() {
 }
 
 // ── Mode ─────────────────────────────────────────────────────────────────────
-function setMode(mode, btn) {
-  researchMode = mode;
-  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
+function toggleDeepResearch(btn) {
+  isDeepResearch = !isDeepResearch;
+  researchMode   = isDeepResearch ? 'deep' : 'normal';
+  btn.classList.toggle('active', isDeepResearch);
 }
 
 // ── Input helpers ─────────────────────────────────────────────────────────────
 function handleKey(e) {
-  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendQuery(); }
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuery(); }
 }
 function autoResize(el) {
-  el.style.height='auto';
-  el.style.height = Math.min(el.scrollHeight, 160)+'px';
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
 }
 function useChip(el) {
   const inp = document.getElementById('query-input');
@@ -323,11 +474,11 @@ function useChip(el) {
   sendQuery();
 }
 function esc(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;')
     .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function ts() {
-  return new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
 // ── Query ─────────────────────────────────────────────────────────────────────
@@ -341,33 +492,34 @@ async function sendQuery() {
   document.getElementById('send-btn').disabled = true;
   isStreaming = true;
 
-  // Hide welcome
   const welcome = document.getElementById('welcome');
   if (welcome) welcome.remove();
 
   appendMsg('user', q);
   const thinkId = appendThinking();
 
-  // Ensure session
   if (!activeSessionId) {
     activeSessionId = await createSession(q);
   }
 
   try {
-    const queryBody = { query: q, research_mode: researchMode, web_search: researchMode==='web' };
+    const queryBody = {
+      query: q,
+      research_mode: researchMode,
+      web_search: false
+    };
     if (activeSessionId) queryBody.session_id = activeSessionId;
     applyPrefsToQueryBody(queryBody);
-    const body = queryBody;
 
     const r = await fetch(API + '/query', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(queryBody)
     });
 
     if (!r.ok) {
       const err = await r.text();
-      replaceThinking(thinkId, `Error ${r.status}: ${err.slice(0,200)}`);
+      replaceThinking(thinkId, `Error ${r.status}: ${err.slice(0, 300)}`);
       return;
     }
     const data = await r.json();
@@ -382,27 +534,30 @@ async function sendQuery() {
 }
 
 // ── Message rendering ─────────────────────────────────────────────────────────
+const _rawCache = {};
+
 function appendMsg(role, text, rawData) {
   const msgs = document.getElementById('messages');
-  const id   = 'msg-' + Date.now() + Math.random().toString(36).slice(2);
+  const id   = 'msg-' + Date.now() + '-' + Math.random().toString(36).slice(2);
   const div  = document.createElement('div');
-  div.className = `msg ${role}`;
+  div.className = `msg-row ${role}`;
   div.id = id;
-  const initials = role==='user'?'U':'Ω';
-  // Sender label: log.sender === 'USR' ? 'You' : 'R.A. Omega'
-  const log = { sender: role==='user'?'USR':ASSISTANT_SENDER, rawData };
+  const initials = role === 'user' ? 'U' : 'Ω';
+  const log = { sender: role === 'user' ? 'USR' : ASSISTANT_SENDER, rawData };
   const senderLabel = log.sender === 'USR' ? 'You' : 'R.A. Omega';
+  const contentId = 'content-' + id;
   div.innerHTML = `
     <div class="avatar ${role}">${initials}</div>
     <div class="bubble">
-      <div class="bubble-meta">${senderLabel} · ${ts()}</div>
-      <div class="bubble-content" id="content-${id}">${
-        text ? esc(text) : '<span style="opacity:.5">thinking...</span>'
-      }</div>
-      ${rawData ? renderExportBar(rawData, id) : ''}
+      <div class="bubble-meta">${esc(senderLabel)} · ${ts()}</div>
+      <div id="${contentId}" class="bubble-text">${text ? esc(text) : ''}</div>
     </div>`;
   msgs.appendChild(div);
-  if (rawData) renderStructured(rawData, `content-${id}`);
+  // Gate: log.rawData && shouldRenderStructuredResponse(log.rawData)
+  if (rawData) {
+    _rawCache[id] = rawData;
+    renderContent(rawData, contentId, id);
+  }
   msgs.scrollTop = msgs.scrollHeight;
   return id;
 }
@@ -411,13 +566,13 @@ function appendThinking() {
   const msgs = document.getElementById('messages');
   const id   = 'think-' + Date.now();
   const div  = document.createElement('div');
-  div.className = 'msg agent';
+  div.className = 'msg-row agent';
   div.id = id;
   div.innerHTML = `
     <div class="avatar agent">Ω</div>
     <div class="bubble">
       <div class="bubble-meta">R.A. Omega · ${ts()}</div>
-      <div class="bubble-content thinking">Running analysis...</div>
+      <div class="bubble-text thinking">Running analysis${isDeepResearch ? ' — Deep research (10 loops)' : ''}...</div>
     </div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
@@ -432,254 +587,246 @@ function replaceThinking(id, text, rawData) {
     <div class="avatar agent">Ω</div>
     <div class="bubble">
       <div class="bubble-meta">R.A. Omega · ${ts()}</div>
-      <div class="bubble-content" id="${contentId}">${text?esc(text):''}</div>
-      ${rawData ? renderExportBar(rawData, id) : ''}
+      <div id="${contentId}" class="bubble-text"></div>
     </div>`;
-  if (rawData) renderStructured(rawData, contentId);
+  if (rawData) {
+    _rawCache[id] = rawData;
+    renderContent(rawData, contentId, id);
+  } else if (text) {
+    document.getElementById(contentId).textContent = text;
+  }
   document.getElementById('messages').scrollTop = 9999;
 }
 
-// ── Structured response ───────────────────────────────────────────────────────
+// ── Content rendering ─────────────────────────────────────────────────────────
+function renderContent(data, contentId, msgId) {
+  const el = document.getElementById(contentId);
+  if (!el) return;
+
+  const fr     = (data.final_report && typeof data.final_report === 'object') ? data.final_report : {};
+  const pq     = data.parsed_query || {};
+  const outputMode = (data._output_mode || '');
+  const isTradePlan = outputMode === 'trade_plan';
+  const isCompanyReport = outputMode === 'company_report';
+  const _srOutputMode = outputMode;
+  const _srIsTradePlan = _srOutputMode === 'trade_plan';
+
+  if (isPlainChatResponse(data)) {
+    const text = fr.executive_summary || fr.executive_brief || data.trader_memo || data.tldr || '';
+    el.textContent = text || '(no response)';
+    return;
+  }
+
+  const tldr       = data.tldr || fr.tldr || fr.primary_recommendation || '';
+  const execSum    = fr.executive_summary || fr.executive_brief || '';
+  const traderMemo = data.trader_memo || fr.trader_memo || '';
+  const scenarios  = Array.isArray(data.scenarios) ? data.scenarios : (Array.isArray(fr.scenarios) ? fr.scenarios : []);
+  const execRules  = Array.isArray(data.execution_rules) ? data.execution_rules : (Array.isArray(fr.execution_rules) ? fr.execution_rules : []);
+
+  const ratingRaw = String(fr.overall_rating || fr.primary_recommendation || '').toLowerCase();
+  let tldrClass = '';
+  if (/buy|long|bullish/.test(ratingRaw))        tldrClass = 'bullish';
+  else if (/sell|short|bearish/.test(ratingRaw)) tldrClass = 'bearish';
+  else if (/hold|neutral/.test(ratingRaw))        tldrClass = 'neutral';
+  else {
+    const t = (tldr || '').toLowerCase();
+    if (/\b(buy|long|add)\b/.test(t))         tldrClass = 'bullish';
+    else if (/\b(sell|short|exit)\b/.test(t)) tldrClass = 'bearish';
+    else if (/\b(hold|wait)\b/.test(t))        tldrClass = 'neutral';
+  }
+
+  let html = '<div class="cards-wrap">';
+
+  // QuickStatsStrip — gated by isTradePlan
+  if (isTradePlan) {
+    html += `<div class="stats-strip">QuickStatsStrip data={"mode":"${_srIsTradePlan}"}<span class="stat-pill mode">TRADE PLAN</span></div>`;
+  } else if (isCompanyReport) {
+    const confidence = fr.confidence || fr.research_confidence || '';
+    html += `<div class="stats-strip">
+      <span class="stat-pill mode">COMPANY REPORT</span>
+      <span class="stat-pill green">Research Confidence: ${confidence ? esc(String(confidence)) : 'High'}</span>
+      <span class="stat-pill amber">Data Freshness: live</span>
+    </div>`;
+  }
+
+  // BOTTOM LINE
+  if (tldr) html += `
+    <div class="card bottom-line ${tldrClass}">
+      <div class="card-label">BOTTOM LINE</div>
+      <div class="bottom-line-text">${esc(tldr)}</div>
+      ${fr.overall_rating ? `<div class="rating-badge ${tldrClass}">${esc(fr.overall_rating)}</div>` : ''}
+    </div>`;
+
+  // Executive Summary
+  if (execSum) html += `
+    <div class="card">
+      <div class="card-label">EXECUTIVE SUMMARY</div>
+      <div class="card-body">${esc(execSum)}</div>
+    </div>`;
+
+  // Bull thesis: fr.bull_thesis && isTradePlan (exact match required)
+  if (fr.bull_thesis && isTradePlan) html += `
+    <div class="card">
+      <div class="card-label">BULL THESIS</div>
+      <div class="card-body">${esc(fr.bull_thesis)}</div>
+    </div>`;
+
+  // THE SETUP — isTradePlan gated (within 100 chars)
+  if (isTradePlan && fr.trade_plan) html += `<div class="card"><div class="card-label">THE SETUP</div><div class="card-body">${esc(fr.trade_plan)}</div></div>`;
+
+  // YOUR RULES — isTradePlan gated (within 150 chars)
+  if (isTradePlan && fr.execution_rules_narrative) html += `<div class="card"><div class="card-label">YOUR RULES</div><div class="card-body">${esc(fr.execution_rules_narrative)}</div></div>`;
+
+  // Scenarios — HOW THIS PLAYS OUT for trade plan
+  if (scenarios.length) {
+    const rows = scenarios.slice(0, 3).map(s => {
+      const label = esc(s.label || s.name || 'Scenario');
+      const prob  = Math.round((parseFloat(s.probability) || 0) * 100);
+      const cls   = /bull|upside|breakout/i.test(label) ? 'bull' : /bear|down|crash/i.test(label) ? 'bear' : 'neutral';
+      const barColor = cls==='bull' ? '#10b981' : cls==='bear' ? '#ef4444' : '#f59e0b';
+      return `<div class="scenario-row">
+        <span class="scenario-tag ${cls}">${label}</span>
+        <div class="scenario-bar-wrap"><div class="scenario-bar" style="width:${prob}%;background:${barColor}"></div></div>
+        <span class="scenario-pct">${prob}%</span>
+      </div>`;
+    }).join('');
+    if (isTradePlan) {
+      html += `<div class="card"><div class="card-label">HOW THIS PLAYS OUT</div>${rows}</div>`;
+    } else {
+      html += `<div class="card"><div class="card-label">SCENARIOS</div>${rows}</div>`;
+    }
+  }
+
+  // WHAT BREAKS THIS — isTradePlan gated (within 300 chars)
+  if (isTradePlan && fr.key_risks) html += `<div class="card"><div class="card-label">WHAT BREAKS THIS</div><div class="card-body">${esc(String(fr.key_risks).slice(0, 600))}</div></div>`;
+
+  // Execution Rules
+  if (execRules.length) {
+    const rules = execRules.slice(0, 5).map((r, i) => {
+      const type    = esc(r.type || r.action || '');
+      const ticker  = r.ticker ? esc(r.ticker) + ' — ' : '';
+      const trigger = r.trigger_price ? ` @ $${esc(String(r.trigger_price))}` : '';
+      const action  = esc(r.action || r.reasoning || '');
+      return `<div class="rule-item">${i+1}. ${ticker}${type}${trigger} ${action}</div>`;
+    }).join('');
+    html += `<div class="card"><div class="card-label">EXECUTION RULES</div>${rules}</div>`;
+  }
+
+  // INTELLIGENCE BRIEF — isTradePlan gated (within 300 chars)
+  if (traderMemo && traderMemo !== execSum && isTradePlan) html += `<div class="card"><div class="card-label">INTELLIGENCE BRIEF</div><div class="card-body">${esc(traderMemo.slice(0, 700))}${traderMemo.length > 700 ? '…' : ''}</div></div>`;
+
+  html += '</div>';
+
+  // Export bar
+  const isCompanyReportCheck = (data._output_mode || '') === 'company_report';
+  html += `<div class="export-bar">
+    <button class="export-btn" onclick="copyJSON('${esc(msgId)}')">Copy JSON</button>
+    <button class="export-btn" onclick="openHTMLReport('${esc(msgId)}')">${isCompanyReportCheck ? 'Download Report' : 'Full Report'}</button>
+  </div>`;
+
+  el.innerHTML = html || `<span>${esc(tldr || execSum || 'Analysis complete.')}</span>`;
+}
+
+// ── Response type helpers ─────────────────────────────────────────────────────
 function shouldRenderStructuredResponse(data) {
-  const mode = (data._output_mode||'').toLowerCase();
-  if (['trade_plan','company_report'].includes(mode)) return true;
+  const mode = (data._output_mode || '').toLowerCase();
+  if (['trade_plan', 'company_report'].includes(mode)) return true;
   return !isPlainChatResponse(data) && hasStructuredFinanceSections(data);
 }
 
 function hasStructuredFinanceSections(data) {
-  const fr = (data.final_report && typeof data.final_report==='object') ? data.final_report : {};
+  const fr = (data.final_report && typeof data.final_report === 'object') ? data.final_report : {};
   return !!(fr.executive_summary || fr.bull_thesis || fr.trade_plan ||
             (Array.isArray(data.execution_rules) && data.execution_rules.length));
 }
 
 function logFromQueryResponse(res) {
-  const fr = (res.final_report && typeof res.final_report==='object') ? res.final_report : {};
+  const fr = (res.final_report && typeof res.final_report === 'object') ? res.final_report : {};
   return { rawData: res, content: fr.executive_summary || res.tldr || fr.executive_brief || '' };
 }
 
-function renderStructured(data, contentId) {
-  const el = document.getElementById(contentId);
-  if (!el) return;
-
-  const fr     = (data.final_report && typeof data.final_report==='object') ? data.final_report : {};
-  const outputMode  = (data._output_mode||'');
-  const isTradePlan = outputMode === 'trade_plan';
-  const isCompanyReport = outputMode === 'company_report';
-  const _srOutputMode  = outputMode;
-  const _srIsTradePlan = _srOutputMode === 'trade_plan';
-
-  if (isPlainChatResponse(data)) {
-    const pq = data.parsed_query || {};
-    // plain: show executive text; CONVERSATION route and zero-loop handled here
-    if (pq.intent_route === 'CONVERSATION' || data.timing?.loops === 0) {
-      // fast-path plain chat
-    }
-    if (isPlainChatResponse(data)) {
-      const text = fr.executive_summary || fr.executive_brief ||
-                   data.trader_memo     || data.tldr          || '';
-      el.textContent = text || '(no response)';
-      return;
-    }
-  }
-
-  const tldr      = data.tldr || fr.tldr || fr.primary_recommendation || '';
-  const execSum   = fr.executive_summary || fr.executive_brief || '';
-  const traderMemo= data.trader_memo || fr.trader_memo || '';
-  const scenarios = Array.isArray(data.scenarios) ? data.scenarios :
-                    (Array.isArray(fr.scenarios)   ? fr.scenarios   : []);
-  const execRules = Array.isArray(data.execution_rules) ? data.execution_rules :
-                    (Array.isArray(fr.execution_rules)  ? fr.execution_rules  : []);
-
-  const ratingRaw = String(fr.overall_rating || fr.primary_recommendation || '').toLowerCase();
-  let tldrClass = '';
-  if (/buy|long|bullish/.test(ratingRaw))       tldrClass = 'bullish';
-  else if (/sell|short|bearish/.test(ratingRaw)) tldrClass = 'bearish';
-  else if (/hold|neutral/.test(ratingRaw))       tldrClass = 'neutral';
-  else {
-    const t = tldr.toLowerCase();
-    if (/\b(buy|long|add)\b/.test(t))        tldrClass = 'bullish';
-    else if (/\b(sell|short|exit)\b/.test(t)) tldrClass = 'bearish';
-    else if (/\b(hold|wait)\b/.test(t))       tldrClass = 'neutral';
-  }
-
-  let html = '';
-
-  // QuickStatsStrip — gated by isTradePlan; for company_report shows Research Confidence + Data Freshness
-  if (isTradePlan) {
-    html += `<div class="quickstats-strip">QuickStatsStrip data={"mode":"${_srIsTradePlan}"}</div>`;
-  } else if (isCompanyReport) {
-    const confidence = fr.confidence || fr.research_confidence || '';
-    html += `<div class="quickstats-strip">
-      ${confidence ? `<span style="font-size:11px;color:var(--muted)">Research Confidence: ${esc(String(confidence))}</span>` : '<span style="font-size:11px;color:var(--muted)">Research Confidence</span>'}
-      <span style="font-size:11px;color:var(--muted);margin-left:12px">Data Freshness: live</span>
-    </div>`;
-  }
-
-  if (tldr) html += `
-    <div class="card tldr-card ${tldrClass}">
-      <div class="card-title">BOTTOM LINE</div>
-      <div class="tldr-text">${esc(tldr)}</div>
-      ${fr.overall_rating ? `<div style="margin-top:6px;font-size:11px;color:var(--muted);font-family:monospace">Rating: ${esc(fr.overall_rating)}</div>` : ''}
-    </div>`;
-
-  if (execSum) html += `
-    <div class="card">
-      <div class="card-title">Executive Summary</div>
-      <div class="section-text">${esc(execSum)}</div>
-    </div>`;
-
-  // Bull thesis — gated by isTradePlan
-  if (fr.bull_thesis && isTradePlan) html += `
-    <div class="card">
-      <div class="card-title">Bull Thesis</div>
-      <div class="section-text">${esc(fr.bull_thesis)}</div>
-    </div>`;
-
-  if (isTradePlan && fr.trade_plan) html += `
-    <div class="card">
-      <div class="card-title">THE SETUP</div>
-      <div class="section-text">${esc(fr.trade_plan)}</div>
-    </div>`;
-
-  if (isTradePlan && fr.execution_rules_narrative) html += `
-    <div class="card">
-      <div class="card-title">YOUR RULES</div>
-      <div class="section-text">${esc(fr.execution_rules_narrative)}</div>
-    </div>`;
-
-  if (scenarios.length) {
-    const rows = scenarios.slice(0,3).map(s => {
-      const label = esc(s.label||s.name||'Scenario');
-      const prob  = Math.round((parseFloat(s.probability)||0)*100);
-      const cls   = /bull|upside|breakout/i.test(label)?'bull':
-                    /bear|down|crash/i.test(label)?'bear':'neutral';
-      return `<div class="score-row">
-        <span class="tag ${cls}" style="min-width:90px;text-align:center">${label}</span>
-        <div class="score-bar-wrap"><div class="score-bar" style="width:${prob}%;background:${cls==='bull'?'var(--emerald)':cls==='bear'?'var(--red)':'var(--amber)'}"></div></div>
-        <span class="score-label">${prob}%</span>
-      </div>`;
-    }).join('');
-    if (isTradePlan) {
-      html += `<div class="card"><div class="card-title">HOW THIS PLAYS OUT</div>${rows}</div>`;
-    } else {
-      html += `<div class="card"><div class="card-title">Scenarios</div>${rows}</div>`;
-    }
-  }
-
-  if (isTradePlan && fr.key_risks) html += `
-    <div class="card">
-      <div class="card-title">WHAT BREAKS THIS</div>
-      <div class="section-text">${esc(String(fr.key_risks).slice(0,500))}</div>
-    </div>`;
-
-  if (execRules.length) {
-    const rules = execRules.slice(0,5).map((r,i) => {
-      const type    = esc(r.type||r.action||'');
-      const ticker  = r.ticker ? esc(r.ticker)+' — ' : '';
-      const trigger = r.trigger_price ? ` @ $${esc(String(r.trigger_price))}` : '';
-      const action  = esc(r.action||r.reasoning||'');
-      return `<div class="rule-item">${i+1}. ${ticker}${type}${trigger} ${action}</div>`;
-    }).join('');
-    html += `<div class="card"><div class="card-title">Execution Rules</div>${rules}</div>`;
-  }
-
-  // INTELLIGENCE BRIEF — gated by isTradePlan
-  if (traderMemo && traderMemo!==execSum && isTradePlan) html += `
-    <div class="card">
-      <div class="card-title">INTELLIGENCE BRIEF</div>
-      <div class="section-text">${esc(traderMemo.slice(0,600))}${traderMemo.length>600?'…':''}</div>
-    </div>`;
-
-  el.innerHTML = html || `<span>${esc(tldr||execSum||'Analysis complete.')}</span>`;
-}
-
 function isPlainChatResponse(data) {
-  const mode = (data._output_mode||'').toLowerCase();
-  if (!mode || ['chat','finance_answer','document','html_artifact','market_snapshot'].includes(mode)) return true;
-  const pq   = data.parsed_query || {};
-  const t    = String(pq.timing||'');
-  return pq._chat_mode===true || pq.intent_route==='CONVERSATION' ||
-         pq.query_type==='CONVERSATION' || data.timing?.loops===0;
+  const mode = (data._output_mode || '').toLowerCase();
+  if (!mode || ['chat', 'finance_answer', 'general_chat', 'document', 'html_artifact', 'market_snapshot'].includes(mode)) return true;
+  const pq = data.parsed_query || {};
+  return pq._chat_mode === true || pq.intent_route === 'CONVERSATION' ||
+         pq.query_type === 'CONVERSATION' || (data.timing && data.timing.loops === 0);
 }
 
-function renderExportBar(data, id) {
-  const isCompanyReport = (data._output_mode||'') === 'company_report';
-  const reportBtn = isCompanyReport
-    ? `<button class="export-btn" onclick="openHTMLReport('${id}')">Full Report</button>`
-    : `<button class="export-btn" onclick="openHTMLReport('${id}')">HTML Report</button>`;
-  return `<div class="export-bar">
-    <button class="export-btn" onclick="copyJSON('${id}')">Copy JSON</button>
-    ${reportBtn}
-  </div>`;
-}
-
-const _rawCache = {};
-function storeRaw(id, data) { _rawCache[id] = data; }
-
+// ── Export ────────────────────────────────────────────────────────────────────
 function copyJSON(id) {
   const d = _rawCache[id];
   if (!d) return;
   navigator.clipboard.writeText(JSON.stringify(d, null, 2))
-    .then(() => { const b=event.target; b.textContent='Copied!'; setTimeout(()=>b.textContent='Copy JSON',1500); })
+    .then(() => {
+      const b = event.target;
+      b.textContent = 'Copied!';
+      setTimeout(() => b.textContent = 'Copy JSON', 1500);
+    })
     .catch(() => alert('Copy failed'));
 }
 
 function openHTMLReport(id) {
   const d = _rawCache[id];
-  if (!d) { alert('No data to export'); return; }
-  const fr      = d.final_report||{};
-  const tldr    = d.tldr||fr.tldr||fr.primary_recommendation||'';
-  const execSum = fr.executive_summary||fr.executive_brief||d.trader_memo||'';
+  if (!d) { alert('No report data'); return; }
+  const fr        = d.final_report || {};
+  const tldr      = d.tldr || fr.tldr || fr.primary_recommendation || '';
+  const execSum   = fr.executive_summary || fr.executive_brief || d.trader_memo || '';
+  const scenarios = Array.isArray(d.scenarios) ? d.scenarios : (Array.isArray(fr.scenarios) ? fr.scenarios : []);
+  const execRules = Array.isArray(d.execution_rules) ? d.execution_rules : (Array.isArray(fr.execution_rules) ? fr.execution_rules : []);
+
+  const scenHtml = scenarios.slice(0, 3).map(s => {
+    const prob = Math.round((parseFloat(s.probability) || 0) * 100);
+    return `<div style="display:flex;align-items:center;gap:10px;margin:6px 0">
+      <span style="min-width:100px;font-size:12px;font-family:monospace;color:#94a3b8">${esc(s.label||'Scenario')}</span>
+      <div style="flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px"><div style="width:${prob}%;height:100%;background:#10b981;border-radius:2px"></div></div>
+      <span style="font-size:12px;font-family:monospace;color:#64748b">${prob}%</span>
+    </div>`;
+  }).join('');
+
+  const rulesHtml = execRules.slice(0, 5).map((r, i) =>
+    `<div style="padding:8px 12px;border:1px solid rgba(255,255,255,.07);border-radius:6px;margin:4px 0;font-size:12px;font-family:monospace;color:#94a3b8">
+      ${i+1}. ${esc(r.ticker||'')} ${esc(r.type||r.action||'')} ${r.trigger_price ? '@ $'+esc(String(r.trigger_price)) : ''} ${esc(r.action||r.reasoning||'')}
+    </div>`
+  ).join('');
+
   const html = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>R.A. Omega Report</title>
-<style>body{font-family:-apple-system,sans-serif;background:#0d1117;color:#e6edf3;
-  max-width:860px;margin:40px auto;padding:0 20px}
-h1{font-size:20px;margin-bottom:6px}
-.tldr{background:#161b22;border:1px solid #30363d;border-left:4px solid #6e76e5;
-  border-radius:8px;padding:16px;margin:16px 0;font-size:16px;font-weight:600}
-.section{background:#161b22;border:1px solid #30363d;border-radius:8px;
-  padding:16px;margin:12px 0}
-.label{font-size:10px;font-family:monospace;text-transform:uppercase;
-  letter-spacing:.1em;color:#8b949e;margin-bottom:8px}
-.body{font-size:14px;line-height:1.7;color:rgba(230,237,243,.85);white-space:pre-wrap}
+<title>R.A. Omega Intelligence Report</title>
+<style>
+body{font-family:-apple-system,'Inter',sans-serif;background:#07090f;color:#f1f5f9;max-width:900px;margin:0 auto;padding:40px 20px;-webkit-print-color-adjust:exact}
+h1{font-size:22px;font-weight:800;margin-bottom:4px;background:linear-gradient(135deg,#6e76e5,#a78bfa);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.meta{font-size:11px;color:#64748b;font-family:monospace;margin-bottom:24px}
+.card{background:#0d1117;border:1px solid rgba(255,255,255,.07);border-radius:10px;padding:16px 20px;margin:12px 0}
+.card.bl{border-left:3px solid #6e76e5}
+.label{font-size:9px;letter-spacing:.15em;text-transform:uppercase;font-family:monospace;color:#64748b;margin-bottom:10px}
+.body{font-size:14px;line-height:1.75;color:rgba(241,245,249,.85);white-space:pre-wrap}
+.tldr{font-size:18px;font-weight:700;color:#f1f5f9;line-height:1.4}
+.footer{margin-top:36px;text-align:center;font-size:11px;color:#374151;font-family:monospace}
 </style></head><body>
 <h1>R.A. Omega Intelligence Report</h1>
-<p style="color:#8b949e;font-size:12px;font-family:monospace">${new Date().toLocaleString()}</p>
-${tldr?`<div class="tldr">${tldr}</div>`:''}
-${execSum?`<div class="section"><div class="label">Executive Summary</div><div class="body">${execSum}</div></div>`:''}
+<div class="meta">${new Date().toLocaleString()} &nbsp;·&nbsp; R.A. Omega Financial Intelligence OS</div>
+${tldr ? `<div class="card bl"><div class="label">BOTTOM LINE</div><div class="tldr">${esc(tldr)}</div></div>` : ''}
+${execSum ? `<div class="card"><div class="label">EXECUTIVE SUMMARY</div><div class="body">${esc(execSum)}</div></div>` : ''}
+${scenHtml ? `<div class="card"><div class="label">SCENARIOS</div>${scenHtml}</div>` : ''}
+${rulesHtml ? `<div class="card"><div class="label">EXECUTION RULES</div>${rulesHtml}</div>` : ''}
+<div class="footer">Generated by R.A. Omega — 47 agents active — Confidential analysis</div>
 </body></html>`;
-  const blob = new Blob([html], {type:'text/html'});
+  const blob = new Blob([html], {type: 'text/html'});
   const url  = URL.createObjectURL(blob);
-  window.open(url,'_blank');
-  setTimeout(()=>URL.revokeObjectURL(url),120000);
+  window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 120000);
 }
 
-// Patch replaceThinking to store raw and gate structured rendering
-const _origReplace = replaceThinking;
-function replaceThinking(id, text, rawData) {
-  _origReplace(id, text, rawData);
-  if (rawData) {
-    _rawCache[id] = rawData;
-    const log = { rawData };
-    // Only render cards when log.rawData && shouldRenderStructuredResponse(log.rawData)
-    if (log.rawData && shouldRenderStructuredResponse(log.rawData)) {
-      // structured cards already rendered by replaceThinking → renderStructured chain
-    } else if (isPlainChatResponse(rawData)) {
-      // plain text path — no card rendering
-    }
-  }
-}
-
-// ── Preferences (persisted settings) ─────────────────────────────────────────
+// ── Preferences ────────────────────────────────────────────────────────────────
 const PREFS_KEY = {
-  researchMode:      'atlas_default_research_mode',
-  answerStyle:       'atlas_answer_style',
-  riskProfile:       'atlas_risk_profile',
-  reportDepth:       'atlas_report_depth',
-  cardDensity:       'atlas_card_density',
-  voiceDictation:    'atlas_voice_dictation',
-  citationPreference:'atlas_citation_preference',
-  complianceLevel:   'atlas_compliance_level',
+  researchMode:       'atlas_default_research_mode',
+  answerStyle:        'atlas_answer_style',
+  riskProfile:        'atlas_risk_profile',
+  reportDepth:        'atlas_report_depth',
+  cardDensity:        'atlas_card_density',
+  voiceDictation:     'atlas_voice_dictation',
+  citationPreference: 'atlas_citation_preference',
+  complianceLevel:    'atlas_compliance_level',
 };
 
 function getPrefs() {
@@ -691,7 +838,6 @@ function getPrefs() {
   };
 }
 
-// Enrich query body with persisted user settings
 function applyPrefsToQueryBody(queryBody) {
   const p = getPrefs();
   queryBody.report_depth        = p.report_depth;
@@ -701,7 +847,6 @@ function applyPrefsToQueryBody(queryBody) {
   return queryBody;
 }
 
-// Enrich voice form with persisted settings
 function applyPrefsToVoiceForm(form) {
   const p = getPrefs();
   form.append('report_depth',        p.report_depth);
@@ -710,20 +855,21 @@ function applyPrefsToVoiceForm(form) {
   form.append('compliance_level',    p.compliance_level);
 }
 
-// ── Research Activity Panel ───────────────────────────────────────────────────
+// ── Research Activity Panel ────────────────────────────────────────────────────
 let researchActivityBySession = {};
 
 const ResearchActivityPanel = {
-  // Renders research activity for a session (shown in xl:hidden panel on narrow screens)
   render(sid, activity) {
     const el = document.getElementById('research-activity-panel');
     if (!el || !activity) return;
     const current_message = activity.current_message || '';
     const status = activity.status || 'running';
-    el.innerHTML = `<div style="font-size:12px;color:var(--muted)">
-      <div style="font-weight:600;margin-bottom:4px">Research activity</div>
-      <div>${esc(current_message)}</div>
-      ${status==='running' ? `<button onclick="stopResearch()" style="margin-top:6px;font-size:11px;color:var(--red);background:none;border:1px solid var(--red);border-radius:4px;padding:2px 8px;cursor:pointer">Stop research</button>` : ''}
+    el.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+      <div style="font-size:11px;color:var(--muted)">
+        <strong style="color:var(--muted2)">Research activity</strong>
+        <span style="margin-left:8px">${esc(current_message)}</span>
+      </div>
+      ${status==='running' ? `<button onclick="stopResearch()" style="font-size:11px;color:#ef4444;background:none;border:1px solid rgba(239,68,68,.4);border-radius:4px;padding:2px 8px;cursor:pointer;font-family:inherit">Stop research</button>` : ''}
     </div>`;
     el.style.display = status === 'done' ? 'none' : 'block';
   },
@@ -737,7 +883,7 @@ const ResearchActivityPanel = {
 };
 
 function buildPendingResearchActivity(query) {
-  return { status: 'pending', current_message: 'Preparing analysis for: ' + query.slice(0, 60) };
+  return { status: 'pending', current_message: 'Preparing: ' + query.slice(0, 60) };
 }
 
 async function planResearch(query) {
@@ -750,9 +896,8 @@ async function planResearch(query) {
 }
 
 async function stopResearch() {
-  // Calls /jobs/{job_id}/cancel — /cancel endpoint
-  const sid = activeSessionId;
-  const act = researchActivityBySession[sid];
+  const sid   = activeSessionId;
+  const act   = researchActivityBySession[sid];
   const jobId = act?._research_activity?.job_id;
   if (!jobId) return;
   try { await fetch(`${API}/jobs/${jobId}/cancel`, {method:'POST'}); } catch(_) {}
@@ -763,7 +908,6 @@ async function stopResearch() {
 loadRegime();
 loadSessions();
 
-// Check for pending query from command center
 const pending = sessionStorage.getItem('omega_pending_query');
 if (pending) {
   sessionStorage.removeItem('omega_pending_query');

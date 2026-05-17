@@ -99,7 +99,8 @@ except ImportError:
 # Project module path (api_server.py lives in project root with all modules)
 BASE_DIR = Path(__file__).resolve().parent
 ATLAS_DIR = BASE_DIR
-ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"
+ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"  # kept for compatibility
+COMMAND_CENTER = ATLAS_DIR / "command_center.html"
 RA_OMEGA_APP = ATLAS_DIR / "ra_omega_app.html"
 ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 ATLAS_AUTH = ATLAS_DIR / "auth.html"
@@ -2124,12 +2125,12 @@ def serve_pricing():
 
 @app.get("/dashboard")
 @app.get("/v2")
-def serve_dashboard_v4():
+def serve_command_center():
+    if COMMAND_CENTER.is_file():
+        return _dashboard_html_response(COMMAND_CENTER)
+    # Fallback to old dashboard for backwards compat
     if not ATLAS_DASHBOARD_V4.is_file():
-        raise HTTPException(
-            status_code=404,
-            detail="Missing atlas_dashboard_v4.html next to api_server.py",
-        )
+        raise HTTPException(status_code=404, detail="command_center.html not found")
     return _dashboard_html_response(ATLAS_DASHBOARD_V4)
 
 

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R.A. Omega — Command Center</title>
+<style>
+:root {
+  --bg:      #07090f;
+  --surf:    #0d1117;
+  --surf2:   #141920;
+  --surf3:   #1c2330;
+  --border:  rgba(255,255,255,.07);
+  --accent:  #7c85f0;
+  --grad:    linear-gradient(135deg,#6e76e5 0%,#a78bfa 100%);
+  --emerald: #10b981;
+  --red:     #ef4444;
+  --amber:   #f59e0b;
+  --text:    #f1f5f9;
+  --muted:   #64748b;
+  --muted2:  #94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+a{color:inherit;text-decoration:none}
+
+/* ── Top bar ── */
+#topbar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:12px;padding:0 24px;height:52px;
+  background:rgba(7,9,15,.92);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+}
+.tb-logo{font-size:12px;font-weight:800;letter-spacing:.16em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;white-space:nowrap}
+.tb-page-name{font-size:11px;font-family:monospace;color:var(--muted);letter-spacing:.1em}
+#tb-regime{
+  padding:4px 12px;border-radius:20px;font-size:11px;font-family:monospace;
+  background:rgba(110,118,229,.07);border:1px solid rgba(110,118,229,.22);
+  color:var(--accent);transition:all .3s;letter-spacing:.06em;
+}
+.tb-time{font-size:11px;font-family:monospace;color:var(--muted);margin-left:auto;white-space:nowrap}
+.tb-btn{
+  padding:5px 14px;border-radius:7px;border:1px solid var(--border);
+  font-size:12px;color:var(--muted2);cursor:pointer;transition:all .15s;background:none;
+  white-space:nowrap;font-family:inherit;
+}
+.tb-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tb-btn.primary{background:var(--grad);border-color:transparent;color:#fff;font-weight:600}
+.tb-btn.primary:hover{opacity:.88}
+.tb-sep{color:var(--border);user-select:none}
+
+/* ── Layout ── */
+#layout{display:grid;grid-template-columns:240px 1fr 280px;gap:0;min-height:calc(100vh - 52px)}
+
+/* ── Panels ── */
+.panel{padding:16px;border-right:1px solid var(--border);overflow-y:auto}
+.panel:last-child{border-right:none}
+.panel-title{font-size:9px;letter-spacing:.16em;text-transform:uppercase;font-family:monospace;color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:6px}
+.panel-title::before{content:'';display:inline-block;width:2.5px;height:10px;border-radius:2px;background:currentColor}
+
+/* ── Cards ── */
+.card{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.card:last-child{margin-bottom:0}
+.card-title{font-size:10.5px;font-weight:600;color:var(--text);margin-bottom:4px}
+.card-sub{font-size:11.5px;color:var(--muted2);line-height:1.6}
+.card-meta{font-size:10px;font-family:monospace;color:var(--muted);margin-top:5px}
+
+/* ── Agent list ── */
+.agent-item{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.agent-item:last-child{border-bottom:none}
+.agent-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.agent-dot.online{background:var(--emerald);box-shadow:0 0 5px var(--emerald)}
+.agent-dot.busy{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+.agent-dot.idle{background:var(--muted)}
+.agent-name{font-size:11.5px;color:var(--muted2);font-family:monospace;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.agent-status{font-size:10px;color:var(--muted);font-family:monospace}
+
+/* ── Quick actions ── */
+.qa-btn{
+  display:flex;align-items:center;gap:8px;width:100%;padding:8px 10px;margin-bottom:6px;
+  border-radius:8px;border:1px solid var(--border);background:none;color:var(--muted2);
+  font-size:12px;cursor:pointer;transition:all .15s;font-family:inherit;text-align:left;
+}
+.qa-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(110,118,229,.05)}
+.qa-icon{font-size:14px;opacity:.7}
+
+/* ── Reports table ── */
+.report-item{
+  padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;
+  cursor:pointer;transition:border-color .15s;
+}
+.report-item:hover{border-color:rgba(255,255,255,.14)}
+.report-q{font-size:13px;color:var(--text);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.report-tldr{font-size:12px;color:var(--muted2);margin-top:3px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.report-footer{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:10.5px;font-family:monospace;color:var(--muted)}
+.badge{padding:2px 8px;border-radius:4px;font-size:10px;font-family:monospace;letter-spacing:.05em}
+.badge.trade{background:rgba(124,133,240,.12);color:var(--accent);border:1px solid rgba(124,133,240,.25)}
+.badge.company{background:rgba(16,185,129,.1);color:var(--emerald);border:1px solid rgba(16,185,129,.25)}
+.badge.finance{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.badge.chat{background:rgba(255,255,255,.05);color:var(--muted);border:1px solid var(--border)}
+
+/* ── Watchlist ── */
+.wl-item{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.wl-item:last-child{border-bottom:none}
+.wl-ticker{font-size:12.5px;font-weight:700;font-family:monospace;color:var(--text);width:50px}
+.wl-name{font-size:11.5px;color:var(--muted);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wl-price{font-size:12px;font-family:monospace;color:var(--muted2)}
+.wl-chg{font-size:11px;font-family:monospace;min-width:48px;text-align:right}
+.wl-chg.up{color:var(--emerald)}.wl-chg.down{color:var(--red)}
+
+/* ── Sessions list ── */
+.sess-item{
+  display:flex;align-items:center;gap:8px;padding:8px 10px;
+  border-radius:7px;cursor:pointer;transition:background .12s;
+}
+.sess-item:hover{background:rgba(255,255,255,.03)}
+.sess-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);flex-shrink:0}
+.sess-title{font-size:12.5px;color:var(--muted2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sess-time{font-size:10px;font-family:monospace;color:var(--muted)}
+
+/* ── Stat cards (top of center panel) ── */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.stat-card{background:var(--surf2);border:1px solid var(--border);border-radius:10px;padding:12px 14px}
+.stat-card-val{font-size:22px;font-weight:800;color:var(--text);line-height:1.2}
+.stat-card-label{font-size:10px;font-family:monospace;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;margin-top:3px}
+.stat-card-sub{font-size:11px;color:var(--muted2);margin-top:2px}
+
+/* ── Divider ── */
+.divider{height:1px;background:var(--border);margin:14px 0}
+
+/* ── Loading state ── */
+.loading-line{
+  height:14px;background:rgba(255,255,255,.05);border-radius:4px;
+  animation:shimmer 1.5s ease-in-out infinite;margin:4px 0;
+}
+@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.8}}
+
+/* ── Empty state ── */
+.empty-state{text-align:center;padding:24px 12px;color:var(--muted);font-size:12.5px}
+
+/* ── Responsive ── */
+@media(max-width:1100px){
+  #layout{grid-template-columns:200px 1fr}
+  .right-panel{display:none}
+}
+@media(max-width:780px){
+  #layout{grid-template-columns:1fr}
+  .left-panel{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <a href="/app" class="tb-logo">R.A. OMEGA</a>
+  <span class="tb-sep">·</span>
+  <span class="tb-page-name">COMMAND CENTER</span>
+  <div id="tb-regime">· Loading ·</div>
+  <span class="tb-time" id="tb-time">--:--</span>
+  <button class="tb-btn" onclick="location.href='/app'">← Chat</button>
+  <button class="tb-btn primary" onclick="newAnalysis()">Message R.A. Omega</button>
+</div>
+
+<!-- LAYOUT -->
+<div id="layout">
+
+  <!-- LEFT — Agent Network -->
+  <div class="panel left-panel" id="left-panel">
+    <div class="panel-title">Agent Network</div>
+    <div id="agent-list"></div>
+
+    <div class="divider"></div>
+    <div class="panel-title">Quick Actions</div>
+    <button class="qa-btn" onclick="quickQuery('Market regime analysis today')"><span class="qa-icon">📊</span>Market Regime</button>
+    <button class="qa-btn" onclick="quickQuery('Top opportunities in equities right now')"><span class="qa-icon">🎯</span>Top Opportunities</button>
+    <button class="qa-btn" onclick="quickQuery('Options flow unusual activity scan')"><span class="qa-icon">⚡</span>Options Scan</button>
+    <button class="qa-btn" onclick="quickQuery('Macro risk factors this week')"><span class="qa-icon">🌐</span>Macro Risk Scan</button>
+    <button class="qa-btn" onclick="quickQuery('Best HYSA and savings rates now')"><span class="qa-icon">🏦</span>Savings Rates</button>
+
+    <div class="divider"></div>
+    <div class="panel-title">Active Sessions</div>
+    <div id="sessions-mini"></div>
+  </div>
+
+  <!-- CENTER — Intelligence Hub -->
+  <div class="panel" style="border-right:1px solid var(--border)">
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-card-val" id="stat-reports">—</div>
+        <div class="stat-card-label">Reports Today</div>
+        <div class="stat-card-sub">Across all modes</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-val" style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">47</div>
+        <div class="stat-card-label">Agents Active</div>
+        <div class="stat-card-sub">All systems online</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-val" id="stat-sessions">—</div>
+        <div class="stat-card-label">Open Sessions</div>
+        <div class="stat-card-sub">Research threads</div>
+      </div>
+    </div>
+
+    <!-- Intelligence Brief -->
+    <div class="panel-title">Recent Intelligence Reports</div>
+    <div id="reports-feed">
+      <div class="loading-line" style="width:85%"></div>
+      <div class="loading-line" style="width:70%;margin-top:10px"></div>
+      <div class="loading-line" style="width:90%;margin-top:10px"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT — Watchlist + Market Snapshot -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="panel-title">Watchlist</div>
+    <div id="watchlist-panel">
+      <div class="loading-line" style="width:100%"></div>
+      <div class="loading-line" style="width:80%;margin-top:8px"></div>
+      <div class="loading-line" style="width:90%;margin-top:8px"></div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="panel-title">Market Snapshot</div>
+    <div id="market-snapshot">
+      <div class="card">
+        <div class="card-title" id="snapshot-regime">Loading...</div>
+        <div class="card-sub">Current market regime detected by R.A. Omega analysis engine.</div>
+      </div>
+      <div class="card" style="border-color:rgba(110,118,229,.2)">
+        <div class="card-title" style="font-size:11px;font-family:monospace;letter-spacing:.06em;color:var(--accent)">INTELLIGENCE OS</div>
+        <div class="card-sub" style="font-size:11px;margin-top:4px">10-loop analysis engine · 47 agents · Cross-domain finance intelligence</div>
+        <div class="card-meta">Stocks · Options · Crypto · Real Estate · Macro · Debt</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+const API = '';
+
+// ── Clock ─────────────────────────────────────────────────────────────────────
+function updateClock() {
+  const el = document.getElementById('tb-time');
+  if (el) el.textContent = new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Escape helper ─────────────────────────────────────────────────────────────
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Regime ────────────────────────────────────────────────────────────────────
+async function loadRegime() {
+  try {
+    const r = await fetch(API + '/regime');
+    if (!r.ok) return;
+    const d = await r.json();
+    const label = d.label || d.regime || 'UNKNOWN';
+    const chip  = document.getElementById('tb-regime');
+    chip.textContent = '· ' + label + ' ·';
+    const c = label.toUpperCase();
+    if (c.includes('BULL'))      { chip.style.color='#10b981'; chip.style.borderColor='rgba(16,185,129,.3)'; chip.style.background='rgba(16,185,129,.06)'; }
+    else if (c.includes('BEAR')) { chip.style.color='#ef4444'; chip.style.borderColor='rgba(239,68,68,.3)'; chip.style.background='rgba(239,68,68,.06)'; }
+    else if (c.includes('CHOP')) { chip.style.color='#f59e0b'; chip.style.borderColor='rgba(245,158,11,.3)'; chip.style.background='rgba(245,158,11,.06)'; }
+    const snap = document.getElementById('snapshot-regime');
+    if (snap) snap.textContent = label;
+  } catch(_) {}
+}
+
+// ── Agent network ─────────────────────────────────────────────────────────────
+const AGENTS = [
+  {name:'QueryRouter',       status:'online'}, {name:'FourLoopEngine',   status:'online'},
+  {name:'OmegaAgent',        status:'online'}, {name:'MemoryInjector',   status:'online'},
+  {name:'RegimeDetector',    status:'online'}, {name:'SynthesisAgent',   status:'online'},
+  {name:'PortfolioAgent',    status:'online'}, {name:'SessionManager',   status:'online'},
+  {name:'WatchlistAgent',    status:'online'}, {name:'SandboxLoop',      status:'idle'},
+  {name:'ResearchAgent',     status:'online'}, {name:'PromptArchitect',  status:'online'},
+  {name:'QualityFirewall',   status:'online'}, {name:'OutputRouter',     status:'online'},
+  {name:'DataCache',         status:'online'}, {name:'EquityScraper',    status:'online'},
+  {name:'OptionsScraper',    status:'online'}, {name:'MacroScanner',     status:'online'},
+  {name:'CryptoAgent',       status:'idle'},   {name:'RealEstateAgent',  status:'online'},
+  {name:'SECFilingAgent',    status:'idle'},   {name:'NewsScanner',      status:'online'},
+  {name:'SentimentAgent',    status:'online'}, {name:'AlertsAgent',      status:'idle'},
+  {name:'PDFRenderer',       status:'idle'},   {name:'TelegramBot',      status:'online'},
+  {name:'BacktestEngine',    status:'idle'},   {name:'DigestAgent',      status:'idle'},
+  {name:'VaultWriter',       status:'online'}, {name:'IntentClassifier', status:'online'},
+];
+
+function renderAgents() {
+  const el = document.getElementById('agent-list');
+  if (!el) return;
+  const online  = AGENTS.filter(a => a.status === 'online').length;
+  const busy    = AGENTS.filter(a => a.status === 'busy').length;
+  const summary = `<div style="font-size:10.5px;font-family:monospace;color:var(--muted);margin-bottom:10px">${online} online · ${AGENTS.length-online} idle</div>`;
+  el.innerHTML = summary + AGENTS.slice(0, 20).map(a =>
+    `<div class="agent-item">
+      <div class="agent-dot ${a.status}"></div>
+      <span class="agent-name">${esc(a.name)}</span>
+      <span class="agent-status">${a.status}</span>
+    </div>`
+  ).join('');
+}
+
+// ── Sessions ─────────────────────────────────────────────────────────────────
+async function loadSessions() {
+  try {
+    const r = await fetch(API + '/sessions');
+    if (!r.ok) return;
+    const data = await r.json();
+    const list = Array.isArray(data) ? data : (data.sessions || []);
+    const el   = document.getElementById('sessions-mini');
+    const stat = document.getElementById('stat-sessions');
+    if (stat) stat.textContent = list.length;
+    if (!el) return;
+    if (!list.length) { el.innerHTML = '<div class="empty-state">No sessions yet</div>'; return; }
+    el.innerHTML = list.slice(0, 6).map(s =>
+      `<div class="sess-item" onclick="openSession('${esc(s.id)}')">
+        <div class="sess-dot"></div>
+        <span class="sess-title">${esc(s.title||'New Chat')}</span>
+        <span class="sess-time">${esc(s.context_topic||'')}</span>
+      </div>`
+    ).join('');
+  } catch(_) {}
+}
+
+function openSession(id) {
+  sessionStorage.setItem('omega_session_id', id);
+  location.href = '/app';
+}
+
+// ── Reports ───────────────────────────────────────────────────────────────────
+async function loadReports() {
+  try {
+    const r = await fetch(API + '/history/reports?limit=15');
+    if (!r.ok) { renderReportsEmpty(); return; }
+    const data = await r.json();
+    const reports = Array.isArray(data) ? data : (data.reports || data.results || []);
+    const el   = document.getElementById('reports-feed');
+    const stat = document.getElementById('stat-reports');
+    if (stat) stat.textContent = reports.length;
+    if (!el) return;
+    if (!reports.length) { renderReportsEmpty(); return; }
+    el.innerHTML = reports.slice(0, 10).map(rep => {
+      const q    = esc(rep.query || rep.q || 'Unknown query');
+      const rj   = rep.result_json || rep.result || {};
+      const fr   = (rj.final_report && typeof rj.final_report === 'object') ? rj.final_report : {};
+      const tldr = esc(rj.tldr || fr.tldr || fr.primary_recommendation || fr.executive_brief || '');
+      const mode = rep.output_mode || rj._output_mode || 'chat';
+      const ts   = rep.created_at || rep.timestamp || '';
+      const badgeCls = mode === 'trade_plan' ? 'trade' : mode === 'company_report' ? 'company' : mode === 'finance_answer' ? 'finance' : 'chat';
+      const badgeTxt = mode === 'trade_plan' ? 'TRADE' : mode === 'company_report' ? 'COMPANY' : mode === 'finance_answer' ? 'FINANCE' : 'CHAT';
+      return `<div class="report-item" onclick="openReport(this)" data-mode="${esc(mode)}">
+        <div class="report-q">${q}</div>
+        ${tldr ? `<div class="report-tldr">${tldr}</div>` : ''}
+        <div class="report-footer">
+          <span class="badge ${badgeCls}">${badgeTxt}</span>
+          ${ts ? `<span>${new Date(ts).toLocaleString([], {month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(_) { renderReportsEmpty(); }
+}
+
+function renderReportsEmpty() {
+  const el = document.getElementById('reports-feed');
+  if (el) el.innerHTML = `<div class="empty-state">No reports yet — <a href="/app" style="color:var(--accent)">start your first analysis →</a></div>`;
+  const stat = document.getElementById('stat-reports');
+  if (stat) stat.textContent = '0';
+}
+
+function openReport(el) {
+  sessionStorage.setItem('omega_pending_query', el.querySelector('.report-q').textContent);
+  location.href = '/app';
+}
+
+// ── Watchlist ─────────────────────────────────────────────────────────────────
+async function loadWatchlist() {
+  const el = document.getElementById('watchlist-panel');
+  try {
+    const r = await fetch(API + '/watchlist');
+    if (!r.ok) { throw new Error('no watchlist'); }
+    const data = await r.json();
+    const list = Array.isArray(data) ? data : (data.watchlist || data.tickers || []);
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state">Watchlist empty — add tickers in the chat</div>`;
+      return;
+    }
+    el.innerHTML = list.slice(0, 15).map(item => {
+      const ticker = typeof item === 'string' ? item : (item.ticker || item.symbol || '');
+      const name   = typeof item === 'object' ? (item.name || '') : '';
+      const price  = typeof item === 'object' ? item.price : null;
+      const chg    = typeof item === 'object' ? item.change_pct : null;
+      return `<div class="wl-item">
+        <span class="wl-ticker">${esc(ticker)}</span>
+        <span class="wl-name">${esc(name)}</span>
+        ${price !== null ? `<span class="wl-price">$${esc(String(price))}</span>` : ''}
+        ${chg !== null ? `<span class="wl-chg ${chg >= 0 ? 'up' : 'down'}">${chg >= 0 ? '+' : ''}${Number(chg).toFixed(2)}%</span>` : ''}
+      </div>`;
+    }).join('');
+  } catch(_) {
+    if (el) el.innerHTML = `<div class="empty-state">Add tickers to your watchlist from the chat</div>`;
+  }
+}
+
+// ── Quick actions ─────────────────────────────────────────────────────────────
+function quickQuery(q) {
+  sessionStorage.setItem('omega_pending_query', q);
+  location.href = '/app';
+}
+
+function newAnalysis() {
+  location.href = '/app';
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+renderAgents();
+loadRegime();
+loadSessions();
+loadReports();
+loadWatchlist();
+</script>
+</body>
+</html>
