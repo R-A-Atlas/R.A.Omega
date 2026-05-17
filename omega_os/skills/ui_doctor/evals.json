@@ -1,0 +1,12 @@
+[
+  {"id": "E1", "description": "ui_doctor.py compiles clean",
+   "command": "python -m py_compile omega_os/skills/ui_doctor/tools/ui_doctor.py", "expect_exit": 0},
+  {"id": "E2", "description": "ui_doctor.py --json exits 0",
+   "command": "python omega_os/skills/ui_doctor/tools/ui_doctor.py --json", "expect_exit": 0},
+  {"id": "E3", "description": "JSON output is valid",
+   "command": "python omega_os/skills/ui_doctor/tools/ui_doctor.py --json", "output_is_json": true},
+  {"id": "E4", "description": "JSON has passed/failed/checks keys",
+   "command": "python omega_os/skills/ui_doctor/tools/ui_doctor.py --json", "output_contains": "passed"},
+  {"id": "E5", "description": "--fix exits 0",
+   "command": "python omega_os/skills/ui_doctor/tools/ui_doctor.py --fix", "expect_exit": 0}
+]

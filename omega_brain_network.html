@@ -472,7 +472,7 @@
     <div id="inspector">
       <div class="inspector-empty">
         <div class="inspector-icon">◎</div>
-        <div>Click any node to inspect its role, connections, and status in the ATLAS architecture.</div>
+        <div>Click any node to inspect its role, connections, and status in the R.A. Omega architecture.</div>
       </div>
     </div>
   </div>
@@ -495,7 +495,7 @@ const NODE_GROUPS = {
 // orbit: 0=center, 1-5 = rings
 const NODES = [
   // ── Core ──
-  { id: 'atlas_core', label: 'ATLAS Core', group: 'core', orbit: 0, angle: 0,
+  { id: 'omega_core', label: 'Omega Core', group: 'core', orbit: 0, angle: 0,
     desc: 'Central orchestration hub. Routes every query through the intent classifier and dispatches to the correct engine.',
     file: 'api_server.py', status: 'active',
     connects: ['query_router','omega_agent','intent_classifier','progress_tracker'] },
@@ -504,7 +504,7 @@ const NODES = [
   { id: 'query_router', label: 'QueryRouter', group: 'pipeline', orbit: 1, angle: 0,
     desc: '10-loop equity deep-dive engine. MARKET_DEEP_DIVE intent flows here for institutional-grade analysis.',
     file: 'query_router.py', status: 'active',
-    connects: ['four_loop_engine','intent_classifier','atlas_core'] },
+    connects: ['four_loop_engine','intent_classifier','omega_core'] },
   { id: 'four_loop_engine', label: 'FourLoopEngine', group: 'pipeline', orbit: 1, angle: 51,
     desc: 'Runs up to 10 parallel data loops — scraping, LLM calls, synthesis, and scoring — then emits the final report envelope.',
     file: 'query_router.py', status: 'active',
@@ -512,7 +512,7 @@ const NODES = [
   { id: 'omega_agent', label: 'OmegaAgent', group: 'pipeline', orbit: 1, angle: 103,
     desc: 'Fast cross-domain analysis engine: debt, cars, mortgages, macro, crypto. Uses summary-first data cache loading.',
     file: 'atlas_omega.py', status: 'active',
-    connects: ['intent_classifier','summary_generator','atlas_core'] },
+    connects: ['intent_classifier','summary_generator','omega_core'] },
   { id: 'gemini_limiter', label: 'GeminiLimiter', group: 'pipeline', orbit: 1, angle: 154,
     desc: 'Adaptive rate-limiter for Google Gemini API calls. Prevents quota exhaustion across all parallel loops.',
     file: 'gemini_limiter.py', status: 'active',
@@ -524,11 +524,11 @@ const NODES = [
   { id: 'intent_classifier', label: 'IntentClassifier', group: 'pipeline', orbit: 1, angle: 257,
     desc: 'classify_intent_route() — maps natural language to one of 41 named intents before any data is fetched.',
     file: 'query_router.py', status: 'active',
-    connects: ['atlas_core','query_router','omega_agent','output_modes'] },
+    connects: ['omega_core','query_router','omega_agent','output_modes'] },
   { id: 'progress_tracker', label: 'ProgressTracker', group: 'pipeline', orbit: 1, angle: 309,
     desc: 'JobProgress state machine: QUEUED → ROUTING → RETRIEVING_CONTEXT → SYNTHESIZING → COMPLETE / ERROR.',
     file: 'progress_state.py', status: 'active',
-    connects: ['atlas_core','deep_research','four_loop_engine'] },
+    connects: ['omega_core','deep_research','four_loop_engine'] },
 
   // ── Skills (orbit 2) ──
   { id: 'chain_mapper', label: 'ChainMapper', group: 'skill', orbit: 2, angle: 0,
@@ -592,7 +592,7 @@ const NODES = [
   { id: 'session_manager', label: 'SessionManager', group: 'agent', orbit: 3, angle: 240,
     desc: 'Named chat thread manager. POST /sessions creates, PATCH renames/archives, DELETE removes. Context topic pills on every thread.',
     file: 'atlas_db.py', status: 'active',
-    connects: ['vault_writer','supabase_db','atlas_core'] },
+    connects: ['vault_writer','supabase_db','omega_core'] },
   { id: 'cadence_orch', label: 'CadenceOrch', group: 'agent', orbit: 3, angle: 300,
     desc: 'Declares scheduled jobs: daily_market_brief, weekly_portfolio_review, monthly_macro_scan. Status: planned → active.',
     file: 'omega_cadence.py', status: 'configured',
@@ -618,7 +618,7 @@ const NODES = [
   { id: 'openai_whisper', label: 'OpenAI Whisper', group: 'integration', orbit: 4, angle: 180,
     desc: 'Voice transcription via POST /voice/query. Accepts multipart audio → same response envelope as POST /query.',
     file: 'api_server.py', status: 'configured',
-    connects: ['telegram_bot','atlas_core'] },
+    connects: ['telegram_bot','omega_core'] },
   { id: 'telegram_bot', label: 'Telegram', group: 'integration', orbit: 4, angle: 225,
     desc: 'Mobile capture adapter. TELEGRAM_BOT_TOKEN + TELEGRAM_ALLOWED_USER_IDS required. Voice capture via Whisper.',
     file: 'omega_telegram.py', status: 'configured',
@@ -630,7 +630,7 @@ const NODES = [
   { id: 'stripe_payments', label: 'Stripe', group: 'integration', orbit: 4, angle: 315,
     desc: 'Subscription billing. $49/mo starter, $149/mo pro. POST /stripe/webhook verifies signatures for plan activation.',
     file: 'api_server.py', status: 'configured',
-    connects: ['supabase_db','atlas_core'] },
+    connects: ['supabase_db','omega_core'] },
 
   // ── Outputs (orbit 5) ──
   { id: 'html_report', label: 'HTML Report', group: 'output', orbit: 5, angle: 0,
@@ -644,11 +644,11 @@ const NODES = [
   { id: 'pptx_deck', label: 'PPTX Deck', group: 'output', orbit: 5, angle: 103,
     desc: 'POST /export/pptx builds python-pptx deck in atlas_vault/03-Outputs/Decks/. Triggered by "give me a deck" query.',
     file: 'atlas_export/build_deck.py', status: 'active',
-    connects: ['atlas_core'] },
+    connects: ['omega_core'] },
   { id: 'xlsx_model', label: 'Excel Model', group: 'output', orbit: 5, angle: 154,
     desc: 'POST /export/xlsx builds openpyxl workbook in atlas_vault/03-Outputs/Models/. Triggered by "give me a spreadsheet".',
     file: 'atlas_export/build_workbook.py', status: 'active',
-    connects: ['google_workspace','atlas_core'] },
+    connects: ['google_workspace','omega_core'] },
   { id: 'data_map_out', label: 'Data Map', group: 'output', orbit: 5, angle: 206,
     desc: 'atlas_vault/03-Outputs/data_map.html — live Power-BI-style topology of all 64 data cache files. Served at /data-map.',
     file: 'atlas_core/data_map.py', status: 'active',
@@ -656,11 +656,11 @@ const NODES = [
   { id: 'dev_api', label: 'Developer API', group: 'output', orbit: 5, angle: 257,
     desc: 'GET /api/v1/query — billable API for third-party developers. X-ATLAS-DEV-KEY header. $0.10/call stub billing.',
     file: 'api_server.py', status: 'active',
-    connects: ['atlas_core'] },
+    connects: ['omega_core'] },
   { id: 'brain_network_out', label: 'Brain Network', group: 'output', orbit: 5, angle: 309,
     desc: 'This page. GET /omega-os/brain-network — orbital topology of the entire Omega system. Live data from /omega-os/brain.',
     file: 'omega_brain_network.html', status: 'active',
-    connects: ['atlas_core','chain_mapper'] },
+    connects: ['omega_core','chain_mapper'] },
 ];
 
 // Build lookup

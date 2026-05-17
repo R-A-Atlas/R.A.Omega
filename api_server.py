@@ -90,6 +90,7 @@ try:
     from fastapi.middleware.cors import CORSMiddleware
     from fastapi.responses import FileResponse, JSONResponse, HTMLResponse, Response, RedirectResponse
     from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+    from fastapi.staticfiles import StaticFiles
     from pydantic import BaseModel, Field
 except ImportError:
     print("Install FastAPI: pip install fastapi uvicorn --break-system-packages")
@@ -242,6 +243,10 @@ app = FastAPI(
     description="Universal financial intelligence agent — stocks, options, crypto, personal finance, business intelligence.",
     lifespan=lifespan,
 )
+
+_static_dir = BASE_DIR / "static"
+if _static_dir.exists():
+    app.mount("/static", StaticFiles(directory=str(_static_dir)), name="static")
 
 # Allow configured dev origins (incl. React on :3000); extend via ATLAS_CORS_ORIGINS= comma list
 app.add_middleware(

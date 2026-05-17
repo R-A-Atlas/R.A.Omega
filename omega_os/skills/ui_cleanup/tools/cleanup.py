@@ -1,4 +1,75 @@
-<!DOCTYPE html>
+"""
+cleanup.py — Border Patrol for the R.A. Omega frontend.
+
+Identifies every HTML file in the project root.
+Marks which routes actively serve them.
+Deletes everything not wired to a route (no mercy).
+Optionally replaces ra_omega_app.html with a fresh, fast, CDN-free build.
+
+Usage:
+    python omega_os/skills/ui_cleanup/tools/cleanup.py          # audit only
+    python omega_os/skills/ui_cleanup/tools/cleanup.py --purge  # delete dead files
+    python omega_os/skills/ui_cleanup/tools/cleanup.py --rebuild # purge + rebuild app
+    python omega_os/skills/ui_cleanup/tools/cleanup.py --json
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).parent.parent.parent.parent.parent
+sys.path.insert(0, str(ROOT))
+
+# ── Ground truth: files each route serves ─────────────────────────────────────
+SERVED: dict[str, str] = {
+    "index_1778228972988.html": "/  (Zenith landing)",
+    "auth.html":                "/auth",
+    "ra_omega_app.html":        "/app  /option1",
+    "atlas_dashboard_v4.html":  "/v2  /dashboard",
+    "omega_brain_network.html": "/omega-os/brain-network",
+    "omega_command_center.html":"/command-center",
+}
+
+NEVER_DELETE = {
+    "atlas_memory.db", "atlas_tracker.db",
+    "positions_cache.json", "paper_trades.json",
+    "schema.sql",
+}
+
+
+def audit() -> tuple[list[Path], list[Path]]:
+    """Return (dead_files, served_files) for all *.html in ROOT."""
+    all_html  = sorted(ROOT.glob("*.html"))
+    served    = [f for f in all_html if f.name in SERVED]
+    dead      = [f for f in all_html if f.name not in SERVED]
+    return dead, served
+
+
+def purge(dead: list[Path]) -> list[str]:
+    removed = []
+    for f in dead:
+        if f.name in NEVER_DELETE:
+            continue
+        try:
+            f.unlink()
+            removed.append(f.name)
+        except Exception as e:
+            removed.append(f"{f.name} (FAILED: {e})")
+    return removed
+
+
+def rebuild_app_html() -> None:
+    """Replace ra_omega_app.html with a clean vanilla-JS build. No Babel. No CDN."""
+    dest = ROOT / "ra_omega_app.html"
+    html = _build_app_html()
+    dest.write_text(html, encoding="utf-8")
+
+
+def _build_app_html() -> str:
+    return r"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -592,4 +663,72 @@ if (pending) {
 }
 </script>
 </body>
-</html>
+</html>"""
+
+# ── CLI ────────────────────────────────────────────────────────────────────────
+
+def main() -> None:
+    parser = argparse.ArgumentParser(description="R.A. Omega UI Border Patrol")
+    parser.add_argument("--purge",   action="store_true", help="Delete all dead HTML files")
+    parser.add_argument("--rebuild", action="store_true", help="Purge + rebuild ra_omega_app.html")
+    parser.add_argument("--json",    action="store_true", help="JSON output")
+    args = parser.parse_args()
+
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+
+    dead, served = audit()
+
+    if args.json:
+        result = {
+            "served": [{"file": f.name, "route": SERVED[f.name]} for f in served],
+            "dead":   [{"file": f.name, "size": f.stat().st_size} for f in dead],
+        }
+        if args.purge or args.rebuild:
+            removed = purge(dead)
+            result["removed"] = removed
+        if args.rebuild:
+            rebuild_app_html()
+            result["rebuilt"] = "ra_omega_app.html"
+        print(json.dumps(result, indent=2))
+        return
+
+    sep  = "=" * 64
+    sep2 = "-" * 64
+    print(sep)
+    print("  R.A. OMEGA — UI BORDER PATROL")
+    print(sep)
+
+    print(f"\n  SERVED ({len(served)} files — these stay):")
+    for f in served:
+        print(f"    [KEEP]  {f.name:<40} {SERVED[f.name]}")
+
+    print(f"\n  DEAD ({len(dead)} files — no active route):")
+    for f in dead:
+        print(f"    [DEAD]  {f.name:<40} {f.stat().st_size:>8,} bytes")
+
+    removed = []
+    if args.purge or args.rebuild:
+        print(f"\n  PURGING dead files...")
+        removed = purge(dead)
+        for r in removed:
+            print(f"    [GONE]  {r}")
+
+    if args.rebuild:
+        print(f"\n  REBUILDING ra_omega_app.html (clean vanilla JS, no CDN)...")
+        rebuild_app_html()
+        size = (ROOT / "ra_omega_app.html").stat().st_size
+        print(f"    [DONE]  ra_omega_app.html rebuilt — {size:,} bytes")
+
+    print(f"\n{sep2}")
+    if args.purge or args.rebuild:
+        print(f"  Removed {len(removed)} dead files.")
+    if args.rebuild:
+        print(f"  ra_omega_app.html rebuilt from scratch.")
+        print(f"  Restart server + hard-refresh browser.")
+    else:
+        print(f"  Run with --rebuild to purge dead files and rebuild the app UI.")
+    print(sep)
+
+
+if __name__ == "__main__":
+    main()
