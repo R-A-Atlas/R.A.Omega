@@ -1,0 +1,366 @@
+{
+  "generated_at": "2026-05-17T01:58:21.246472+00:00",
+  "total_agents": 51,
+  "healthy": 51,
+  "unhealthy": 0,
+  "health_pct": 100.0,
+  "agents": [
+    {
+      "file": "dark_pool_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 8072
+    },
+    {
+      "file": "penny_stocks_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 404
+    },
+    {
+      "file": "residential_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1075
+    },
+    {
+      "file": "rental_yield_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1378
+    },
+    {
+      "file": "str_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1158
+    },
+    {
+      "file": "commercial_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 897
+    },
+    {
+      "file": "zoning_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1141
+    },
+    {
+      "file": "reits_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 2000
+    },
+    {
+      "file": "mortgage_rates_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 605
+    },
+    {
+      "file": "hysa_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1254
+    },
+    {
+      "file": "credit_cards_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1599
+    },
+    {
+      "file": "auto_loans_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 904
+    },
+    {
+      "file": "student_debt_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1033
+    },
+    {
+      "file": "retirement_limits_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 538
+    },
+    {
+      "file": "personal_loans_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1170
+    },
+    {
+      "file": "col_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1409
+    },
+    {
+      "file": "insurance_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1498
+    },
+    {
+      "file": "federal_tax_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1311
+    },
+    {
+      "file": "state_tax_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 2232
+    },
+    {
+      "file": "bankruptcy_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 449
+    },
+    {
+      "file": "sec_filings_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 734
+    },
+    {
+      "file": "consumer_alerts_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1329
+    },
+    {
+      "file": "labor_law_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 10832
+    },
+    {
+      "file": "sba_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1782
+    },
+    {
+      "file": "saas_metrics_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1213
+    },
+    {
+      "file": "ecommerce_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1633
+    },
+    {
+      "file": "freelance_rates_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 2360
+    },
+    {
+      "file": "franchise_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 2176
+    },
+    {
+      "file": "vc_deals_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1737
+    },
+    {
+      "file": "art_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1257
+    },
+    {
+      "file": "collectibles_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1103
+    },
+    {
+      "file": "p2p_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1194
+    },
+    {
+      "file": "metals_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1465
+    },
+    {
+      "file": "watches_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 2249
+    },
+    {
+      "file": "global_liquidity_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1334
+    },
+    {
+      "file": "competitor_ads_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 831
+    },
+    {
+      "file": "seo_keywords_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 704
+    },
+    {
+      "file": "sentiment_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 680
+    },
+    {
+      "file": "email_health_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 251
+    },
+    {
+      "file": "engagement_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 819
+    },
+    {
+      "file": "reviews_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 1111
+    },
+    {
+      "file": "roas_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 900
+    },
+    {
+      "file": "leads_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 906
+    },
+    {
+      "file": "crm_sync_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 163
+    },
+    {
+      "file": "correlation_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 749
+    },
+    {
+      "file": "regime_change_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 468
+    },
+    {
+      "file": "earnings_season_brief_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 732
+    },
+    {
+      "file": "sector_rotation_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 3839
+    },
+    {
+      "file": "news_catalysts_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 727
+    },
+    {
+      "file": "sentiment_divergence_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 645
+    },
+    {
+      "file": "risk_budget_latest.json",
+      "exists": true,
+      "valid_json": true,
+      "has_data": true,
+      "size_bytes": 873
+    }
+  ]
+}

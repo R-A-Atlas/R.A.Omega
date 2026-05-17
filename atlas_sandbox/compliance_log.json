@@ -46,5 +46,13 @@
     "blocked_phrases": [],
     "has_disclaimer": false,
     "timestamp": "2026-05-14T12:41:22.141515+00:00"
+  },
+  {
+    "query": "Federal tax brackets for 2026?",
+    "domain": "tax_legal",
+    "passed": false,
+    "blocked_phrases": [],
+    "has_disclaimer": false,
+    "timestamp": "2026-05-17T01:58:24.691062+00:00"
   }
 ]

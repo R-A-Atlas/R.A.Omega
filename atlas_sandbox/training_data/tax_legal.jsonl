@@ -1,1 +1,2 @@
 {"query": "Best states for low taxes?", "domain": "tax_legal", "intent_route": "GENERAL_FINANCE", "score": 5, "approved": true}
+{"query": "Federal tax brackets for 2026?", "domain": "tax_legal", "intent_route": "GENERAL_FINANCE", "score": 5, "approved": true}
