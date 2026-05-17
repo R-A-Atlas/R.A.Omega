@@ -114,6 +114,7 @@ from pipeline_planner import plan_pipeline, AgentPlan  # noqa: E402
 from project_sandbox import create_sandbox, attach_result as attach_sandbox_result, get_sandbox, list_sandboxes, delete_sandbox  # noqa: E402
 from multi_agent import orchestrate as multi_agent_orchestrate  # noqa: E402
 from prompt_architect import build_blueprint as build_prompt_blueprint  # noqa: E402
+from intelligence_hub import get_snapshot as hub_snapshot, get_brief as hub_brief  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -2326,6 +2327,27 @@ def delete_sandbox_api(sandbox_id: str, user_id: AtlasUserId):
         raise HTTPException(status_code=403, detail="Not your sandbox")
     delete_sandbox(sandbox_id)
     return {"ok": True, "deleted": sandbox_id}
+
+
+@app.get("/hub/snapshot")
+def hub_snapshot_api(
+    categories: Optional[str] = Query(default=None, description="Comma-separated category filter"),
+):
+    """Full intelligence hub snapshot — all signal categories from data_cache."""
+    cat_list = [c.strip() for c in categories.split(",")] if categories else None
+    try:
+        return {"ok": True, **hub_snapshot(cat_list)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/hub/brief")
+def hub_brief_api():
+    """Condensed intelligence brief — top 3 signals per category."""
+    try:
+        return {"ok": True, **hub_brief()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @app.post("/pipeline/plan")

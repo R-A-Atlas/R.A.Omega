@@ -225,6 +225,14 @@ a{color:inherit;text-decoration:none}
     </div>
 
     <div class="divider"></div>
+    <div class="panel-title">Intelligence Hub <span id="hub-signal-count" style="font-size:10px;color:var(--muted);font-weight:400"></span></div>
+    <div id="hub-signals">
+      <div class="loading-line" style="width:100%"></div>
+      <div class="loading-line" style="width:85%;margin-top:6px"></div>
+      <div class="loading-line" style="width:92%;margin-top:6px"></div>
+    </div>
+
+    <div class="divider"></div>
     <div class="panel-title">Market Snapshot</div>
     <div id="market-snapshot">
       <div class="card">
@@ -421,12 +429,79 @@ function newAnalysis() {
   location.href = '/app';
 }
 
+// ── Intelligence Hub signals ──────────────────────────────────────────────────
+async function loadHubSignals() {
+  const el    = document.getElementById('hub-signals');
+  const badge = document.getElementById('hub-signal-count');
+  if (!el) return;
+  try {
+    const r = await fetch(API + '/hub/brief');
+    if (!r.ok) { el.innerHTML = '<div class="empty-state">Signals unavailable</div>'; return; }
+    const d = await r.json();
+    if (badge) badge.textContent = `· ${d.total_signals || 0} signals live`;
+
+    const catOrder = ['market','macro','intelligence','real_estate','personal_finance','alternative'];
+    const catLabels = {
+      market:'Market', macro:'Macro', intelligence:'Intel',
+      real_estate:'Real Estate', personal_finance:'Personal Finance', alternative:'Alternative'
+    };
+    const dirColor = {bullish:'#10b981',bearish:'#ef4444',neutral:'#f59e0b',mixed:'#8b5cf6',rising:'#10b981',falling:'#ef4444',stable:'#f59e0b',unknown:'#64748b'};
+
+    // Alerts bar
+    let alertHtml = '';
+    if (d.alerts && d.alerts.length) {
+      const alertItems = d.alerts.map(a =>
+        `<span style="font-size:10px;color:#ef4444;padding:1px 7px;border-radius:10px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2)">${esc(a.name)}</span>`
+      ).join('');
+      alertHtml = `<div style="margin-bottom:8px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+        <span style="font-size:9px;color:#ef4444;font-weight:700;letter-spacing:.06em">ALERTS</span>
+        ${alertItems}
+      </div>`;
+    }
+
+    // Category summaries
+    const summaryHtml = catOrder.map(cat => {
+      const s = (d.category_summary || {})[cat];
+      if (!s) return '';
+      const color = dirColor[s.direction] || '#64748b';
+      const label = catLabels[cat] || cat;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <span style="font-size:10px;color:var(--muted)">${esc(s.icon||'📊')} ${esc(label)}</span>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span style="font-size:9px;color:var(--muted);opacity:.6">${s.signal_count} signals</span>
+          <span style="font-size:9px;font-weight:700;color:${color};background:${color}18;padding:1px 8px;border-radius:10px;text-transform:uppercase">${esc(s.direction)}</span>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Top signals
+    const topHtml = (d.top_signals || []).slice(0, 4).map(sig => {
+      const color = dirColor[sig.direction] || '#64748b';
+      return `<div style="padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:11px;font-weight:600;color:var(--text)">${esc(sig.name)}</span>
+          <span style="font-size:9px;color:${color};font-weight:700">${esc(sig.direction.toUpperCase())}</span>
+        </div>
+        <div style="font-size:10px;color:var(--muted);margin-top:1px">${esc(sig.value)}</div>
+        ${sig.detail ? `<div style="font-size:9px;color:var(--muted);opacity:.6;margin-top:1px">${esc(sig.detail)}</div>` : ''}
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `${alertHtml}
+      <div style="margin-bottom:10px">${summaryHtml}</div>
+      ${topHtml ? `<div style="font-size:9px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin:8px 0 4px">TOP SIGNALS</div>${topHtml}` : ''}`;
+  } catch(e) {
+    if (el) el.innerHTML = '<div class="empty-state">Hub offline</div>';
+  }
+}
+
 // ── Boot ──────────────────────────────────────────────────────────────────────
 renderAgents();
 loadRegime();
 loadSessions();
 loadReports();
 loadWatchlist();
+loadHubSignals();
 </script>
 </body>
 </html>
