@@ -87,11 +87,24 @@ def user_explicitly_requested_trade(raw_query: str) -> bool:
 
 
 def user_explicitly_requested_document(raw_query: str) -> bool:
-    return bool(_EXPLICIT_DOCUMENT_RE.search(raw_query or ""))
+    if _EXPLICIT_DOCUMENT_RE.search(raw_query or ""):
+        return True
+    try:
+        from atlas_export.artifact_router import user_requested_artifact
+        return user_requested_artifact(raw_query)
+    except Exception:
+        return False
 
 
 def detect_requested_document_format(raw_query: str) -> str | None:
     """Return the concrete artifact format requested in natural language."""
+    try:
+        from atlas_export.artifact_router import detect_artifact_format
+        detected = detect_artifact_format(raw_query)
+        if detected:
+            return detected
+    except Exception:
+        pass
     q = (raw_query or "").lower()
     if re.search(r"\bword\s+document\b|\bdocx\b|\b\.docx\b", q):
         return "docx"

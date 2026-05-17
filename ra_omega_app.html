@@ -900,6 +900,9 @@ function preferredDocumentFormat(data) {
   if (/\b(markdown|md file|\.md)\b/.test(q)) return 'md';
   if (/\b(text file|txt|\.txt)\b/.test(q)) return 'txt';
   if (/\b(html report|html file|\.html)\b/.test(q)) return 'html';
+  if (/\b(json|\.json)\b/.test(q)) return 'json';
+  if (/\b(xml|\.xml)\b/.test(q)) return 'xml';
+  if (/\b(yaml|yml|\.yaml|\.yml)\b/.test(q)) return 'yaml';
   return 'docx';
 }
 
@@ -911,7 +914,7 @@ function normalizeExportFormat(format) {
   if (['markdown', 'md'].includes(f)) return 'md';
   if (['text', 'txt'].includes(f)) return 'txt';
   if (['html_report'].includes(f)) return 'html';
-  return ['pdf', 'html', 'csv', 'json'].includes(f) ? f : 'docx';
+  return ['pdf', 'html', 'csv', 'json', 'xml', 'yaml'].includes(f) ? f : 'docx';
 }
 
 function exportButtonsForFormat(msgId, preferred) {
@@ -923,7 +926,10 @@ function exportButtonsForFormat(msgId, preferred) {
     csv: 'Download CSV',
     md: 'Download Markdown',
     txt: 'Download Text',
-    html: 'Download HTML'
+    html: 'Download HTML',
+    json: 'Download JSON',
+    xml: 'Download XML',
+    yaml: 'Download YAML'
   };
   const formats = [preferred, 'docx', 'pdf'].filter((v, i, arr) => v && arr.indexOf(v) === i);
   return formats.map(fmt =>
@@ -1007,9 +1013,12 @@ async function downloadExportFile(id, format) {
     csv: '/export/csv',
     md: '/export/md',
     txt: '/export/txt',
-    html: '/export/html'
+    html: '/export/html',
+    json: '/export/json',
+    xml: '/export/xml',
+    yaml: '/export/yaml'
   };
-  const endpoint = endpoints[fmt] || '/export/docx';
+  const endpoint = endpoints[fmt] || `/export/artifact?format=${encodeURIComponent(fmt)}`;
   const fallbackName = `ra_omega_report.${fmt}`;
   try {
     const res = await fetch(endpoint, {

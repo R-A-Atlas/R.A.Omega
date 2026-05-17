@@ -67,6 +67,30 @@ def test_text_markdown_and_csv_minimal_envelope(tmp_path: Path):
     assert "section,content" in csv.read_text(encoding="utf-8").splitlines()[0]
 
 
+def test_general_artifact_router_exports_structured_formats(tmp_path: Path):
+    from atlas_export.artifact_router import (
+        export_artifact,
+        plan_artifact,
+        write_query_envelope_json,
+        write_query_envelope_xml,
+        write_query_envelope_yaml,
+    )
+
+    d = {
+        "query": "Save this as report.yaml",
+        "final_report": {"executive_summary": "The system is healthy."},
+        "tldr": "Healthy.",
+    }
+    assert plan_artifact("make this a spreadsheet").canonical_format == "xlsx"
+    assert plan_artifact("save this as report.json").canonical_format == "json"
+    assert write_query_envelope_json(d, tmp_path / "n.json").read_text(encoding="utf-8").startswith("{")
+    assert write_query_envelope_xml(d, tmp_path / "n.xml").read_text(encoding="utf-8").startswith("<?xml")
+    assert write_query_envelope_yaml(d, tmp_path / "n.yaml").read_text(encoding="utf-8").startswith("ra_omega_report:")
+    path, plan = export_artifact(d, "yaml")
+    assert path.is_file()
+    assert plan.canonical_format == "yaml"
+
+
 def test_html_and_agent_xlsx_minimal_envelope(tmp_path: Path):
     from atlas_agents.documents.comparison.html_print_agent import generate_html
     from atlas_agents.documents.excel.excel_agent import generate_excel
@@ -145,12 +169,33 @@ def test_export_lightweight_file_endpoints_return_files(monkeypatch):
         "/export/txt": "text/plain",
         "/export/md": "text/markdown",
         "/export/csv": "text/csv",
+        "/export/json": "application/json",
+        "/export/xml": "application/xml",
+        "/export/yaml": "application/x-yaml",
     }
     for endpoint, content_type in checks.items():
         r = c.post(endpoint, json=d)
         assert r.status_code == 200
         assert content_type in r.headers["content-type"]
         assert len(r.content) > 20
+
+
+def test_export_artifact_endpoint_uses_requested_format(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
+    import api_server
+
+    c = TestClient(api_server.app)
+    d = {
+        "query": "Save this as report.json",
+        "final_report": {"executive_summary": "The system is healthy."},
+        "tldr": "Healthy.",
+    }
+    r = c.post("/export/artifact?format=json", json=d)
+    assert r.status_code == 200
+    assert "application/json" in r.headers["content-type"]
+    assert r.content.strip().startswith(b"{")
 
 
 def test_export_pdf_endpoint_returns_file_with_fallback(monkeypatch):

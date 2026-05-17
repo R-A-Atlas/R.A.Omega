@@ -64,6 +64,9 @@ def test_common_file_formats_resolve_document():
         "create a PowerPoint presentation": "pptx",
         "save this as markdown": "md",
         "give me a text file": "txt",
+        "export this as results.json": "json",
+        "create a config.yaml file": "yaml",
+        "save this as report.xml": "xml",
     }
     for query, fmt in cases.items():
         assert classify_intent_route(query) == INTENT_DOCUMENT_GENERATION

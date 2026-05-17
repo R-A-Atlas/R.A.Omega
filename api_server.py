@@ -1032,8 +1032,8 @@ def _create_research_job_for_request(
 def _detect_doc_type(query: str) -> Optional[str]:
     """Detect if the user wants a specific document output format."""
     try:
-        from output_modes import detect_requested_document_format
-        detected = detect_requested_document_format(query)
+        from atlas_export.artifact_router import detect_artifact_format
+        detected = detect_artifact_format(query)
         if detected:
             return detected
     except Exception:
@@ -1056,6 +1056,13 @@ def _detect_doc_type(query: str) -> Optional[str]:
     if re.search(r"\bhtml\s+report\b|\bvisual\s+report\b|\bgive.*report\b|\bgenerate.*report\b", ql):
         return "html_report"
     return None
+
+
+def _artifact_file_response(body: dict[str, Any], fmt: str | None = None) -> FileResponse:
+    from atlas_export.artifact_router import export_artifact
+
+    path, plan = export_artifact(body, fmt)
+    return FileResponse(path, filename=path.name, media_type=plan.media_type)
 
 
 def _finalize_query_response(
@@ -3016,6 +3023,59 @@ def export_csv_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
         log.exception("[/export/csv]")
         raise HTTPException(status_code=500, detail=str(e)) from e
     return FileResponse(path, filename=path.name, media_type="text/csv; charset=utf-8")
+
+
+@app.post("/export/json")
+def export_json_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        return _artifact_file_response(body, "json")
+    except Exception as e:
+        log.exception("[/export/json]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.post("/export/xml")
+def export_xml_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        return _artifact_file_response(body, "xml")
+    except Exception as e:
+        log.exception("[/export/xml]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.post("/export/yaml")
+@app.post("/export/yml")
+def export_yaml_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        return _artifact_file_response(body, "yaml")
+    except Exception as e:
+        log.exception("[/export/yaml]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+@app.post("/export/artifact")
+def export_artifact_payload(
+    user_id: AtlasUserId,
+    body: dict[str, Any] = Body(...),
+    format: Optional[str] = None,
+):
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        return _artifact_file_response(body, format)
+    except Exception as e:
+        log.exception("[/export/artifact]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 
 @app.post("/export/docx")
