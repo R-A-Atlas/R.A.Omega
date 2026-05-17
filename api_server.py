@@ -1042,7 +1042,27 @@ def _finalize_query_response(
         q_store,
         to_store,
     )
+    # Auto-pilot: trigger sandbox learning after every non-casual query
+    _output_mode = shaped.get("_output_mode", "") or ""
+    if _output_mode in ("trade_plan", "company_report", "finance_answer"):
+        background_tasks.add_task(_sandbox_learn_bg, q_store, _output_mode)
     return shaped
+
+
+def _sandbox_learn_bg(query: str, domain: str) -> None:
+    """Fire one sandbox training batch in the background after each real query."""
+    if os.environ.get("ATLAS_DISABLE_AUTH") == "true":
+        return  # skip in dev to avoid noise during local testing
+    try:
+        from atlas_sandbox.sandbox_loop import run_batch
+        _domain_map = {
+            "trade_plan": "equities",
+            "company_report": "equities",
+            "finance_answer": "personal_wealth",
+        }
+        run_batch(n=1, domains=[_domain_map.get(domain, "equities")], dry_run=False)
+    except Exception:
+        pass
 
 
 def _log_dev_api_billing(dev_user_id: str, endpoint: str, query_len: int = 0) -> None:
