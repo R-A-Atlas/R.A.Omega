@@ -122,6 +122,18 @@ from division_sandbox import (  # noqa: E402
     get_playbook_context,
     get_division_memories,
 )
+from hermes_operator import (  # noqa: E402
+    start_hermes,
+    stop_hermes,
+    run_cadence as hermes_run_cadence,
+    list_cadences as hermes_list_cadences,
+    get_today_brief as hermes_today_brief,
+    get_latest_brief as hermes_latest_brief,
+    get_action_queue as hermes_action_queue,
+    dismiss_action as hermes_dismiss_action,
+    execute_action as hermes_execute_action,
+    CADENCES as HERMES_CADENCES,
+)
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -249,8 +261,17 @@ async def lifespan(app: FastAPI):
         start_cadence_if_enabled()
     except Exception as e:
         log.warning("Cadence wirer not started: %s", e)
+    try:
+        start_hermes(tick_interval=60)
+        log.info("Hermes Operator started.")
+    except Exception as e:
+        log.warning("Hermes Operator not started: %s", e)
     yield
     log.info("R.A. Omega API Server shutting down.")
+    try:
+        stop_hermes()
+    except Exception:
+        pass
 
 app = FastAPI(
     title="R.A. Omega Financial Intelligence API",
@@ -2413,6 +2434,64 @@ def division_learn_api(division_id: str, req: DivisionLearnRequest, user_id: Atl
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/hermes/brief")
+def hermes_brief_api():
+    """Return today's Hermes brief, or the most recent one if today's isn't ready."""
+    brief = hermes_today_brief() or hermes_latest_brief()
+    if brief is None:
+        return {"ok": True, "brief": None, "message": "No brief generated yet — Hermes will generate one shortly."}
+    return {"ok": True, "brief": brief}
+
+
+@app.get("/hermes/cadences")
+def hermes_cadences_api():
+    """List all Hermes cadences with last_run / next_run / due status."""
+    try:
+        return {"ok": True, "cadences": hermes_list_cadences()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/hermes/cadences/{cadence_id}/run")
+def hermes_run_cadence_api(cadence_id: str, user_id: AtlasUserId):
+    """Manually trigger a Hermes cadence immediately."""
+    if cadence_id not in HERMES_CADENCES:
+        raise HTTPException(status_code=404, detail=f"Unknown cadence '{cadence_id}'")
+    try:
+        result = hermes_run_cadence(cadence_id)
+        return {"ok": True, **result}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/hermes/actions")
+def hermes_actions_api(status: Optional[str] = Query(default=None, description="Filter by status: pending | dismissed | executed")):
+    """Return the Hermes operator action queue."""
+    try:
+        queue = hermes_action_queue(status=status)
+        return {"ok": True, "actions": queue, "total": len(queue)}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.post("/hermes/actions/{action_id}/dismiss")
+def hermes_dismiss_api(action_id: str, user_id: AtlasUserId):
+    """Dismiss a pending Hermes action."""
+    found = hermes_dismiss_action(action_id)
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Action '{action_id}' not found")
+    return {"ok": True, "action_id": action_id, "status": "dismissed"}
+
+
+@app.post("/hermes/actions/{action_id}/execute")
+def hermes_execute_api(action_id: str, user_id: AtlasUserId):
+    """Mark a Hermes action as executed."""
+    found = hermes_execute_action(action_id)
+    if not found:
+        raise HTTPException(status_code=404, detail=f"Action '{action_id}' not found")
+    return {"ok": True, "action_id": action_id, "status": "executed"}
 
 
 @app.post("/pipeline/plan")
