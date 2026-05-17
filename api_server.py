@@ -112,6 +112,7 @@ import agent_audit  # noqa: E402
 import omega_config  # noqa: E402
 from pipeline_planner import plan_pipeline, AgentPlan  # noqa: E402
 from project_sandbox import create_sandbox, attach_result as attach_sandbox_result, get_sandbox, list_sandboxes, delete_sandbox  # noqa: E402
+from multi_agent import orchestrate as multi_agent_orchestrate  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -1711,6 +1712,18 @@ def dispatch_query_request(
             shaped["_pipeline_plan"] = _pipeline_plan_dict
         except Exception:
             log.debug("[pipeline_planner] plan generation failed", exc_info=True)
+        # ── Multi-agent collaboration layer ───────────────────────────────────
+        try:
+            _ma_session = multi_agent_orchestrate(
+                query=q_store,
+                intent=_intent,
+                plan=_pipeline_plan_dict,
+                research_mode=mode,
+                user_id=user_id if user_id != "test_user_local" else None,
+            )
+            shaped["_multi_agent"] = _ma_session.to_dict()
+        except Exception:
+            log.debug("[multi_agent] orchestration failed", exc_info=True)
         # ── Project Sandbox — persist workspace for non-trivial queries ────────
         if user_id and user_id != "test_user_local" and _intent not in ("CONVERSATION", "GENERAL_CHAT"):
             try:

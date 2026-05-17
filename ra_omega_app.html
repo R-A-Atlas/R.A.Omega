@@ -762,6 +762,65 @@ function renderContent(data, contentId, msgId) {
     </details>`;
   }
 
+  // Multi-agent contributions panel
+  const ma = data._multi_agent;
+  if (ma && ma.contributions && ma.contributions.length) {
+    const domainColors = {
+      core:'#6366f1', market:'#10b981', finance:'#f59e0b',
+      portfolio:'#3b82f6', research:'#8b5cf6', memory:'#64748b'
+    };
+    const domainLabels = {
+      core:'Core', market:'Market Intelligence', finance:'Personal Finance',
+      portfolio:'Portfolio & Risk', research:'Research & Memory', memory:'Memory'
+    };
+    // Group by domain
+    const byDomain = {};
+    ma.contributions.forEach(c => {
+      if (!byDomain[c.domain]) byDomain[c.domain] = [];
+      byDomain[c.domain].push(c);
+    });
+    const domainOrder = ['core','market','finance','portfolio','research','memory'];
+    let rows = '';
+    domainOrder.forEach(domain => {
+      const agents = byDomain[domain];
+      if (!agents || !agents.length) return;
+      const color = domainColors[domain] || '#6366f1';
+      const label = domainLabels[domain] || domain;
+      rows += `<div style="margin-bottom:10px">
+        <div style="font-size:9px;font-weight:600;letter-spacing:.08em;color:${color};margin-bottom:5px;text-transform:uppercase">${esc(label)}</div>`;
+      agents.forEach(c => {
+        const pct = Math.round((c.confidence || 0.92) * 100);
+        rows += `<div style="display:flex;align-items:flex-start;gap:8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.04)">
+          <span style="width:6px;height:6px;border-radius:50%;background:${color};margin-top:4px;flex-shrink:0"></span>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px">
+              <span style="font-size:11px;font-weight:600;color:var(--text)">${esc(c.agent)}</span>
+              <span style="font-size:9px;color:var(--muted);opacity:.7">${esc(c.role)}</span>
+              <span style="margin-left:auto;font-size:9px;color:${color};opacity:.8">${pct}%</span>
+            </div>
+            <div style="font-size:10px;color:var(--muted);margin-top:1px;line-height:1.4">${esc(c.contribution)}</div>
+          </div>
+        </div>`;
+      });
+      rows += '</div>';
+    });
+
+    const dcLabels = Object.entries(ma.domain_counts || {})
+      .map(([d,n]) => `<span style="color:${domainColors[d]||'#6366f1'};font-size:9px">${n} ${d}</span>`)
+      .join('<span style="opacity:.3"> · </span>');
+
+    html += `<details style="margin:10px 0 0;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 12px;background:rgba(255,255,255,.02)">
+      <summary style="cursor:pointer;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:8px;list-style:none;user-select:none">
+        <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;flex-shrink:0;animation:pulse 2s infinite"></span>
+        <strong style="color:var(--muted2)">${esc(String(ma.agent_count))} agents collaborated</strong>
+        <span style="color:rgba(255,255,255,.25)">·</span>
+        <span>${dcLabels}</span>
+        <span style="margin-left:auto;opacity:.5">▾ contributions</span>
+      </summary>
+      <div style="margin-top:10px">${rows}</div>
+    </details>`;
+  }
+
   // Export bar
   const isCompanyReportCheck = (data._output_mode || '') === 'company_report';
   html += `<div class="export-bar">
