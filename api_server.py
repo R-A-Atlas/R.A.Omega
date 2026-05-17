@@ -115,6 +115,13 @@ from project_sandbox import create_sandbox, attach_result as attach_sandbox_resu
 from multi_agent import orchestrate as multi_agent_orchestrate  # noqa: E402
 from prompt_architect import build_blueprint as build_prompt_blueprint  # noqa: E402
 from intelligence_hub import get_snapshot as hub_snapshot, get_brief as hub_brief  # noqa: E402
+from division_sandbox import (  # noqa: E402
+    get_division,
+    list_divisions,
+    learn as division_learn,
+    get_playbook_context,
+    get_division_memories,
+)
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -1737,6 +1744,14 @@ def dispatch_query_request(
             shaped["_multi_agent"] = _ma_session.to_dict()
         except Exception:
             log.debug("[multi_agent] orchestration failed", exc_info=True)
+        # ── Division Sandbox — inject playbook + memories for active division ───
+        try:
+            _div_playbook = get_playbook_context(_intent, max_rules=5)
+            _div_memories = get_division_memories(_intent, limit=3)
+            shaped["_division_playbook"] = _div_playbook
+            shaped["_division_memories"] = _div_memories
+        except Exception:
+            log.debug("[division_sandbox] context inject failed", exc_info=True)
         # ── Project Sandbox — persist workspace for non-trivial queries ────────
         if user_id and user_id != "test_user_local" and _intent not in ("CONVERSATION", "GENERAL_CHAT"):
             try:
@@ -2346,6 +2361,56 @@ def hub_brief_api():
     """Condensed intelligence brief — top 3 signals per category."""
     try:
         return {"ok": True, **hub_brief()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/divisions")
+def list_divisions_api():
+    """List all 8 division sandboxes with summary stats."""
+    try:
+        return {"ok": True, "divisions": list_divisions()}
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/divisions/{division_id}")
+def get_division_api(division_id: str):
+    """Get full context for a single division sandbox."""
+    try:
+        div = get_division(division_id)
+        if div is None:
+            raise HTTPException(status_code=404, detail=f"Division '{division_id}' not found")
+        return {"ok": True, "division": div}
+    except HTTPException:
+        raise
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+class DivisionLearnRequest(BaseModel):
+    query: str
+    insight: str
+    category: str = "general"
+    confidence: float = 0.8
+    source_intent: str = ""
+
+
+@app.post("/divisions/{division_id}/learn")
+def division_learn_api(division_id: str, req: DivisionLearnRequest, user_id: AtlasUserId):
+    """Record a new learning into a division's memory."""
+    try:
+        entry = division_learn(
+            division_id=division_id,
+            query=req.query,
+            insight=req.insight,
+            category=req.category,
+            confidence=req.confidence,
+            source_intent=req.source_intent,
+        )
+        return {"ok": True, "entry": entry}
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
