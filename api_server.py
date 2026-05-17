@@ -101,6 +101,7 @@ BASE_DIR = Path(__file__).resolve().parent
 ATLAS_DIR = BASE_DIR
 ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"  # kept for compatibility
 COMMAND_CENTER = ATLAS_DIR / "command_center.html"
+AGENTS_NETWORK = ATLAS_DIR / "agents_network.html"
 RA_OMEGA_APP = ATLAS_DIR / "ra_omega_app.html"
 ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
 ATLAS_AUTH = ATLAS_DIR / "auth.html"
@@ -2132,6 +2133,14 @@ def serve_command_center():
     if not ATLAS_DASHBOARD_V4.is_file():
         raise HTTPException(status_code=404, detail="command_center.html not found")
     return _dashboard_html_response(ATLAS_DASHBOARD_V4)
+
+
+@app.get("/agents")
+@app.get("/network")
+def serve_agents_network():
+    if AGENTS_NETWORK.is_file():
+        return _dashboard_html_response(AGENTS_NETWORK)
+    raise HTTPException(status_code=404, detail="agents_network.html not found")
 
 
 @app.get("/app")

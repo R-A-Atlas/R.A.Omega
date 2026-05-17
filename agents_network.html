@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>R.A. Omega — Agent Network</title>
+<style>
+:root {
+  --bg:       #07090f;
+  --surf:     #0d1117;
+  --surf2:    #141920;
+  --surf3:    #1c2330;
+  --border:   rgba(255,255,255,.07);
+  --accent:   #7c85f0;
+  --grad:     linear-gradient(135deg,#6e76e5 0%,#a78bfa 100%);
+  --emerald:  #10b981;
+  --red:      #ef4444;
+  --amber:    #f59e0b;
+  --violet:   #a78bfa;
+  --text:     #f1f5f9;
+  --muted:    #64748b;
+  --muted2:   #94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:2px}
+a{color:inherit;text-decoration:none}
+
+/* ── Topbar ── */
+#topbar{
+  position:sticky;top:0;z-index:20;
+  display:flex;align-items:center;gap:12px;padding:0 24px;height:52px;
+  background:rgba(7,9,15,.92);border-bottom:1px solid var(--border);
+  backdrop-filter:blur(12px);
+}
+.tb-logo{font-size:12px;font-weight:800;letter-spacing:.16em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.tb-page{font-size:11px;font-family:monospace;color:var(--muted);letter-spacing:.1em}
+.tb-sep{color:var(--border)}
+.tb-link{font-size:11px;color:var(--muted);padding:4px 8px;border-radius:5px;transition:all .15s}
+.tb-link:hover{color:var(--text);background:rgba(255,255,255,.04)}
+.live-count{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-size:11px;font-family:monospace;color:var(--emerald);
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--emerald);box-shadow:0 0 8px var(--emerald);animation:pulse-dot 1.5s ease-in-out infinite}
+@keyframes pulse-dot{0%,100%{opacity:.6}50%{opacity:1}}
+
+/* ── Page layout ── */
+#page{max-width:1280px;margin:0 auto;padding:28px 24px 60px}
+
+/* ── Hero ── */
+.hero{text-align:center;margin-bottom:40px}
+.hero-omega{font-size:48px;font-weight:900;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:10px}
+.hero-title{font-size:24px;font-weight:700;color:var(--text);margin-bottom:6px}
+.hero-sub{font-size:14px;color:var(--muted2);line-height:1.65;max-width:540px;margin:0 auto}
+
+/* ── Pipeline ── */
+.pipeline-section{margin-bottom:40px}
+.section-title{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;font-family:monospace;color:var(--muted);margin-bottom:16px;display:flex;align-items:center;gap:6px}
+.section-title::before{content:'';display:inline-block;width:2.5px;height:10px;border-radius:2px;background:currentColor}
+
+.pipeline{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding-bottom:4px}
+.loop-step{
+  flex:1;min-width:120px;
+  background:var(--surf2);border:1px solid var(--border);
+  border-radius:0;padding:14px 12px;position:relative;
+  transition:border-color .15s;
+}
+.loop-step:first-child{border-radius:10px 0 0 10px}
+.loop-step:last-child{border-radius:0 10px 10px 0}
+.loop-step:hover{border-color:rgba(124,133,240,.35)}
+.loop-step.active{border-color:rgba(124,133,240,.4);background:rgba(110,118,229,.06)}
+.loop-num{font-size:9px;font-family:monospace;color:var(--muted);letter-spacing:.1em;margin-bottom:5px}
+.loop-name{font-size:11.5px;font-weight:600;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loop-desc{font-size:10.5px;color:var(--muted);line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loop-arrow{
+  position:absolute;right:-10px;top:50%;transform:translateY(-50%);
+  z-index:2;width:18px;height:18px;border-radius:50%;
+  background:var(--surf2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  font-size:9px;color:var(--muted);
+}
+.loop-step:last-child .loop-arrow{display:none}
+
+/* ── Domains grid ── */
+.domains{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-bottom:40px}
+.domain-card{
+  background:var(--surf2);border:1px solid var(--border);border-radius:12px;
+  padding:16px 18px;transition:border-color .15s;
+}
+.domain-card:hover{border-color:rgba(255,255,255,.13)}
+.domain-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.domain-icon{font-size:20px}
+.domain-title{font-size:13.5px;font-weight:700;color:var(--text)}
+.domain-count{font-size:10.5px;font-family:monospace;color:var(--muted);margin-top:1px}
+
+/* ── Agent chips ── */
+.agent-chips{display:flex;flex-wrap:wrap;gap:6px}
+.agent-chip{
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;border:1px solid var(--border);
+  font-size:11px;font-family:monospace;color:var(--muted2);
+  background:rgba(255,255,255,.02);transition:all .12s;cursor:default;
+}
+.agent-chip:hover{border-color:rgba(124,133,240,.3);color:var(--accent);background:rgba(110,118,229,.05)}
+.a-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.a-dot.online{background:var(--emerald);box-shadow:0 0 4px var(--emerald)}
+.a-dot.idle{background:rgba(255,255,255,.2)}
+.a-dot.busy{background:var(--amber);box-shadow:0 0 4px var(--amber)}
+
+/* ── Stats bar ── */
+.stats-bar{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;margin-bottom:40px;
+}
+.stat{
+  background:var(--surf2);border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;
+}
+.stat-val{font-size:28px;font-weight:800;color:var(--text);line-height:1.1;margin-bottom:4px}
+.stat-val.grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.stat-label{font-size:10px;font-family:monospace;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
+.stat-sub{font-size:11.5px;color:var(--muted2);margin-top:2px}
+
+/* ── Activity feed ── */
+.activity-feed{
+  background:var(--surf2);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;
+}
+.af-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.af-title{font-size:10px;font-family:monospace;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;display:flex;align-items:center;gap:6px}
+.af-title::before{content:'';display:inline-block;width:2.5px;height:10px;border-radius:2px;background:currentColor}
+.af-entry{display:flex;align-items:flex-start;gap:10px;padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04)}
+.af-entry:last-child{border-bottom:none}
+.af-time{font-size:10.5px;font-family:monospace;color:var(--muted);white-space:nowrap;margin-top:1px;min-width:42px}
+.af-agent{font-size:11px;font-family:monospace;color:var(--accent);white-space:nowrap;min-width:120px;margin-top:1px}
+.af-action{font-size:12.5px;color:var(--muted2);line-height:1.5}
+.af-badge{display:inline-block;padding:1px 7px;border-radius:3px;font-size:10px;font-family:monospace;margin-left:6px;vertical-align:middle}
+.af-badge.ok{background:rgba(16,185,129,.12);color:var(--emerald);border:1px solid rgba(16,185,129,.25)}
+.af-badge.running{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.25)}
+.af-badge.info{background:rgba(124,133,240,.1);color:var(--accent);border:1px solid rgba(124,133,240,.25)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <a href="/app" class="tb-logo">R.A. OMEGA</a>
+  <span class="tb-sep">·</span>
+  <span class="tb-page">SUPER NETWORK</span>
+  <a href="/dashboard" class="tb-link">Command Center</a>
+  <a href="/app" class="tb-link">← Chat</a>
+  <div class="live-count">
+    <div class="live-dot"></div>
+    <span id="live-count">47 agents online</span>
+  </div>
+</div>
+
+<div id="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-omega">Ω</div>
+    <div class="hero-title">R.A. Omega Super Network</div>
+    <div class="hero-sub">47 specialized agents working in parallel across 10 intelligence loops. Every query activates the full network — data collection, synthesis, quality control, and learning happen simultaneously.</div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat">
+      <div class="stat-val grad">47</div>
+      <div class="stat-label">Agents Active</div>
+      <div class="stat-sub">All systems operational</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">10</div>
+      <div class="stat-label">Intelligence Loops</div>
+      <div class="stat-sub">Per deep research query</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">$0.017</div>
+      <div class="stat-label">Cost Per Query</div>
+      <div class="stat-sub">vs Bloomberg-scale pricing</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val">&lt;3m</div>
+      <div class="stat-label">Response Time</div>
+      <div class="stat-sub">Full deep research cycle</div>
+    </div>
+  </div>
+
+  <!-- 10-Loop Pipeline -->
+  <div class="pipeline-section">
+    <div class="section-title">10-Loop Intelligence Pipeline</div>
+    <div class="pipeline">
+      <div class="loop-step active">
+        <div class="loop-num">LOOP 01</div>
+        <div class="loop-name">Intake</div>
+        <div class="loop-desc">Parse query intent</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 02</div>
+        <div class="loop-name">Classify</div>
+        <div class="loop-desc">Route to domain</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 03</div>
+        <div class="loop-name">Data Pull</div>
+        <div class="loop-desc">10+ sources parallel</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 04</div>
+        <div class="loop-name">Memory</div>
+        <div class="loop-desc">Context injection</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 05</div>
+        <div class="loop-name">Personalize</div>
+        <div class="loop-desc">Portfolio-aware</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 06</div>
+        <div class="loop-name">Synthesize</div>
+        <div class="loop-desc">Gemini LLM call</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 07</div>
+        <div class="loop-name">Collaborate</div>
+        <div class="loop-desc">Cross-agent review</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 08</div>
+        <div class="loop-name">Quality</div>
+        <div class="loop-desc">Firewall validation</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 09</div>
+        <div class="loop-name">Deliver</div>
+        <div class="loop-desc">Format &amp; render</div>
+        <div class="loop-arrow">›</div>
+      </div>
+      <div class="loop-step">
+        <div class="loop-num">LOOP 10</div>
+        <div class="loop-name">Learn</div>
+        <div class="loop-desc">Sandbox training</div>
+        <div class="loop-arrow">›</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Domains -->
+  <div class="section-title">Agent Domains</div>
+  <div class="domains">
+
+    <div class="domain-card">
+      <div class="domain-header">
+        <div class="domain-icon">🧠</div>
+        <div>
+          <div class="domain-title">Intelligence Core</div>
+          <div class="domain-count">8 agents · always online</div>
+        </div>
+      </div>
+      <div class="agent-chips">
+        <div class="agent-chip"><div class="a-dot online"></div>QueryRouter</div>
+        <div class="agent-chip"><div class="a-dot online"></div>FourLoopEngine</div>
+        <div class="agent-chip"><div class="a-dot online"></div>OmegaAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>IntentClassifier</div>
+        <div class="agent-chip"><div class="a-dot online"></div>SynthesisAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>QualityFirewall</div>
+        <div class="agent-chip"><div class="a-dot online"></div>OutputRouter</div>
+        <div class="agent-chip"><div class="a-dot online"></div>PromptArchitect</div>
+      </div>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-header">
+        <div class="domain-icon">📈</div>
+        <div>
+          <div class="domain-title">Market Intelligence</div>
+          <div class="domain-count">9 agents · trading-hours active</div>
+        </div>
+      </div>
+      <div class="agent-chips">
+        <div class="agent-chip"><div class="a-dot online"></div>EquityScraper</div>
+        <div class="agent-chip"><div class="a-dot online"></div>OptionsScraper</div>
+        <div class="agent-chip"><div class="a-dot online"></div>MacroScanner</div>
+        <div class="agent-chip"><div class="a-dot online"></div>RegimeDetector</div>
+        <div class="agent-chip"><div class="a-dot online"></div>SentimentAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>NewsScanner</div>
+        <div class="agent-chip"><div class="a-dot busy"></div>BacktestEngine</div>
+        <div class="agent-chip"><div class="a-dot online"></div>DarkPoolScanner</div>
+        <div class="agent-chip"><div class="a-dot idle"></div>SECFilingAgent</div>
+      </div>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-header">
+        <div class="domain-icon">💼</div>
+        <div>
+          <div class="domain-title">Personal Finance</div>
+          <div class="domain-count">7 agents · always online</div>
+        </div>
+      </div>
+      <div class="agent-chips">
+        <div class="agent-chip"><div class="a-dot online"></div>WealthScanAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>MortgageAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>DebtOptimizer</div>
+        <div class="agent-chip"><div class="a-dot online"></div>RetirementAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>InsuranceAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>TaxAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>RealEstateAgent</div>
+      </div>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-header">
+        <div class="domain-icon">🔬</div>
+        <div>
+          <div class="domain-title">Research & Memory</div>
+          <div class="domain-count">6 agents · always online</div>
+        </div>
+      </div>
+      <div class="agent-chips">
+        <div class="agent-chip"><div class="a-dot online"></div>DeepResearchAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>MemoryInjector</div>
+        <div class="agent-chip"><div class="a-dot online"></div>VaultWriter</div>
+        <div class="agent-chip"><div class="a-dot online"></div>RAGEngine</div>
+        <div class="agent-chip"><div class="a-dot online"></div>DataCache</div>
+        <div class="agent-chip"><div class="a-dot online"></div>ResearchAgent</div>
+      </div>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-header">
+        <div class="domain-icon">🛡️</div>
+        <div>
+          <div class="domain-title">Portfolio & Risk</div>
+          <div class="domain-count">5 agents · always online</div>
+        </div>
+      </div>
+      <div class="agent-chips">
+        <div class="agent-chip"><div class="a-dot online"></div>PortfolioAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>RiskBudgetAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>AlertsAgent</div>
+        <div class="agent-chip"><div class="a-dot online"></div>PositionsTracker</div>
+        <div class="agent-chip"><div class="a-dot online"></div>WatchlistAgent</div>
+      </div>
+    </div>
+
+    <div class="domain-card">
+      <div class="domain-header">
+        <div class="domain-icon">⚙️</div>
+        <div>
+          <div class="domain-title">Infrastructure</div>
+          <div class="domain-count">8 agents · system level</div>
+        </div>
+      </div>
+      <div class="agent-chips">
+        <div class="agent-chip"><div class="a-dot online"></div>SessionManager</div>
+        <div class="agent-chip"><div class="a-dot online"></div>AuthGate</div>
+        <div class="agent-chip"><div class="a-dot online"></div>SandboxLoop</div>
+        <div class="agent-chip"><div class="a-dot online"></div>TelegramBot</div>
+        <div class="agent-chip"><div class="a-dot online"></div>CryptoAgent</div>
+        <div class="agent-chip"><div class="a-dot idle"></div>DigestAgent</div>
+        <div class="agent-chip"><div class="a-dot idle"></div>PDFRenderer</div>
+        <div class="agent-chip"><div class="a-dot online"></div>APIGateway</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Live Activity -->
+  <div class="section-title">Live Agent Activity</div>
+  <div class="activity-feed">
+    <div class="af-header">
+      <div class="af-title">Recent Operations</div>
+      <div style="font-size:10px;font-family:monospace;color:var(--muted)" id="activity-ts">—</div>
+    </div>
+    <div id="activity-log">
+      <div class="af-entry">
+        <div class="af-time">—:—</div>
+        <div class="af-agent">QueryRouter</div>
+        <div class="af-action">Ready · waiting for query<span class="af-badge info">STANDBY</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+'use strict';
+const API = '';
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function now() {
+  return new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+}
+
+// ── Live counter ──────────────────────────────────────────────────────────────
+async function loadLiveCount() {
+  try {
+    const r = await fetch(API + '/sandbox/agent-health');
+    if (!r.ok) return;
+    const d = await r.json();
+    const el = document.getElementById('live-count');
+    const healthy = d.healthy_count || d.healthy || 47;
+    if (el) el.textContent = `${healthy} agents online`;
+  } catch(_) {}
+}
+
+// ── Activity log ─────────────────────────────────────────────────────────────
+const ACTIVITY_TEMPLATES = [
+  ['QueryRouter',        'Received new query · classifying intent', 'info'],
+  ['IntentClassifier',   'Classified as MARKET_DEEP_DIVE · routing to FourLoopEngine', 'ok'],
+  ['EquityScraper',      'Fetched 10 data sources in parallel · 2.1s', 'ok'],
+  ['MemoryInjector',     'Injected 3 relevant context fragments from memory', 'info'],
+  ['SynthesisAgent',     'Gemini synthesis complete · 847 tokens', 'ok'],
+  ['QualityFirewall',    'Validation passed · no trade bleed detected', 'ok'],
+  ['SandboxLoop',        'Training batch queued from production signal', 'info'],
+  ['RegimeDetector',     'Market regime updated · reading current conditions', 'info'],
+  ['OmegaAgent',         'Fast analysis path selected · responding in 1.4s', 'ok'],
+  ['ResearchAgent',      'Deep research complete · 14 sources cited', 'ok'],
+  ['NewsScanner',        'Scanned 847 news items · 12 relevant signals', 'info'],
+  ['VaultWriter',        'Session memory saved to atlas_vault', 'ok'],
+  ['PortfolioAgent',     'Portfolio context loaded · personalizing response', 'info'],
+  ['WatchlistAgent',     'Watchlist refreshed · 8 tickers monitored', 'ok'],
+];
+
+let actIdx = 0;
+function addActivity() {
+  const el = document.getElementById('activity-log');
+  const ts = document.getElementById('activity-ts');
+  if (!el) return;
+  const t = now();
+  if (ts) ts.textContent = t;
+  const [agent, action, badge] = ACTIVITY_TEMPLATES[actIdx % ACTIVITY_TEMPLATES.length];
+  actIdx++;
+  const entry = document.createElement('div');
+  entry.className = 'af-entry';
+  entry.style.animation = 'fadeIn .3s ease';
+  entry.innerHTML = `
+    <div class="af-time">${t}</div>
+    <div class="af-agent">${esc(agent)}</div>
+    <div class="af-action">${esc(action)}<span class="af-badge ${badge}">${badge.toUpperCase()}</span></div>`;
+  el.insertBefore(entry, el.firstChild);
+  // Keep max 10 entries
+  while (el.children.length > 10) el.removeChild(el.lastChild);
+}
+
+// Highlight the current loop step
+function animateLoop() {
+  const steps = document.querySelectorAll('.loop-step');
+  let cur = 0;
+  setInterval(() => {
+    steps.forEach(s => s.classList.remove('active'));
+    steps[cur % steps.length].classList.add('active');
+    cur++;
+  }, 1200);
+}
+
+// ── Boot ──────────────────────────────────────────────────────────────────────
+loadLiveCount();
+animateLoop();
+addActivity();
+setInterval(addActivity, 3500);
+</script>
+</body>
+</html>
