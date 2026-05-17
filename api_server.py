@@ -2494,6 +2494,42 @@ def hermes_execute_api(action_id: str, user_id: AtlasUserId):
     return {"ok": True, "action_id": action_id, "status": "executed"}
 
 
+@app.post("/transcripts/ingest")
+def transcripts_ingest_api(user_id: AtlasUserId):
+    """Convert new Claude Code sessions to .md and ingest into Chroma finance_knowledge."""
+    try:
+        from transcript_ingest import convert_sessions, ingest_transcripts
+        new_files = convert_sessions(force=False)
+        result = ingest_transcripts()
+        return {
+            "ok": True,
+            "new_sessions_converted": len(new_files),
+            "new_files": [str(f.name) for f in new_files],
+            **result,
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
+@app.get("/transcripts/status")
+def transcripts_status_api():
+    """Return transcript ingest status and Chroma chunk counts."""
+    try:
+        from transcript_ingest import _load_state, TRANSCRIPT_DIR
+        state = _load_state()
+        md_files = len(list(TRANSCRIPT_DIR.glob("session_*.md"))) if TRANSCRIPT_DIR.exists() else 0
+        return {
+            "ok": True,
+            "converted_sessions": len(state.get("converted", {})),
+            "md_files": md_files,
+            "last_ingest": state.get("last_ingest"),
+            "last_ingest_result": state.get("last_ingest_result"),
+            "sessions": list(state.get("converted", {}).values()),
+        }
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+
 @app.post("/pipeline/plan")
 def pipeline_plan_endpoint(req: ResearchPlanRequest, user_id: AtlasUserId):
     """Return the optimal agent team and execution plan for a query.
