@@ -110,6 +110,7 @@ sys.path.insert(0, str(BASE_DIR))
 import atlas_db  # noqa: E402
 import agent_audit  # noqa: E402
 import omega_config  # noqa: E402
+from pipeline_planner import plan_pipeline, AgentPlan  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -1696,6 +1697,17 @@ def dispatch_query_request(
         shaped["_route_decision"] = route_decision.to_dict()
         shaped["_active_agents"] = activation.to_dict()
         shaped["_specialist_packets"] = specialist_packets
+        try:
+            _pipeline_plan = plan_pipeline(
+                query=q_store,
+                intent=_intent,
+                output_mode=_output_mode,
+                research_mode=mode,
+                user_id=user_id if user_id != "test_user_local" else None,
+            )
+            shaped["_pipeline_plan"] = _pipeline_plan.to_dict()
+        except Exception:
+            log.debug("[pipeline_planner] plan generation failed", exc_info=True)
         shaped = _attach_market_intelligence_if_relevant(shaped, q_store, route_decision)
         activity = _build_research_activity_payload(q_store, route_decision)
         if job:
@@ -2205,10 +2217,13 @@ def serve_brain_network():
 
 
 @app.get("/command-center")
-def serve_command_center():
+def serve_omega_command_center():
     """Serve the R.A. Omega user-facing product dashboard."""
     path = BASE_DIR / "omega_command_center.html"
     if not path.is_file():
+        # Fall back to command_center.html if omega variant not found
+        if COMMAND_CENTER.is_file():
+            return _dashboard_html_response(COMMAND_CENTER)
         raise HTTPException(status_code=404, detail="Missing omega_command_center.html")
     return FileResponse(path, media_type="text/html; charset=utf-8")
 
@@ -2234,6 +2249,36 @@ def create_research_plan(req: ResearchPlanRequest, user_id: AtlasUserId):
         "activity": research_jobs.activity_from_job(job),
         "route_decision": route_decision.to_dict(),
     }
+
+
+@app.post("/pipeline/plan")
+def pipeline_plan_endpoint(req: ResearchPlanRequest, user_id: AtlasUserId):
+    """Return the optimal agent team and execution plan for a query.
+
+    This is a fast, read-only planning step — no LLM call is made.
+    The UI can call this immediately after the user submits a query to
+    display which agents are activated before the full response arrives.
+    """
+    q = req.query.strip()
+    if not q:
+        raise HTTPException(status_code=422, detail="query is required")
+
+    route_decision = decide_route(
+        q,
+        forced_mode=req.research_mode or "normal",
+        web_search=bool(req.web_search),
+    )
+    intent = getattr(route_decision, "intent", "GENERAL_FINANCE")
+    output_mode = getattr(route_decision, "output_mode", "chat")
+
+    plan: AgentPlan = plan_pipeline(
+        query=q,
+        intent=intent,
+        output_mode=output_mode,
+        research_mode=req.research_mode or "normal",
+        user_id=user_id if user_id != "test_user_local" else None,
+    )
+    return {"ok": True, "plan": plan.to_dict()}
 
 
 @app.get("/jobs")

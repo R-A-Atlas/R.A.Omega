@@ -718,6 +718,50 @@ function renderContent(data, contentId, msgId) {
 
   html += '</div>';
 
+  // Agent pipeline strip — shows which agents ran
+  const pp = data._pipeline_plan;
+  if (pp && pp.agents && pp.agents.length) {
+    const domainColors = {
+      core: '#6366f1', market: '#10b981', finance: '#f59e0b',
+      portfolio: '#3b82f6', research: '#8b5cf6', memory: '#64748b'
+    };
+    const agentPool = {
+      QueryRouter:{domain:'core'}, IntentClassifier:{domain:'core'}, SynthesisAgent:{domain:'core'},
+      QualityFirewall:{domain:'core'}, PromptArchitect:{domain:'core'}, MemoryInjector:{domain:'memory'},
+      VaultWriter:{domain:'memory'}, EquityScraper:{domain:'market'}, OptionsScraper:{domain:'market'},
+      NewsScanner:{domain:'market'}, SentimentAgent:{domain:'market'}, RegimeDetector:{domain:'market'},
+      SECFilingAgent:{domain:'market'}, DarkPoolScanner:{domain:'market'}, MacroScanner:{domain:'market'},
+      BacktestEngine:{domain:'market'}, CryptoAgent:{domain:'market'}, WealthScanAgent:{domain:'finance'},
+      MortgageAgent:{domain:'finance'}, DebtOptimizer:{domain:'finance'}, TaxAgent:{domain:'finance'},
+      RealEstateAgent:{domain:'finance'}, PortfolioAgent:{domain:'portfolio'}, RiskBudgetAgent:{domain:'portfolio'},
+      WatchlistAgent:{domain:'portfolio'}, DeepResearchAgent:{domain:'research'}, RAGEngine:{domain:'research'},
+      DataCache:{domain:'research'}
+    };
+    const chips = pp.agents.map(a => {
+      const domain = (agentPool[a] || {}).domain || 'core';
+      const color = domainColors[domain] || '#6366f1';
+      return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:12px;font-size:10px;background:${color}18;border:1px solid ${color}40;color:${color};white-space:nowrap">
+        <span style="width:5px;height:5px;border-radius:50%;background:${color};flex-shrink:0"></span>${esc(a)}
+      </span>`;
+    }).join('');
+    const loopLabel = pp.estimated_loops === 10 ? '10-loop deep run' : `${pp.estimated_loops}-loop`;
+    const msLabel = pp.estimated_ms >= 1000 ? `~${(pp.estimated_ms/1000).toFixed(0)}s` : `~${pp.estimated_ms}ms`;
+    html += `<details class="agent-pipeline-strip" style="margin:10px 0 0;border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:8px 12px;background:rgba(255,255,255,.02)">
+      <summary style="cursor:pointer;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:8px;list-style:none;user-select:none">
+        <span style="width:6px;height:6px;border-radius:50%;background:#10b981;box-shadow:0 0 6px #10b981;flex-shrink:0"></span>
+        <strong style="color:var(--muted2)">${esc(String(pp.agent_count))} agents</strong>
+        <span style="color:rgba(255,255,255,.25)">·</span>
+        <span>${esc(pp.intent)}</span>
+        <span style="color:rgba(255,255,255,.25)">·</span>
+        <span>${loopLabel}</span>
+        <span style="color:rgba(255,255,255,.25)">·</span>
+        <span>${msLabel} est</span>
+        <span style="margin-left:auto;opacity:.5">▾ view agents</span>
+      </summary>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:4px">${chips}</div>
+    </details>`;
+  }
+
   // Export bar
   const isCompanyReportCheck = (data._output_mode || '') === 'company_report';
   html += `<div class="export-bar">
