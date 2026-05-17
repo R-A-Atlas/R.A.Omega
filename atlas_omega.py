@@ -1946,7 +1946,7 @@ class OmegaAgent:
         return {
             "domain": "CASUAL",
             "domain_label": "Casual",
-            "headline": "ATLAS",
+            "headline": "R.A. Omega",
             "urgency": "informational",
             "executive_brief": text,
             "query": query,

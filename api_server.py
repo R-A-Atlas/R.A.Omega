@@ -102,6 +102,7 @@ ATLAS_DIR = BASE_DIR
 ATLAS_DASHBOARD_V4 = ATLAS_DIR / "atlas_dashboard_v4.html"
 RA_OMEGA_APP = ATLAS_DIR / "ra_omega_app.html"
 ATLAS_ZENITH_LANDING = ATLAS_DIR / "index_1778228972988.html"
+ATLAS_AUTH = ATLAS_DIR / "auth.html"
 sys.path.insert(0, str(BASE_DIR))
 
 import atlas_db  # noqa: E402
@@ -2308,8 +2309,10 @@ def cancel_research_job(job_id: str, user_id: AtlasUserId):
 
 @app.get("/auth")
 def serve_auth():
-    """Same Zenith landing as `/` for Supabase sign in / sign up."""
-    return _zenith_landing_response()
+    """Clean vanilla-JS sign-in page (no CDN dependencies that Edge blocks)."""
+    if not ATLAS_AUTH.is_file():
+        return _zenith_landing_response()
+    return FileResponse(ATLAS_AUTH, media_type="text/html; charset=utf-8")
 
 
 @app.get("/rag/status")

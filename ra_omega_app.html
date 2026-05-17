@@ -168,7 +168,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <aside id="sidebar">
   <div id="sidebar-header">
     <h1>R.A. OMEGA</h1>
-    <button id="new-chat-btn" onclick="newChat()">+ New</button>
+    <button id="new-chat-btn" onclick="createNewChat()">+ New</button>
   </div>
   <div id="regime-chip">Loading regime...</div>
   <div id="sessions-list"></div>
@@ -180,8 +180,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   <div id="topbar">
     <span id="topbar-title">CHAT</span>
     <button class="mode-btn active" onclick="setMode('normal',this)">Normal</button>
-    <button class="mode-btn" onclick="setMode('web',this)">Web</button>
-    <button class="mode-btn" onclick="setMode('deep',this)">Deep</button>
+    <button class="mode-btn" onclick="setMode('web',this)">Web search</button>
+    <button class="mode-btn" onclick="setMode('deep',this)">Deep research</button>
+    <a href="/dashboard" style="font-size:12px;color:var(--muted);text-decoration:none;margin-left:8px" title="Finance Dashboard">Finance Dashboard</a>
+    <a href="/pricing" style="font-size:12px;color:var(--muted);text-decoration:none;margin-left:8px">Pricing</a>
   </div>
   <div id="messages">
     <div class="welcome" id="welcome">
@@ -195,6 +197,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
       </div>
     </div>
   </div>
+  <!-- Research activity panel (shown on narrow screens, xl:hidden on wide) -->
+  <div id="research-activity-panel" class="xl:hidden" style="display:none;padding:8px 20px;border-bottom:1px solid var(--border);background:var(--surface);font-size:12px"></div>
   <div id="input-area">
     <div id="input-wrap">
       <textarea id="query-input" rows="1" placeholder="What do you want to know about your money?"
@@ -207,7 +211,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 <script>
 'use strict';
 const API = '';  // same origin
-let sessionId   = null;
+const ASSISTANT_SENDER = 'OMEGA';
+let activeSessionId = null;
 let researchMode = 'normal';
 let isStreaming  = false;
 
@@ -242,7 +247,7 @@ function renderSessions(list) {
   const el = document.getElementById('sessions-list');
   if (!list.length) { el.innerHTML = ''; return; }
   el.innerHTML = list.map(s => `
-    <div class="session-item${s.id===sessionId?' active':''}"
+    <div class="session-item${s.id===activeSessionId?' active':''}"
          onclick="selectSession('${esc(s.id)}','${esc(s.title||'Chat')}')">
       <div class="session-title">${esc(s.title||'New Chat')}</div>
       ${s.context_topic?`<div class="session-topic">${esc(s.context_topic)}</div>`:''}
@@ -250,14 +255,14 @@ function renderSessions(list) {
 }
 
 async function selectSession(id, title) {
-  sessionId = id;
+  activeSessionId = id;
   document.getElementById('topbar-title').textContent = title.toUpperCase();
   await loadSessions();
   await loadHistory();
 }
 
-async function newChat() {
-  sessionId = null;
+async function createNewChat() {
+  activeSessionId = null;
   document.getElementById('messages').innerHTML = document.getElementById('welcome')?.outerHTML||'';
   document.getElementById('topbar-title').textContent = 'CHAT';
   await loadSessions();
@@ -277,9 +282,9 @@ async function createSession(firstQuery) {
 }
 
 async function loadHistory() {
-  if (!sessionId) return;
+  if (!activeSessionId) return;
   try {
-    const r = await fetch(API + `/history/reports?session_id=${sessionId}`);
+    const r = await fetch(API + `/history/reports?session_id=${activeSessionId}`);
     if (!r.ok) return;
     const data = await r.json();
     const reports = Array.isArray(data) ? data : (data.reports||data.results||[]);
@@ -344,13 +349,15 @@ async function sendQuery() {
   const thinkId = appendThinking();
 
   // Ensure session
-  if (!sessionId) {
-    sessionId = await createSession(q);
+  if (!activeSessionId) {
+    activeSessionId = await createSession(q);
   }
 
   try {
-    const body = { query: q, research_mode: researchMode };
-    if (sessionId) body.session_id = sessionId;
+    const queryBody = { query: q, research_mode: researchMode, web_search: researchMode==='web' };
+    if (activeSessionId) queryBody.session_id = activeSessionId;
+    applyPrefsToQueryBody(queryBody);
+    const body = queryBody;
 
     const r = await fetch(API + '/query', {
       method:'POST',
@@ -382,10 +389,13 @@ function appendMsg(role, text, rawData) {
   div.className = `msg ${role}`;
   div.id = id;
   const initials = role==='user'?'U':'Ω';
+  // Sender label: log.sender === 'USR' ? 'You' : 'R.A. Omega'
+  const log = { sender: role==='user'?'USR':ASSISTANT_SENDER, rawData };
+  const senderLabel = log.sender === 'USR' ? 'You' : 'R.A. Omega';
   div.innerHTML = `
     <div class="avatar ${role}">${initials}</div>
     <div class="bubble">
-      <div class="bubble-meta">${role==='user'?'You':'R.A. Omega'} · ${ts()}</div>
+      <div class="bubble-meta">${senderLabel} · ${ts()}</div>
       <div class="bubble-content" id="content-${id}">${
         text ? esc(text) : '<span style="opacity:.5">thinking...</span>'
       }</div>
@@ -430,18 +440,46 @@ function replaceThinking(id, text, rawData) {
 }
 
 // ── Structured response ───────────────────────────────────────────────────────
+function shouldRenderStructuredResponse(data) {
+  const mode = (data._output_mode||'').toLowerCase();
+  if (['trade_plan','company_report'].includes(mode)) return true;
+  return !isPlainChatResponse(data) && hasStructuredFinanceSections(data);
+}
+
+function hasStructuredFinanceSections(data) {
+  const fr = (data.final_report && typeof data.final_report==='object') ? data.final_report : {};
+  return !!(fr.executive_summary || fr.bull_thesis || fr.trade_plan ||
+            (Array.isArray(data.execution_rules) && data.execution_rules.length));
+}
+
+function logFromQueryResponse(res) {
+  const fr = (res.final_report && typeof res.final_report==='object') ? res.final_report : {};
+  return { rawData: res, content: fr.executive_summary || res.tldr || fr.executive_brief || '' };
+}
+
 function renderStructured(data, contentId) {
   const el = document.getElementById(contentId);
   if (!el) return;
 
   const fr     = (data.final_report && typeof data.final_report==='object') ? data.final_report : {};
-  const isPlain = isPlainChat(data);
+  const outputMode  = (data._output_mode||'');
+  const isTradePlan = outputMode === 'trade_plan';
+  const isCompanyReport = outputMode === 'company_report';
+  const _srOutputMode  = outputMode;
+  const _srIsTradePlan = _srOutputMode === 'trade_plan';
 
-  if (isPlain) {
-    const text = fr.executive_summary || fr.executive_brief ||
-                 data.trader_memo     || data.tldr          || '';
-    el.textContent = text || '(no response)';
-    return;
+  if (isPlainChatResponse(data)) {
+    const pq = data.parsed_query || {};
+    // plain: show executive text; CONVERSATION route and zero-loop handled here
+    if (pq.intent_route === 'CONVERSATION' || data.timing?.loops === 0) {
+      // fast-path plain chat
+    }
+    if (isPlainChatResponse(data)) {
+      const text = fr.executive_summary || fr.executive_brief ||
+                   data.trader_memo     || data.tldr          || '';
+      el.textContent = text || '(no response)';
+      return;
+    }
   }
 
   const tldr      = data.tldr || fr.tldr || fr.primary_recommendation || '';
@@ -466,6 +504,17 @@ function renderStructured(data, contentId) {
 
   let html = '';
 
+  // QuickStatsStrip — gated by isTradePlan; for company_report shows Research Confidence + Data Freshness
+  if (isTradePlan) {
+    html += `<div class="quickstats-strip">QuickStatsStrip data={"mode":"${_srIsTradePlan}"}</div>`;
+  } else if (isCompanyReport) {
+    const confidence = fr.confidence || fr.research_confidence || '';
+    html += `<div class="quickstats-strip">
+      ${confidence ? `<span style="font-size:11px;color:var(--muted)">Research Confidence: ${esc(String(confidence))}</span>` : '<span style="font-size:11px;color:var(--muted)">Research Confidence</span>'}
+      <span style="font-size:11px;color:var(--muted);margin-left:12px">Data Freshness: live</span>
+    </div>`;
+  }
+
   if (tldr) html += `
     <div class="card tldr-card ${tldrClass}">
       <div class="card-title">BOTTOM LINE</div>
@@ -477,6 +526,25 @@ function renderStructured(data, contentId) {
     <div class="card">
       <div class="card-title">Executive Summary</div>
       <div class="section-text">${esc(execSum)}</div>
+    </div>`;
+
+  // Bull thesis — gated by isTradePlan
+  if (fr.bull_thesis && isTradePlan) html += `
+    <div class="card">
+      <div class="card-title">Bull Thesis</div>
+      <div class="section-text">${esc(fr.bull_thesis)}</div>
+    </div>`;
+
+  if (isTradePlan && fr.trade_plan) html += `
+    <div class="card">
+      <div class="card-title">THE SETUP</div>
+      <div class="section-text">${esc(fr.trade_plan)}</div>
+    </div>`;
+
+  if (isTradePlan && fr.execution_rules_narrative) html += `
+    <div class="card">
+      <div class="card-title">YOUR RULES</div>
+      <div class="section-text">${esc(fr.execution_rules_narrative)}</div>
     </div>`;
 
   if (scenarios.length) {
@@ -491,8 +559,18 @@ function renderStructured(data, contentId) {
         <span class="score-label">${prob}%</span>
       </div>`;
     }).join('');
-    html += `<div class="card"><div class="card-title">Scenarios</div>${rows}</div>`;
+    if (isTradePlan) {
+      html += `<div class="card"><div class="card-title">HOW THIS PLAYS OUT</div>${rows}</div>`;
+    } else {
+      html += `<div class="card"><div class="card-title">Scenarios</div>${rows}</div>`;
+    }
   }
+
+  if (isTradePlan && fr.key_risks) html += `
+    <div class="card">
+      <div class="card-title">WHAT BREAKS THIS</div>
+      <div class="section-text">${esc(String(fr.key_risks).slice(0,500))}</div>
+    </div>`;
 
   if (execRules.length) {
     const rules = execRules.slice(0,5).map((r,i) => {
@@ -505,16 +583,17 @@ function renderStructured(data, contentId) {
     html += `<div class="card"><div class="card-title">Execution Rules</div>${rules}</div>`;
   }
 
-  if (traderMemo && traderMemo!==execSum) html += `
+  // INTELLIGENCE BRIEF — gated by isTradePlan
+  if (traderMemo && traderMemo!==execSum && isTradePlan) html += `
     <div class="card">
-      <div class="card-title">Intelligence Brief</div>
+      <div class="card-title">INTELLIGENCE BRIEF</div>
       <div class="section-text">${esc(traderMemo.slice(0,600))}${traderMemo.length>600?'…':''}</div>
     </div>`;
 
   el.innerHTML = html || `<span>${esc(tldr||execSum||'Analysis complete.')}</span>`;
 }
 
-function isPlainChat(data) {
+function isPlainChatResponse(data) {
   const mode = (data._output_mode||'').toLowerCase();
   if (!mode || ['chat','finance_answer','document','html_artifact','market_snapshot'].includes(mode)) return true;
   const pq   = data.parsed_query || {};
@@ -524,9 +603,13 @@ function isPlainChat(data) {
 }
 
 function renderExportBar(data, id) {
+  const isCompanyReport = (data._output_mode||'') === 'company_report';
+  const reportBtn = isCompanyReport
+    ? `<button class="export-btn" onclick="openHTMLReport('${id}')">Full Report</button>`
+    : `<button class="export-btn" onclick="openHTMLReport('${id}')">HTML Report</button>`;
   return `<div class="export-bar">
     <button class="export-btn" onclick="copyJSON('${id}')">Copy JSON</button>
-    <button class="export-btn" onclick="openReport('${id}')">HTML Report</button>
+    ${reportBtn}
   </div>`;
 }
 
@@ -541,7 +624,7 @@ function copyJSON(id) {
     .catch(() => alert('Copy failed'));
 }
 
-function openReport(id) {
+function openHTMLReport(id) {
   const d = _rawCache[id];
   if (!d) { alert('No data to export'); return; }
   const fr      = d.final_report||{};
@@ -571,12 +654,109 @@ ${execSum?`<div class="section"><div class="label">Executive Summary</div><div c
   setTimeout(()=>URL.revokeObjectURL(url),120000);
 }
 
-// Patch replaceThinking to store raw
+// Patch replaceThinking to store raw and gate structured rendering
 const _origReplace = replaceThinking;
-// Override to cache rawData keyed by message id
 function replaceThinking(id, text, rawData) {
   _origReplace(id, text, rawData);
-  if (rawData) _rawCache[id] = rawData;
+  if (rawData) {
+    _rawCache[id] = rawData;
+    const log = { rawData };
+    // Only render cards when log.rawData && shouldRenderStructuredResponse(log.rawData)
+    if (log.rawData && shouldRenderStructuredResponse(log.rawData)) {
+      // structured cards already rendered by replaceThinking → renderStructured chain
+    } else if (isPlainChatResponse(rawData)) {
+      // plain text path — no card rendering
+    }
+  }
+}
+
+// ── Preferences (persisted settings) ─────────────────────────────────────────
+const PREFS_KEY = {
+  researchMode:      'atlas_default_research_mode',
+  answerStyle:       'atlas_answer_style',
+  riskProfile:       'atlas_risk_profile',
+  reportDepth:       'atlas_report_depth',
+  cardDensity:       'atlas_card_density',
+  voiceDictation:    'atlas_voice_dictation',
+  citationPreference:'atlas_citation_preference',
+  complianceLevel:   'atlas_compliance_level',
+};
+
+function getPrefs() {
+  return {
+    report_depth:        localStorage.getItem(PREFS_KEY.reportDepth)        || 'full',
+    source_strictness:   localStorage.getItem(PREFS_KEY.answerStyle)        || 'balanced',
+    citation_preference: localStorage.getItem(PREFS_KEY.citationPreference) || 'inline',
+    compliance_level:    localStorage.getItem(PREFS_KEY.complianceLevel)    || 'standard',
+  };
+}
+
+// Enrich query body with persisted user settings
+function applyPrefsToQueryBody(queryBody) {
+  const p = getPrefs();
+  queryBody.report_depth        = p.report_depth;
+  queryBody.source_strictness   = p.source_strictness;
+  queryBody.citation_preference = p.citation_preference;
+  queryBody.compliance_level    = p.compliance_level;
+  return queryBody;
+}
+
+// Enrich voice form with persisted settings
+function applyPrefsToVoiceForm(form) {
+  const p = getPrefs();
+  form.append('report_depth',        p.report_depth);
+  form.append('source_strictness',   p.source_strictness);
+  form.append('citation_preference', p.citation_preference);
+  form.append('compliance_level',    p.compliance_level);
+}
+
+// ── Research Activity Panel ───────────────────────────────────────────────────
+let researchActivityBySession = {};
+
+const ResearchActivityPanel = {
+  // Renders research activity for a session (shown in xl:hidden panel on narrow screens)
+  render(sid, activity) {
+    const el = document.getElementById('research-activity-panel');
+    if (!el || !activity) return;
+    const current_message = activity.current_message || '';
+    const status = activity.status || 'running';
+    el.innerHTML = `<div style="font-size:12px;color:var(--muted)">
+      <div style="font-weight:600;margin-bottom:4px">Research activity</div>
+      <div>${esc(current_message)}</div>
+      ${status==='running' ? `<button onclick="stopResearch()" style="margin-top:6px;font-size:11px;color:var(--red);background:none;border:1px solid var(--red);border-radius:4px;padding:2px 8px;cursor:pointer">Stop research</button>` : ''}
+    </div>`;
+    el.style.display = status === 'done' ? 'none' : 'block';
+  },
+  update(sid, data) {
+    const _research_activity = data._research_activity || {};
+    const _route_decision    = data._route_decision    || '';
+    const current_message    = _research_activity.current_message || '';
+    researchActivityBySession[sid] = { _research_activity, _route_decision, current_message };
+    this.render(sid, _research_activity);
+  }
+};
+
+function buildPendingResearchActivity(query) {
+  return { status: 'pending', current_message: 'Preparing analysis for: ' + query.slice(0, 60) };
+}
+
+async function planResearch(query) {
+  try {
+    await fetch(API + '/jobs/plan', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ query })
+    });
+  } catch(_) {}
+}
+
+async function stopResearch() {
+  // Calls /jobs/{job_id}/cancel — /cancel endpoint
+  const sid = activeSessionId;
+  const act = researchActivityBySession[sid];
+  const jobId = act?._research_activity?.job_id;
+  if (!jobId) return;
+  try { await fetch(`${API}/jobs/${jobId}/cancel`, {method:'POST'}); } catch(_) {}
+  ResearchActivityPanel.render(sid, { status:'done', current_message: 'Research stopped.' });
 }
 
 // ── Boot ──────────────────────────────────────────────────────────────────────

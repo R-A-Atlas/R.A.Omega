@@ -96,11 +96,12 @@ class TestSmokeResultBehavior:
             assert isinstance(item["passed"], bool)
 
     def test_error_when_server_down_shows_null_status(self):
+        # Use a port that is guaranteed not to be running
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), "--json"],
+            [sys.executable, str(SCRIPT), "--base-url", "http://127.0.0.1:9999", "--json"],
             cwd=ROOT, capture_output=True, text=True,
         )
         items = json.loads(result.stdout)
-        # When server is down, status is null (None in Python → null in JSON)
+        # When server is down, all endpoints should fail
         failing = [i for i in items if not i["passed"]]
         assert len(failing) > 0, "Expected failures when server is down"
