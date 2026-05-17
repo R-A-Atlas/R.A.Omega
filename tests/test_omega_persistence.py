@@ -463,13 +463,18 @@ class TestSupabasePath:
 
     def test_save_report_uses_supabase_when_configured(self, tmp):
         mock_client = self._make_mock_client()
+        user_id = "11111111-1111-4111-8111-111111111111"
         with patch.dict(os.environ, {
             "SUPABASE_URL": "https://realproject.supabase.co",
             "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
         }):
             with patch("atlas_db.get_supabase_client", return_value=mock_client):
-                result = tmp.save_report_metadata({"query": "NVDA analysis"})
+                result = tmp.save_report_metadata({"query": "NVDA analysis", "user_id": user_id})
         assert result["persistence_mode"] == "supabase"
+        payload = mock_client.table.return_value.insert.call_args.args[0]
+        assert "query_text" in payload
+        assert "query" not in payload
+        assert payload["user_id"] == user_id
 
     def test_get_recent_reports_uses_supabase_when_configured(self, tmp):
         mock_client = self._make_mock_client()
@@ -480,6 +485,30 @@ class TestSupabasePath:
             with patch("atlas_db.get_supabase_client", return_value=mock_client):
                 result = tmp.get_recent_reports()
         assert isinstance(result, list)
+
+    def test_get_recent_reports_selects_current_queries_schema(self, tmp):
+        mock_client = self._make_mock_client()
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=mock_client):
+                tmp.get_recent_reports()
+        select_args = mock_client.table.return_value.select.call_args.args[0]
+        assert "query_text" in select_args
+        assert "result_json" in select_args
+        assert "id,query," not in select_args
+
+    def test_save_report_without_uuid_user_falls_back_local(self, tmp):
+        mock_client = self._make_mock_client()
+        with patch.dict(os.environ, {
+            "SUPABASE_URL": "https://realproject.supabase.co",
+            "SUPABASE_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.real",
+        }):
+            with patch("atlas_db.get_supabase_client", return_value=mock_client):
+                result = tmp.save_report_metadata({"query": "NVDA analysis"})
+        assert result["persistence_mode"] == "local_fallback"
+        mock_client.table.return_value.insert.assert_not_called()
 
     def test_get_research_queue_uses_supabase_when_configured(self, tmp):
         mock_client = self._make_mock_client()

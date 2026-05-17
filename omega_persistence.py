@@ -89,6 +89,14 @@ def _make_id() -> str:
     return str(uuid.uuid4())
 
 
+def _is_uuidish(value: Any) -> bool:
+    try:
+        uuid.UUID(str(value))
+        return True
+    except Exception:
+        return False
+
+
 # ── Public API ────────────────────────────────────────────────────────────────
 
 def save_report_metadata(report: dict[str, Any]) -> dict[str, Any]:
@@ -119,17 +127,28 @@ def save_report_metadata(report: dict[str, Any]) -> dict[str, Any]:
         "source":          report.get("source", "omega"),
     }
 
-    if is_supabase_configured():
+    if is_supabase_configured() and _is_uuidish(record.get("user_id")):
         try:
             from atlas_db import get_supabase_client as _get_sb
             _sb = _get_sb()
             if _sb:
                 _sb.table("queries").insert({
-                    "id":         record["id"],
-                    "query":      record["query"],
-                    "intent":     record["intent"],
-                    "output_mode": record["output_mode"],
-                    "created_at": record["saved_at"],
+                    "id":          record["id"],
+                    "user_id":     record["user_id"],
+                    "query_text":  record["query"],
+                    "domain_tag":  record["intent"],
+                    "session_id":  record["session_id"] if _is_uuidish(record.get("session_id")) else None,
+                    "result_json": {
+                        "output_mode": record["output_mode"],
+                        "company": record["company"],
+                        "ticker": record["ticker"],
+                        "quality": record["quality"],
+                        "sec_filings_used": record["sec_filings_used"],
+                        "selected_skill": record["selected_skill"],
+                        "duration_ms": record["duration_ms"],
+                        "source": record["source"],
+                    },
+                    "created_at":  record["saved_at"],
                 }).execute()
                 record["persistence_mode"] = "supabase"
                 return record
@@ -220,14 +239,22 @@ def get_recent_reports(limit: int = 10) -> list[dict[str, Any]]:
             if _sb:
                 resp = (
                     _sb.table("queries")
-                    .select("id,query,intent,output_mode,created_at")
+                    .select("id,query_text,domain_tag,result_json,created_at")
                     .order("created_at", desc=True)
                     .limit(limit)
                     .execute()
                 )
-                rows = resp.data or []
-                for r in rows:
-                    r["persistence_mode"] = "supabase"
+                rows = []
+                for r in resp.data or []:
+                    result_json = r.get("result_json") if isinstance(r.get("result_json"), dict) else {}
+                    rows.append({
+                        "id": r.get("id"),
+                        "query": r.get("query_text") or "",
+                        "intent": r.get("domain_tag") or "",
+                        "output_mode": result_json.get("output_mode") or "",
+                        "created_at": r.get("created_at"),
+                        "persistence_mode": "supabase",
+                    })
                 return rows
         except Exception as exc:
             log.warning("omega_persistence: Supabase query failed, falling back — %s", exc)
