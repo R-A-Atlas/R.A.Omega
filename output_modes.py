@@ -34,7 +34,7 @@ TRADE_TRIGGER_WORDS: set[str] = {
 }
 
 DOCUMENT_TRIGGER_WORDS: set[str] = {
-    "document", "pdf", "deck", "proposal", "memo",
+    "document", "word document", "docx", "pdf", "deck", "proposal", "memo",
     "presentation", "spreadsheet", "workbook",
 }
 
@@ -51,6 +51,29 @@ _OPTIONS_TRADE_RE = re.compile(
     re.I | re.S,
 )
 
+_EXPLICIT_DOCUMENT_RE = re.compile(
+    r"\b(?:in|as|into|to|make|create|generate|write|export|download|save)\b"
+    r".{0,60}\b(?:word\s+document|docx|pdf|pdf\s+report|document|deck|presentation|spreadsheet|workbook)\b"
+    r"|\b(?:word\s+document|docx|pdf\s+report)\b",
+    re.I | re.S,
+)
+
+_FINANCE_OPINION_RE = re.compile(
+    r"\b(?:what\s+do\s+you\s+think|your\s+(?:personal\s+)?opinion|"
+    r"in\s+your\s+(?:personal\s+)?opinion|your\s+view|my\s+view|my\s+read|"
+    r"how\s+do\s+you\s+see|what(?:'s|\s+is)\s+your\s+take)\b",
+    re.I,
+)
+
+_FINANCE_SUBJECT_RE = re.compile(
+    r"\b(?:stock|stocks|ticker|market|markets|share|shares|equity|equities|"
+    r"crypto|coin|bitcoin|ethereum|option|options|calls?|puts?|earnings|"
+    r"valuation|portfolio|finance|financial|invest|investment|nvda|aapl|tsla|"
+    r"msft|googl|meta|amzn|blk|blackrock|vanguard|jpm|goldman)\b",
+    re.I,
+)
+_UPPERCASE_TICKER_RE = re.compile(r"\b[A-Z]{2,5}\b")
+
 
 def _has_any(q: str, words: set[str]) -> bool:
     ql = q.lower()
@@ -59,6 +82,18 @@ def _has_any(q: str, words: set[str]) -> bool:
 
 def user_explicitly_requested_trade(raw_query: str) -> bool:
     return _has_any(raw_query, TRADE_TRIGGER_WORDS) or bool(_OPTIONS_TRADE_RE.search(raw_query))
+
+
+def user_explicitly_requested_document(raw_query: str) -> bool:
+    return bool(_EXPLICIT_DOCUMENT_RE.search(raw_query or ""))
+
+
+def user_asked_finance_opinion(raw_query: str) -> bool:
+    q = raw_query or ""
+    return bool(
+        _FINANCE_OPINION_RE.search(q)
+        and (_FINANCE_SUBJECT_RE.search(q) or _UPPERCASE_TICKER_RE.search(q))
+    )
 
 
 def resolve_output_mode(raw_query: str, intent: str) -> str:
@@ -71,11 +106,17 @@ def resolve_output_mode(raw_query: str, intent: str) -> str:
     if intent == "HTML_ARTIFACT":
         return OUTPUT_HTML_ARTIFACT
 
+    if intent == "DOCUMENT_GENERATION" or user_explicitly_requested_document(q):
+        return OUTPUT_DOCUMENT
+
+    if user_asked_finance_opinion(q):
+        return OUTPUT_FINANCE_ANSWER
+
     # Intent-confirmed company research wins over any keyword triggers
     if intent == "COMPANY_RESEARCH":
         return OUTPUT_COMPANY_REPORT
 
-    if intent == "DOCUMENT_GENERATION" or _has_any(q, DOCUMENT_TRIGGER_WORDS):
+    if _has_any(q, DOCUMENT_TRIGGER_WORDS):
         return OUTPUT_DOCUMENT
 
     if intent in ("TRADING_ANALYSIS", "MARKET_DEEP_DIVE") or user_explicitly_requested_trade(q):

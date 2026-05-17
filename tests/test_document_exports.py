@@ -28,6 +28,26 @@ def test_pptx_and_xlsx_minimal_envelope(tmp_path: Path):
     assert p2.is_file() and p2.stat().st_size > 500
 
 
+def test_docx_minimal_envelope(tmp_path: Path):
+    from atlas_export.build_docx import write_query_envelope_docx
+
+    d = {
+        "query": "Give me everything on BlackRock in a Word document",
+        "_output_mode": "document",
+        "parsed_query": {"intent_route": "DOCUMENT_GENERATION"},
+        "final_report": {
+            "company_name": "BlackRock",
+            "executive_summary": "BlackRock is a global asset manager.",
+            "company_overview": "It provides asset management and investment technology.",
+            "key_risks": ["Market cycle risk", "Fee compression"],
+        },
+        "tldr": "BlackRock is an asset-management scale leader.",
+    }
+    p = write_query_envelope_docx(d, tmp_path / "n.docx")
+    assert p.is_file() and p.stat().st_size > 1000
+    assert p.read_bytes().startswith(b"PK")
+
+
 def test_html_and_agent_xlsx_minimal_envelope(tmp_path: Path):
     from atlas_agents.documents.comparison.html_print_agent import generate_html
     from atlas_agents.documents.excel.excel_agent import generate_excel
@@ -64,6 +84,30 @@ def test_export_html_and_excel_endpoints_return_files(monkeypatch):
     assert "text/html" in html_r.headers["content-type"]
     assert excel_r.status_code == 200
     assert "spreadsheetml.sheet" in excel_r.headers["content-type"]
+
+
+def test_export_docx_endpoint_returns_file(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
+    import api_server
+
+    c = TestClient(api_server.app)
+    d = {
+        "query": "Give me everything on BlackRock in a Word document",
+        "_output_mode": "document",
+        "parsed_query": {"intent_route": "DOCUMENT_GENERATION"},
+        "final_report": {
+            "company_name": "BlackRock",
+            "executive_summary": "BlackRock is a global asset manager.",
+            "company_overview": "It provides asset management and investment technology.",
+        },
+        "tldr": "BlackRock is an asset-management scale leader.",
+    }
+    r = c.post("/export/docx", json=d)
+    assert r.status_code == 200
+    assert "wordprocessingml.document" in r.headers["content-type"]
+    assert r.content.startswith(b"PK")
 
 
 def test_export_pdf_endpoint_returns_file_with_fallback(monkeypatch):

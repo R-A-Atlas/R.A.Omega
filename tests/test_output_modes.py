@@ -46,6 +46,43 @@ def test_report_query_resolves_document():
     assert output_mode == "document"
 
 
+def test_blackrock_word_document_resolves_document():
+    query = "give me everything on BlackRock in a Word document please"
+    intent = classify_intent_route(query)
+    output_mode = resolve_output_mode(query, intent)
+    assert intent == INTENT_DOCUMENT_GENERATION
+    assert output_mode == "document"
+
+
+def test_finance_opinion_resolves_finance_answer():
+    query = "what do you think of NVDA in your personal opinion"
+    intent = classify_intent_route(query)
+    output_mode = resolve_output_mode(query, intent)
+    assert intent == INTENT_GENERAL_FINANCE
+    assert output_mode == "finance_answer"
+
+
+def test_non_finance_opinion_stays_chat():
+    query = "what do you think of apple pie in your personal opinion"
+    intent = classify_intent_route(query)
+    output_mode = resolve_output_mode(query, intent)
+    assert intent == INTENT_GENERAL_CHAT
+    assert output_mode == "chat"
+
+
+def test_finance_opinion_rejects_evasive_ai_language():
+    from quality_firewall import validate_response
+
+    result = validate_response(
+        "what do you think of NVDA in your personal opinion",
+        INTENT_GENERAL_FINANCE,
+        "finance_answer",
+        "As an AI, I don't have personal opinions, but NVDA is a popular stock.",
+    )
+    assert result.passed is False
+    assert "Evasive finance-opinion phrase" in result.reason
+
+
 def test_casual_intent_resolves_chat():
     assert resolve_output_mode("hey how are you", INTENT_CASUAL) == "chat"
     assert resolve_output_mode("who won last night", INTENT_GENERAL_CHAT) == "chat"

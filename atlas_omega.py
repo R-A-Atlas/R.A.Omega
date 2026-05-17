@@ -2220,6 +2220,21 @@ last_updated
         if _output_mode == "chat":
             prompt += "\n\nOUTPUT: Short casual conversational answer. No finance jargon unless asked."
 
+        if _output_mode == "finance_answer":
+            try:
+                from output_modes import user_asked_finance_opinion
+                _finance_opinion = user_asked_finance_opinion(query)
+            except Exception:
+                _finance_opinion = False
+            if _finance_opinion:
+                prompt += (
+                    "\n\nOUTPUT: The user asked for your finance opinion. Give a direct, "
+                    "data-backed analyst take using 'My read is' or 'My view is'. Do not say "
+                    "you lack personal opinions, do not use 'As an AI', and do not present it "
+                    "as personalized investment advice. State what evidence supports the view "
+                    "and what would change the view."
+                )
+
         if _output_mode == "document":
             prompt += "\n\nOUTPUT: Professional polished document structure. No trade plan unless user requested it."
 

@@ -526,6 +526,14 @@ def classify_intent_route(raw: str) -> str:
         lc,
     ):
         return INTENT_DOCUMENT_GENERATION
+    try:
+        from output_modes import user_asked_finance_opinion, user_explicitly_requested_document
+        if user_explicitly_requested_document(q):
+            return INTENT_DOCUMENT_GENERATION
+        if user_asked_finance_opinion(q):
+            return INTENT_GENERAL_FINANCE
+    except Exception:
+        pass
 
     # ── Alias-based company detection with NON_COMPANY_CONTEXT disambiguation ─
     company = detect_company_name(q)

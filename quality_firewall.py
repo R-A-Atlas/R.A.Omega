@@ -59,6 +59,21 @@ _COMPANY_REPORT_REPAIR = (
     "Action: buy/sell/avoid, Rating: buy/sell/hold, Tripwire, Trade Rating, and all position-sizing language."
 )
 
+_EVASIVE_OPINION_PHRASES: tuple[str, ...] = (
+    "as an ai",
+    "as a language model",
+    "i don't have personal opinions",
+    "i do not have personal opinions",
+    "i don't have opinions",
+    "i do not have opinions",
+)
+
+_FINANCE_OPINION_REPAIR = (
+    "Regenerate as a grounded finance answer. Give a direct data-backed take using "
+    "'My read is' or 'My view is', cite the relevant evidence or missing data, and avoid "
+    "personalized investment advice. Do not say you lack personal opinions."
+)
+
 
 @dataclass
 class QualityResult:
@@ -114,6 +129,21 @@ def _validate(
         )
 
     text = (answer or "").lower()
+
+    if output_mode == "finance_answer":
+        try:
+            from output_modes import user_asked_finance_opinion
+            is_finance_opinion = user_asked_finance_opinion(raw_query)
+        except Exception:
+            is_finance_opinion = False
+        if is_finance_opinion:
+            for phrase in _EVASIVE_OPINION_PHRASES:
+                if phrase in text:
+                    return QualityResult(
+                        passed=False,
+                        reason=f"Evasive finance-opinion phrase found: {phrase}",
+                        repair_instruction=_FINANCE_OPINION_REPAIR,
+                    )
 
     # ── chat / finance_answer / general_chat trade bleed check ───────────────
     if output_mode in {"chat", "finance_answer", "general_chat"}:

@@ -39,5 +39,6 @@ supabase>=2.4.0
 pytest>=8.0.0
 # Document export (api_server POST /export/*) — WeasyPrint needs GTK runtime on Windows per docs
 weasyprint>=62.0
+python-docx>=1.1.2
 python-pptx>=0.6.23
 openpyxl>=3.1.0

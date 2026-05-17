@@ -337,6 +337,18 @@ class TestPlanRequestScenarios:
         assert plan.workflow == WORKFLOW_DOCUMENT_REPORT
         assert plan.renderer_type == RENDERER_DOCUMENT
 
+    def test_blackrock_word_document_plan(self):
+        plan = plan_request("Give me everything on BlackRock in a Word document")
+        assert plan.output_mode == "document"
+        assert plan.workflow == WORKFLOW_DOCUMENT_REPORT
+        assert plan.renderer_type == RENDERER_DOCUMENT
+
+    def test_nvda_opinion_plan_plain_finance_answer(self):
+        plan = plan_request("what do you think of NVDA in your personal opinion")
+        assert plan.output_mode == "finance_answer"
+        assert plan.workflow == WORKFLOW_GENERAL_ANSWER
+        assert plan.renderer_type == RENDERER_CHAT_BUBBLE
+
     def test_apple_pie_deep_mode_button_does_not_trigger_deep(self):
         plan = plan_request(
             "How do I make apple pie?",

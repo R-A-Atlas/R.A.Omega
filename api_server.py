@@ -2961,6 +2961,29 @@ def export_html_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
     )
 
 
+@app.post("/export/docx")
+@app.post("/export/word")
+def export_docx_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    """Persist POST /query-shaped JSON to atlas_vault/03-Outputs/Reports and return DOCX."""
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        from atlas_export.build_docx import write_query_envelope_docx
+
+        path = write_query_envelope_docx(body)
+    except ImportError as e:
+        raise HTTPException(status_code=503, detail=f"python-docx missing: {e}") from e
+    except Exception as e:
+        log.exception("[/export/docx]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return FileResponse(
+        path,
+        filename=path.name,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+
+
 @app.post("/export/pptx")
 def export_pptx_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
     _ = user_id

@@ -851,9 +851,11 @@ function renderContent(data, contentId, msgId) {
 
   // Export bar
   const isCompanyReportCheck = (data._output_mode || '') === 'company_report';
+  const isDocumentCheck = (data._output_mode || '') === 'document';
   html += `<div class="export-bar">
     <button class="export-btn" onclick="copyJSON('${esc(msgId)}')">Copy JSON</button>
     <button class="export-btn" onclick="openHTMLReport('${esc(msgId)}')">${isCompanyReportCheck ? 'Download Report' : 'Full Report'}</button>
+    ${isDocumentCheck ? `<button class="export-btn" onclick="downloadExportFile('${esc(msgId)}','docx')">Download Word</button><button class="export-btn" onclick="downloadExportFile('${esc(msgId)}','pdf')">Download PDF</button>` : ''}
   </div>`;
 
   el.innerHTML = html || `<span>${esc(tldr || execSum || 'Analysis complete.')}</span>`;
@@ -947,6 +949,38 @@ ${rulesHtml ? `<div class="card"><div class="label">EXECUTION RULES</div>${rules
   const url  = URL.createObjectURL(blob);
   window.open(url, '_blank');
   setTimeout(() => URL.revokeObjectURL(url), 120000);
+}
+
+async function downloadExportFile(id, format) {
+  const d = _rawCache[id];
+  if (!d) { alert('No report data'); return; }
+  const endpoint = format === 'pdf' ? '/export/pdf' : '/export/docx';
+  const fallbackName = format === 'pdf' ? 'ra_omega_report.pdf' : 'ra_omega_report.docx';
+  try {
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(d)
+    });
+    if (!res.ok) {
+      const msg = await res.text();
+      throw new Error(msg || `Export failed (${res.status})`);
+    }
+    const blob = await res.blob();
+    const cd = res.headers.get('content-disposition') || '';
+    const match = cd.match(/filename="?([^"]+)"?/i);
+    const filename = match ? match[1] : fallbackName;
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
+  } catch (err) {
+    alert(`Export failed: ${err.message || err}`);
+  }
 }
 
 // ── Preferences ────────────────────────────────────────────────────────────────

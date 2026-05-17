@@ -101,6 +101,14 @@ def test_e4_fast_chat_renders_plain_text():
     assert "loops === 0" in content, "zero-loop fast chat not recognized"
 
 
+def test_e4_document_mode_has_docx_download():
+    """Document-mode answers expose a real Word export endpoint."""
+    content = APP_HTML.read_text(encoding="utf-8")
+    assert "downloadExportFile" in content, "document file downloader missing"
+    assert "/export/docx" in content, "DOCX export endpoint not wired in UI"
+    assert "Download Word" in content, "Word download button missing"
+
+
 def test_e4_research_activity_panel_present():
     """Research lanes expose visible plan/activity summaries without rendering hidden reasoning."""
     content = APP_HTML.read_text(encoding="utf-8")
