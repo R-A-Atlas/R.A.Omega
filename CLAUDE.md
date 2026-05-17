@@ -128,12 +128,15 @@ URLs:
 ### IGNORE (redundant, do not delete, just skip reading)
   atlas_dashboard_v2.html, atlas_dashboard_v3.html, dashboard.html
   dashboard_server.py, START_ATLAS.py, auto_bot.py
-  ATLAS_FULL_AGENT_AUDIT.md/.docx, ATLAS_v3_Full_Audit.docx
-  ATLAS_PROJECT_FILE_INVENTORY.md/.docx (auto-generated, stale)
   ATLAS_Master_Roadmap_to_1B (1).docx (superseded by this file)
   CANVAS_*.html, LIVE_*.html, ATLAS_OUTPUT_MAP.html, ATLAS_OVERVIEW.html
   Prompt.md (old debug note, superseded)
   build_audit_docx.py, generate_project_inventory.py, self_coder.py
+
+### NOTE on atlas_* Python module names
+  Internal Python modules (atlas_db.py, atlas_omega.py, atlas_agents/, atlas_memory/, etc.)
+  keep the atlas_ prefix — 193+ import sites across the codebase make renaming extremely risky.
+  These are internal implementation details; users only see "R.A. Omega" in the UI and API.
 
 ---
 
@@ -422,13 +425,12 @@ Sub-agents: ONLY for cleanly isolated tasks. For interdependent tasks use ONE co
   8. One task at a time
   9. INCIDENT LOGGER — After any bug fix or rollback in the same session: ask "What broke, what caused it,
      and how was it fixed?" and wait for answers; then write atlas_vault/04-Projects/ATLAS/Notes/
-     incident_<YYYY-MM-DD>_<slug>.md (title, date, severity, status, What Broke, Root Cause, How It Was Fixed,
-     Impact, Prevention with Y/N for CLAUDE.md + C2 Security test, Related Files). Full template: ATLAS_25_CURSOR_AGENTS.md
-     AGENT E3. Never skip, even for minor bugs.
+     incident_<YYYY-MM-DD>_<slug>.md with fields: title, date, severity, status, What Broke, Root Cause,
+     How It Was Fixed, Impact, Prevention (Y/N for CLAUDE.md update + security test), Related Files.
+     Never skip, even for minor bugs.
   10. When incident prevention is a concrete, durable guardrail, add a new numbered rule to this section;
       do not add vague items.
-  11. Bug patterns worth reuse → document for D2 Skill Codifier (ATLAS_25_CURSOR_AGENTS.md) and/or a DBS skill
-      under atlas_vault/02-Wiki/Skills/.
+  11. Bug patterns worth reuse → codify as a DBS skill under atlas_vault/02-Wiki/Skills/.
 
 ---
 
@@ -440,7 +442,6 @@ Sub-agents: ONLY for cleanly isolated tasks. For interdependent tasks use ONE co
   Project notes:      atlas_vault/04-Projects/ATLAS/Notes/
   Incident log:       atlas_vault/04-Projects/ATLAS/Notes/incident_*.md (post-fix; see Section 14)
   Agentic OS core:    claude_os_core.md
-  OS playbook:        ATLAS_AGENTIC_OS_PLAYBOOK.md
 
 ---
 
