@@ -113,6 +113,7 @@ import omega_config  # noqa: E402
 from pipeline_planner import plan_pipeline, AgentPlan  # noqa: E402
 from project_sandbox import create_sandbox, attach_result as attach_sandbox_result, get_sandbox, list_sandboxes, delete_sandbox  # noqa: E402
 from multi_agent import orchestrate as multi_agent_orchestrate  # noqa: E402
+from prompt_architect import build_blueprint as build_prompt_blueprint  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -1699,6 +1700,17 @@ def dispatch_query_request(
         shaped["_route_decision"] = route_decision.to_dict()
         shaped["_active_agents"] = activation.to_dict()
         shaped["_specialist_packets"] = specialist_packets
+        # ── Prompt Architect — parse query into structured blueprint ─────────
+        try:
+            _bp = build_prompt_blueprint(
+                query=q_store,
+                intent=_intent,
+                output_mode=_output_mode,
+                user_id=user_id if user_id != "test_user_local" else None,
+            )
+            shaped["_prompt_blueprint"] = _bp.to_dict()
+        except Exception:
+            log.debug("[prompt_architect] blueprint failed", exc_info=True)
         _pipeline_plan_dict: dict = {}
         try:
             _pipeline_plan = plan_pipeline(
