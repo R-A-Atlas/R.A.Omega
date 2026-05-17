@@ -107,6 +107,10 @@ def test_e4_document_mode_has_docx_download():
     assert "downloadExportFile" in content, "document file downloader missing"
     assert "/export/docx" in content, "DOCX export endpoint not wired in UI"
     assert "Download Word" in content, "Word download button missing"
+    assert "preferredDocumentFormat" in content, "document format detector missing"
+    assert "exportButtonsForFormat" in content, "format-specific export buttons missing"
+    for endpoint in ("/export/pdf", "/export/xlsx", "/export/pptx", "/export/csv", "/export/md", "/export/txt", "/export/html"):
+        assert endpoint in content, f"{endpoint} not wired in UI downloader"
 
 
 def test_e4_research_activity_panel_present():

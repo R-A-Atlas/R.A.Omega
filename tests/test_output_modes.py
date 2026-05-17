@@ -54,6 +54,23 @@ def test_blackrock_word_document_resolves_document():
     assert output_mode == "document"
 
 
+def test_common_file_formats_resolve_document():
+    from output_modes import detect_requested_document_format
+
+    cases = {
+        "give me this in a PDF": "pdf",
+        "make an Excel file for this": "xlsx",
+        "turn this into a CSV file": "csv",
+        "create a PowerPoint presentation": "pptx",
+        "save this as markdown": "md",
+        "give me a text file": "txt",
+    }
+    for query, fmt in cases.items():
+        assert classify_intent_route(query) == INTENT_DOCUMENT_GENERATION
+        assert resolve_output_mode(query, INTENT_DOCUMENT_GENERATION) == "document"
+        assert detect_requested_document_format(query) == fmt
+
+
 def test_finance_opinion_resolves_finance_answer():
     query = "what do you think of NVDA in your personal opinion"
     intent = classify_intent_route(query)

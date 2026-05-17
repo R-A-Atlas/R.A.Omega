@@ -1031,6 +1031,13 @@ def _create_research_job_for_request(
 
 def _detect_doc_type(query: str) -> Optional[str]:
     """Detect if the user wants a specific document output format."""
+    try:
+        from output_modes import detect_requested_document_format
+        detected = detect_requested_document_format(query)
+        if detected:
+            return detected
+    except Exception:
+        pass
     ql = (query or "").lower()
     if re.search(r"\binfographic\b|\bvisual\s+summary\b", ql):
         return "infographic"
@@ -2959,6 +2966,56 @@ def export_html_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
         filename=path.name,
         media_type="text/html; charset=utf-8",
     )
+
+
+@app.post("/export/txt")
+@app.post("/export/text")
+def export_txt_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    """Persist POST /query-shaped JSON and return a plain text artifact."""
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        from atlas_export.build_text import write_query_envelope_text
+
+        path = write_query_envelope_text(body, fmt="txt")
+    except Exception as e:
+        log.exception("[/export/txt]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return FileResponse(path, filename=path.name, media_type="text/plain; charset=utf-8")
+
+
+@app.post("/export/md")
+@app.post("/export/markdown")
+def export_markdown_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    """Persist POST /query-shaped JSON and return a Markdown artifact."""
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        from atlas_export.build_text import write_query_envelope_text
+
+        path = write_query_envelope_text(body, fmt="md")
+    except Exception as e:
+        log.exception("[/export/md]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return FileResponse(path, filename=path.name, media_type="text/markdown; charset=utf-8")
+
+
+@app.post("/export/csv")
+def export_csv_payload(user_id: AtlasUserId, body: dict[str, Any] = Body(...)):
+    """Persist POST /query-shaped JSON and return a CSV artifact."""
+    _ = user_id
+    if not isinstance(body, dict) or not body:
+        raise HTTPException(status_code=400, detail="JSON object required")
+    try:
+        from atlas_export.build_text import write_query_envelope_csv
+
+        path = write_query_envelope_csv(body)
+    except Exception as e:
+        log.exception("[/export/csv]")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+    return FileResponse(path, filename=path.name, media_type="text/csv; charset=utf-8")
 
 
 @app.post("/export/docx")

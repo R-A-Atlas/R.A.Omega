@@ -48,6 +48,25 @@ def test_docx_minimal_envelope(tmp_path: Path):
     assert p.read_bytes().startswith(b"PK")
 
 
+def test_text_markdown_and_csv_minimal_envelope(tmp_path: Path):
+    from atlas_export.build_text import write_query_envelope_csv, write_query_envelope_text
+
+    d = {
+        "query": "Give me an audit report as markdown",
+        "final_report": {
+            "executive_summary": "The system is healthy.",
+            "key_risks": ["Missing production keys"],
+        },
+        "tldr": "System healthy with production-key follow-up.",
+    }
+    txt = write_query_envelope_text(d, tmp_path / "n.txt", fmt="txt")
+    md = write_query_envelope_text(d, tmp_path / "n.md", fmt="md")
+    csv = write_query_envelope_csv(d, tmp_path / "n.csv")
+    assert txt.read_text(encoding="utf-8").startswith("R.A. Omega Intelligence Report")
+    assert md.read_text(encoding="utf-8").startswith("# R.A. Omega Intelligence Report")
+    assert "section,content" in csv.read_text(encoding="utf-8").splitlines()[0]
+
+
 def test_html_and_agent_xlsx_minimal_envelope(tmp_path: Path):
     from atlas_agents.documents.comparison.html_print_agent import generate_html
     from atlas_agents.documents.excel.excel_agent import generate_excel
@@ -108,6 +127,30 @@ def test_export_docx_endpoint_returns_file(monkeypatch):
     assert r.status_code == 200
     assert "wordprocessingml.document" in r.headers["content-type"]
     assert r.content.startswith(b"PK")
+
+
+def test_export_lightweight_file_endpoints_return_files(monkeypatch):
+    from fastapi.testclient import TestClient
+
+    monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
+    import api_server
+
+    c = TestClient(api_server.app)
+    d = {
+        "query": "Give me an audit report as CSV",
+        "final_report": {"executive_summary": "The system is healthy."},
+        "tldr": "Healthy.",
+    }
+    checks = {
+        "/export/txt": "text/plain",
+        "/export/md": "text/markdown",
+        "/export/csv": "text/csv",
+    }
+    for endpoint, content_type in checks.items():
+        r = c.post(endpoint, json=d)
+        assert r.status_code == 200
+        assert content_type in r.headers["content-type"]
+        assert len(r.content) > 20
 
 
 def test_export_pdf_endpoint_returns_file_with_fallback(monkeypatch):

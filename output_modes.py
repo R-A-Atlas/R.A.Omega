@@ -35,7 +35,8 @@ TRADE_TRIGGER_WORDS: set[str] = {
 
 DOCUMENT_TRIGGER_WORDS: set[str] = {
     "document", "word document", "docx", "pdf", "deck", "proposal", "memo",
-    "presentation", "spreadsheet", "workbook",
+    "presentation", "spreadsheet", "workbook", "excel", "xlsx", "csv",
+    "markdown", "md file", "text file", "txt", "powerpoint", "slides",
 }
 
 HTML_TRIGGER_WORDS: set[str] = {
@@ -53,8 +54,9 @@ _OPTIONS_TRADE_RE = re.compile(
 
 _EXPLICIT_DOCUMENT_RE = re.compile(
     r"\b(?:in|as|into|to|make|create|generate|write|export|download|save)\b"
-    r".{0,60}\b(?:word\s+document|docx|pdf|pdf\s+report|document|deck|presentation|spreadsheet|workbook)\b"
-    r"|\b(?:word\s+document|docx|pdf\s+report)\b",
+    r".{0,80}\b(?:word\s+document|docx|pdf|pdf\s+report|document|deck|presentation|"
+    r"powerpoint|slides?|spreadsheet|workbook|excel|xlsx|csv|markdown|md\s+file|text\s+file|txt)\b"
+    r"|\b(?:word\s+document|docx|pdf\s+report|powerpoint|slide\s+deck|excel\s+file|csv\s+file|markdown\s+file|text\s+file)\b",
     re.I | re.S,
 )
 
@@ -86,6 +88,30 @@ def user_explicitly_requested_trade(raw_query: str) -> bool:
 
 def user_explicitly_requested_document(raw_query: str) -> bool:
     return bool(_EXPLICIT_DOCUMENT_RE.search(raw_query or ""))
+
+
+def detect_requested_document_format(raw_query: str) -> str | None:
+    """Return the concrete artifact format requested in natural language."""
+    q = (raw_query or "").lower()
+    if re.search(r"\bword\s+document\b|\bdocx\b|\b\.docx\b", q):
+        return "docx"
+    if re.search(r"\bpdf\b|\bpdf\s+report\b|\b\.pdf\b", q):
+        return "pdf"
+    if re.search(r"\bpowerpoint\b|\bpptx\b|\bslide\s+deck\b|\bslides?\b|\bpresentation\b|\b\.pptx\b", q):
+        return "pptx"
+    if re.search(r"\bexcel\b|\bxlsx\b|\bspreadsheet\b|\bworkbook\b|\b\.xlsx\b", q):
+        return "xlsx"
+    if re.search(r"\bcsv\b|\b\.csv\b", q):
+        return "csv"
+    if re.search(r"\bmarkdown\b|\bmd\s+file\b|\b\.md\b", q):
+        return "md"
+    if re.search(r"\btext\s+file\b|\btxt\b|\b\.txt\b", q):
+        return "txt"
+    if re.search(r"\bhtml\s+report\b|\bhtml\s+file\b|\b\.html\b", q):
+        return "html"
+    if user_explicitly_requested_document(q):
+        return "docx"
+    return None
 
 
 def user_asked_finance_opinion(raw_query: str) -> bool:

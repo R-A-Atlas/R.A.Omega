@@ -852,10 +852,11 @@ function renderContent(data, contentId, msgId) {
   // Export bar
   const isCompanyReportCheck = (data._output_mode || '') === 'company_report';
   const isDocumentCheck = (data._output_mode || '') === 'document';
+  const docFormatCheck = preferredDocumentFormat(data);
   html += `<div class="export-bar">
     <button class="export-btn" onclick="copyJSON('${esc(msgId)}')">Copy JSON</button>
     <button class="export-btn" onclick="openHTMLReport('${esc(msgId)}')">${isCompanyReportCheck ? 'Download Report' : 'Full Report'}</button>
-    ${isDocumentCheck ? `<button class="export-btn" onclick="downloadExportFile('${esc(msgId)}','docx')">Download Word</button><button class="export-btn" onclick="downloadExportFile('${esc(msgId)}','pdf')">Download PDF</button>` : ''}
+    ${isDocumentCheck ? exportButtonsForFormat(msgId, docFormatCheck) : ''}
   </div>`;
 
   el.innerHTML = html || `<span>${esc(tldr || execSum || 'Analysis complete.')}</span>`;
@@ -885,6 +886,49 @@ function isPlainChatResponse(data) {
   const pq = data.parsed_query || {};
   return pq._chat_mode === true || pq.intent_route === 'CONVERSATION' ||
          pq.query_type === 'CONVERSATION' || (data.timing && data.timing.loops === 0);
+}
+
+function preferredDocumentFormat(data) {
+  const explicit = (data._requested_doc_type || data.requested_doc_type || '').toLowerCase();
+  if (explicit) return normalizeExportFormat(explicit);
+  const q = `${data.query || ''} ${((data.parsed_query || {}).raw_query) || ''}`.toLowerCase();
+  if (/\b(word document|docx|\.docx)\b/.test(q)) return 'docx';
+  if (/\b(pdf|\.pdf)\b/.test(q)) return 'pdf';
+  if (/\b(powerpoint|pptx|slide deck|slides|presentation|\.pptx)\b/.test(q)) return 'pptx';
+  if (/\b(excel|xlsx|spreadsheet|workbook|\.xlsx)\b/.test(q)) return 'xlsx';
+  if (/\b(csv|\.csv)\b/.test(q)) return 'csv';
+  if (/\b(markdown|md file|\.md)\b/.test(q)) return 'md';
+  if (/\b(text file|txt|\.txt)\b/.test(q)) return 'txt';
+  if (/\b(html report|html file|\.html)\b/.test(q)) return 'html';
+  return 'docx';
+}
+
+function normalizeExportFormat(format) {
+  const f = String(format || '').toLowerCase();
+  if (['word', 'doc', 'docx'].includes(f)) return 'docx';
+  if (['excel', 'spreadsheet', 'workbook', 'xlsx'].includes(f)) return 'xlsx';
+  if (['powerpoint', 'presentation', 'slides', 'deck', 'pptx'].includes(f)) return 'pptx';
+  if (['markdown', 'md'].includes(f)) return 'md';
+  if (['text', 'txt'].includes(f)) return 'txt';
+  if (['html_report'].includes(f)) return 'html';
+  return ['pdf', 'html', 'csv', 'json'].includes(f) ? f : 'docx';
+}
+
+function exportButtonsForFormat(msgId, preferred) {
+  const labels = {
+    docx: 'Download Word',
+    pdf: 'Download PDF',
+    xlsx: 'Download Excel',
+    pptx: 'Download Slides',
+    csv: 'Download CSV',
+    md: 'Download Markdown',
+    txt: 'Download Text',
+    html: 'Download HTML'
+  };
+  const formats = [preferred, 'docx', 'pdf'].filter((v, i, arr) => v && arr.indexOf(v) === i);
+  return formats.map(fmt =>
+    `<button class="export-btn" onclick="downloadExportFile('${esc(msgId)}','${esc(fmt)}')">${labels[fmt] || 'Download File'}</button>`
+  ).join('');
 }
 
 // ── Export ────────────────────────────────────────────────────────────────────
@@ -954,8 +998,19 @@ ${rulesHtml ? `<div class="card"><div class="label">EXECUTION RULES</div>${rules
 async function downloadExportFile(id, format) {
   const d = _rawCache[id];
   if (!d) { alert('No report data'); return; }
-  const endpoint = format === 'pdf' ? '/export/pdf' : '/export/docx';
-  const fallbackName = format === 'pdf' ? 'ra_omega_report.pdf' : 'ra_omega_report.docx';
+  const fmt = normalizeExportFormat(format);
+  const endpoints = {
+    docx: '/export/docx',
+    pdf: '/export/pdf',
+    xlsx: '/export/xlsx',
+    pptx: '/export/pptx',
+    csv: '/export/csv',
+    md: '/export/md',
+    txt: '/export/txt',
+    html: '/export/html'
+  };
+  const endpoint = endpoints[fmt] || '/export/docx';
+  const fallbackName = `ra_omega_report.${fmt}`;
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
