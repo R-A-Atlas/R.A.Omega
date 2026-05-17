@@ -111,6 +111,7 @@ import atlas_db  # noqa: E402
 import agent_audit  # noqa: E402
 import omega_config  # noqa: E402
 from pipeline_planner import plan_pipeline, AgentPlan  # noqa: E402
+from project_sandbox import create_sandbox, attach_result as attach_sandbox_result, get_sandbox, list_sandboxes, delete_sandbox  # noqa: E402
 from orchestration.router_policy import RouteDecision, decide_route  # noqa: E402
 from orchestration.agent_graph import activate_specialists  # noqa: E402
 from orchestration.agent_packets import build_specialist_packets, specialist_packets_prompt_block  # noqa: E402
@@ -1697,6 +1698,7 @@ def dispatch_query_request(
         shaped["_route_decision"] = route_decision.to_dict()
         shaped["_active_agents"] = activation.to_dict()
         shaped["_specialist_packets"] = specialist_packets
+        _pipeline_plan_dict: dict = {}
         try:
             _pipeline_plan = plan_pipeline(
                 query=q_store,
@@ -1705,9 +1707,25 @@ def dispatch_query_request(
                 research_mode=mode,
                 user_id=user_id if user_id != "test_user_local" else None,
             )
-            shaped["_pipeline_plan"] = _pipeline_plan.to_dict()
+            _pipeline_plan_dict = _pipeline_plan.to_dict()
+            shaped["_pipeline_plan"] = _pipeline_plan_dict
         except Exception:
             log.debug("[pipeline_planner] plan generation failed", exc_info=True)
+        # ── Project Sandbox — persist workspace for non-trivial queries ────────
+        if user_id and user_id != "test_user_local" and _intent not in ("CONVERSATION", "GENERAL_CHAT"):
+            try:
+                _sb = create_sandbox(
+                    query=q_store,
+                    user_id=user_id,
+                    session_id=getattr(req, "session_id", None),
+                    intent=_intent,
+                    research_mode=mode,
+                    plan=_pipeline_plan_dict,
+                )
+                attach_sandbox_result(_sb["sandbox_id"], shaped)
+                shaped["_sandbox_id"] = _sb["sandbox_id"]
+            except Exception:
+                log.debug("[project_sandbox] sandbox creation failed", exc_info=True)
         shaped = _attach_market_intelligence_if_relevant(shaped, q_store, route_decision)
         activity = _build_research_activity_payload(q_store, route_decision)
         if job:
@@ -2249,6 +2267,40 @@ def create_research_plan(req: ResearchPlanRequest, user_id: AtlasUserId):
         "activity": research_jobs.activity_from_job(job),
         "route_decision": route_decision.to_dict(),
     }
+
+
+@app.get("/sandboxes")
+def list_sandboxes_api(
+    user_id: AtlasUserId,
+    session_id: Optional[str] = Query(default=None),
+    limit: int = Query(default=20, ge=1, le=100),
+):
+    """List project sandboxes for the current user."""
+    items = list_sandboxes(user_id=user_id, session_id=session_id, limit=limit)
+    return {"ok": True, "sandboxes": items, "count": len(items)}
+
+
+@app.get("/sandboxes/{sandbox_id}")
+def get_sandbox_api(sandbox_id: str, user_id: AtlasUserId):
+    """Get a single sandbox by ID."""
+    sb = get_sandbox(sandbox_id)
+    if not sb:
+        raise HTTPException(status_code=404, detail="Sandbox not found")
+    if sb.get("user_id") and sb["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not your sandbox")
+    return {"ok": True, "sandbox": sb}
+
+
+@app.delete("/sandboxes/{sandbox_id}")
+def delete_sandbox_api(sandbox_id: str, user_id: AtlasUserId):
+    """Delete a sandbox workspace."""
+    sb = get_sandbox(sandbox_id)
+    if not sb:
+        raise HTTPException(status_code=404, detail="Sandbox not found")
+    if sb.get("user_id") and sb["user_id"] != user_id:
+        raise HTTPException(status_code=403, detail="Not your sandbox")
+    delete_sandbox(sandbox_id)
+    return {"ok": True, "deleted": sandbox_id}
 
 
 @app.post("/pipeline/plan")
