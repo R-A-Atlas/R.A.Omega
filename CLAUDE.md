@@ -205,10 +205,10 @@ final_report: overall_rating, confidence, price_now, executive_summary,
 
 ---
 
-## 8. CONFIRMED WORKING (last verified 2026-05-14)
+## 8. CONFIRMED WORKING (last verified 2026-05-16)
 
 Backend:
-  ✅ Full test suite — 995 passed — test with `python -m pytest tests/ -q`
+  ✅ Full test suite — 2578 passed — test with `python -m pytest tests/ -q`
   ✅ POST /query async dispatch — api_server.py:2197 — test with `python -m pytest tests/test_api_endpoints.py -q`
   ✅ Query controls and specialist packet routing — api_server.py:1305 — test with `python -m pytest tests/test_agent_graph.py tests/test_api_endpoints.py -q`
   ✅ OmegaAgent summary-first data cache loading — atlas_omega.py:773 — test with `python -m pytest tests/test_api_endpoints.py::test_internal_knowledge_payload_accepts_new_macro_intent -q`
@@ -228,6 +228,7 @@ Backend:
 
 Auth + Database:
   ✅ Supabase tables: queries, user_folders, positions (schema present)
+  ✅ Supabase migration applied 2026-05-16: chat_sessions, user_watchlist, research_jobs, user_preferences created; queries.session_id added; RLS + owner policies on all tenant tables
   ✅ auth.html Sign In + Create Account with Supabase JWT
   ✅ /auth and /login routes in api_server.py
   ✅ Auth guard on /option1 → redirects to /auth if no token
@@ -236,7 +237,7 @@ Auth + Database:
   ✅ Sign Out button in Option 1 header
   ✅ / root → Zenith with Supabase config injected
   ✅ ATLAS_DISABLE_AUTH=true in .env for local dev
-  ⚠️ Production Supabase still needs environment-specific verification: hosted project must have the latest migration applied and Stripe keys configured in deployment secrets.
+  ⚠️ Stripe webhook signing key still needs to be set in production deployment secrets.
 
 UI — Main Chat (ra_omega_app.html at /app):
   ✅ StructuredResponse cards + QuickStatsStrip (RYG-style risk / impact meters)
@@ -263,7 +264,7 @@ UI — Dashboard v4 (atlas_dashboard_v4.html at /v2):
   ⚠️ regimeLabel still hardcoded "BULL MARKET" on initial load (minor flash)
 
 Not Working / Not Fully Production:
-  ❌ Hosted production is not complete until deployment secrets, Supabase production migrations, and Stripe webhook signing are verified in the live environment.
+  ❌ Hosted production is not complete until deployment secrets and Stripe webhook signing are verified in the live environment (Supabase migration is now done).
   ⚠️ Some market feeds can be fallback-backed when public sources fail; label fallback data in user-facing analysis.
   ⚠️ In-app browser policy blocks direct `file://` opening of generated HTML artifacts; verify generated HTML from disk or serve it from FastAPI when needed.
 
@@ -271,13 +272,9 @@ Not Working / Not Fully Production:
 
 ## 9. PRIORITY BUILD LIST
 
-### PRIORITY 0 — YOU run the Supabase migration (not Claude Code)
-  supabase.com → your project → SQL Editor → New Query
-  Copy the runnable block at bottom of schema.sql (B6 header, Section A then Section B):
-    Section A: chat_sessions, user_watchlist, queries.session_id (IF NOT EXISTS / ADD COLUMN)
-    Section B: ENABLE ROW LEVEL SECURITY + *_owner policies on five tenant tables
-  Confirm: chat_sessions, user_watchlist exist; queries.session_id exists; rowsecurity on all five
-    tables; policies listed (see verification comments in schema.sql footer)
+### PRIORITY 0 — Supabase migration — DONE (2026-05-16)
+  chat_sessions, user_watchlist, research_jobs, user_preferences created.
+  queries.session_id column added. RLS + owner policies on all tenant tables.
 
 ### PRIORITY 1 — Visual confirm cards in main chat
   Start server. Go to /app. Run "Analyze NVDA — current setup and trade plan"
