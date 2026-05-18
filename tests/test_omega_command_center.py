@@ -173,6 +173,13 @@ def test_has_skeleton_loading():
     assert "skel" in HTML.read_text(encoding="utf-8")
 
 
+def test_auth_header_helper_uses_ra_omega_token_keys():
+    text = HTML.read_text(encoding="utf-8")
+    assert "atlas_access_token" in text
+    assert "ATLAS_TEST_JWT" in text
+    assert "atlas_user_email" in text
+
+
 # ── Welcome greeting ──────────────────────────────────────────────────────────
 
 def test_has_dynamic_greeting():

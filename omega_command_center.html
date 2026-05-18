@@ -930,6 +930,8 @@
 
 // ── Auth helpers ──────────────────────────────────────────────────────────────
 function _authHeaders() {
+  const directToken = localStorage.getItem("atlas_access_token") || localStorage.getItem("ATLAS_TEST_JWT") || "";
+  if (directToken) return { "Authorization": "Bearer " + directToken };
   try {
     const keys = ["sb-auth-token", "supabase.auth.token"];
     for (const k of keys) {
@@ -946,6 +948,13 @@ function _authHeaders() {
 }
 
 (function initAvatar() {
+  const directEmail = localStorage.getItem("atlas_user_email") || "";
+  if (directEmail) {
+    const el = document.getElementById("nav-avatar");
+    el.textContent = directEmail[0].toUpperCase();
+    el.title = directEmail;
+    return;
+  }
   try {
     const keys = ["sb-auth-token", "supabase.auth.token"];
     for (const k of keys) {

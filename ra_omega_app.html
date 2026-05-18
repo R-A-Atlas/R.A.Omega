@@ -353,10 +353,33 @@ let researchMode    = 'normal';
 let isDeepResearch  = false;
 let isStreaming     = false;
 
+function authHeaders(extra = {}) {
+  const headers = {...extra};
+  const directToken = localStorage.getItem('atlas_access_token') || localStorage.getItem('ATLAS_TEST_JWT') || '';
+  if (directToken) {
+    headers.Authorization = 'Bearer ' + directToken;
+    return headers;
+  }
+  try {
+    const keys = ['sb-auth-token', 'supabase.auth.token'];
+    for (const key of keys) {
+      const raw = localStorage.getItem(key);
+      if (!raw) continue;
+      const parsed = JSON.parse(raw);
+      const token = parsed?.access_token || parsed?.currentSession?.access_token || null;
+      if (token) {
+        headers.Authorization = 'Bearer ' + token;
+        return headers;
+      }
+    }
+  } catch (_) {}
+  return headers;
+}
+
 // ── Regime ────────────────────────────────────────────────────────────────────
 async function loadRegime() {
   try {
-    const r = await fetch(API + '/regime');
+    const r = await fetch(API + '/regime', { headers: authHeaders() });
     if (!r.ok) return;
     const d = await r.json();
     const label = d.label || d.regime || 'UNKNOWN';
@@ -372,7 +395,7 @@ async function loadRegime() {
 // ── Sessions ──────────────────────────────────────────────────────────────────
 async function loadSessions() {
   try {
-    const r = await fetch(API + '/sessions');
+    const r = await fetch(API + '/sessions', { headers: authHeaders() });
     if (!r.ok) return;
     const data = await r.json();
     const list = Array.isArray(data) ? data : (data.sessions || []);
@@ -424,7 +447,7 @@ async function createSession(firstQuery) {
   try {
     const r = await fetch(API + '/sessions', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: authHeaders({'Content-Type': 'application/json'}),
       body: JSON.stringify({ title: firstQuery.slice(0, 60) })
     });
     if (!r.ok) return null;
@@ -436,7 +459,7 @@ async function createSession(firstQuery) {
 async function loadHistory() {
   if (!activeSessionId) return;
   try {
-    const r = await fetch(API + `/history/reports?session_id=${activeSessionId}`);
+    const r = await fetch(API + `/history/reports?session_id=${activeSessionId}`, { headers: authHeaders() });
     if (!r.ok) return;
     const data = await r.json();
     const reports = Array.isArray(data) ? data : (data.reports || data.results || []);
@@ -515,7 +538,7 @@ async function sendQuery() {
 
     const r = await fetch(API + '/query', {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: authHeaders({'Content-Type': 'application/json'}),
       body: JSON.stringify(queryBody)
     });
 
@@ -1026,7 +1049,7 @@ async function downloadExportFile(id, format) {
   try {
     const res = await fetch(endpoint, {
       method: 'POST',
-      headers: {'Content-Type': 'application/json'},
+      headers: authHeaders({'Content-Type': 'application/json'}),
       body: JSON.stringify(d)
     });
     if (!res.ok) {
@@ -1122,7 +1145,7 @@ function buildPendingResearchActivity(query) {
 async function planResearch(query) {
   try {
     await fetch(API + '/jobs/plan', {
-      method: 'POST', headers: {'Content-Type':'application/json'},
+      method: 'POST', headers: authHeaders({'Content-Type':'application/json'}),
       body: JSON.stringify({ query })
     });
   } catch(_) {}
@@ -1133,7 +1156,7 @@ async function stopResearch() {
   const act   = researchActivityBySession[sid];
   const jobId = act?._research_activity?.job_id;
   if (!jobId) return;
-  try { await fetch(`${API}/jobs/${jobId}/cancel`, {method:'POST'}); } catch(_) {}
+  try { await fetch(`${API}/jobs/${jobId}/cancel`, {method:'POST', headers: authHeaders()}); } catch(_) {}
   ResearchActivityPanel.render(sid, { status:'done', current_message: 'Research stopped.' });
 }
 

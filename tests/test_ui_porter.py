@@ -60,6 +60,21 @@ def test_e4_session_id_sent_on_query():
     assert "session_id" in content, "session_id not wired into POST /query body"
 
 
+def test_e4_app_api_calls_attach_browser_auth():
+    """Hosted auth mode requires all protected app API calls to send the JWT."""
+    content = APP_HTML.read_text(encoding="utf-8")
+    assert "function authHeaders" in content, "auth header helper missing from app chat"
+    assert "atlas_access_token" in content, "manual/OAuth token key not read by app chat"
+    assert "ATLAS_TEST_JWT" in content, "test JWT fallback missing"
+    assert "headers: authHeaders({'Content-Type': 'application/json'})" in content, (
+        "POST JSON calls should include Authorization plus Content-Type"
+    )
+    assert "fetch(API + '/regime', { headers: authHeaders() })" in content
+    assert "fetch(API + '/sessions', { headers: authHeaders() })" in content
+    assert "history/reports?session_id=${activeSessionId}`, { headers: authHeaders() })" in content
+    assert "fetch(`${API}/jobs/${jobId}/cancel`, {method:'POST', headers: authHeaders()})" in content
+
+
 def test_e4_chat_modes_and_settings_present():
     """Composer has explicit normal/web/deep modes and settings persist preferences."""
     content = APP_HTML.read_text(encoding="utf-8")
