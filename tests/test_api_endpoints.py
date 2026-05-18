@@ -596,6 +596,41 @@ def test_billing_checkout_returns_503_when_not_configured(client: TestClient) ->
     assert r.status_code == 503
 
 
+def test_billing_checkout_accepts_price_id_env_alias(
+    monkeypatch: pytest.MonkeyPatch, client: TestClient,
+) -> None:
+    class _StripeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {"id": "cs_test_123", "url": "https://checkout.stripe.test/session"}
+
+    calls = []
+
+    def _fake_post(*args, **kwargs):
+        calls.append({"args": args, "kwargs": kwargs})
+        return _StripeResponse()
+
+    monkeypatch.setenv("STRIPE_SECRET_KEY", "sk_test_local")
+    monkeypatch.delenv("STRIPE_PRICE_PRO", raising=False)
+    monkeypatch.setenv("STRIPE_PRICE_ID_PRO", "price_from_env_example")
+    monkeypatch.setattr("requests.post", _fake_post)
+
+    r = client.post(
+        "/billing/checkout",
+        json={
+            "plan": "pro",
+            "success_url": "https://example.com/success",
+            "cancel_url": "https://example.com/cancel",
+        },
+    )
+
+    assert r.status_code == 200
+    assert r.json()["checkout_session_id"] == "cs_test_123"
+    assert calls[0]["kwargs"]["data"]["line_items[0][price]"] == "price_from_env_example"
+
+
 def test_billing_webhook_updates_subscription_without_network(
     monkeypatch: pytest.MonkeyPatch, client: TestClient,
 ) -> None:

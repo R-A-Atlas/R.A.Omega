@@ -99,7 +99,8 @@ def stripe_webhook_secret() -> str:
 
 
 def stripe_price_for_plan(plan: str) -> str:
-    return env_text(f"STRIPE_PRICE_{str(plan or '').upper()}")
+    name = str(plan or "").upper()
+    return env_text(f"STRIPE_PRICE_{name}") or env_text(f"STRIPE_PRICE_ID_{name}")
 
 
 @dataclass(frozen=True)

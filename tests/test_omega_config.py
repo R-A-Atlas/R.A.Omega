@@ -50,10 +50,19 @@ def test_tier_daily_limit_uses_override_and_ignores_invalid(monkeypatch):
     assert omega_config.tier_daily_limit("pro", 10) == 10
 
 
+def test_stripe_price_for_plan_supports_current_and_legacy_names(monkeypatch):
+    monkeypatch.delenv("STRIPE_PRICE_PRO", raising=False)
+    monkeypatch.setenv("STRIPE_PRICE_ID_PRO", "price_legacy_pro")
+
+    assert omega_config.stripe_price_for_plan("pro") == "price_legacy_pro"
+
+    monkeypatch.setenv("STRIPE_PRICE_PRO", "price_current_pro")
+    assert omega_config.stripe_price_for_plan("pro") == "price_current_pro"
+
+
 def test_boolean_helpers(monkeypatch):
     monkeypatch.setenv("ATLAS_DISABLE_AUTH", "true")
     monkeypatch.setenv("ATLAS_ALLOW_UNSIGNED_STRIPE_WEBHOOK", "0")
 
     assert omega_config.auth_disabled() is True
     assert omega_config.allow_unsigned_stripe_webhook() is False
-
