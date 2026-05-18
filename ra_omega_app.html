@@ -498,6 +498,7 @@ async function sendQuery() {
 
   appendMsg('user', q);
   const thinkId = appendThinking();
+  const startedAt = Date.now();
 
   if (!activeSessionId) {
     activeSessionId = await createSession(q);
@@ -524,6 +525,8 @@ async function sendQuery() {
       return;
     }
     const data = await r.json();
+    const elapsed = Date.now() - startedAt;
+    if (elapsed < 650) await new Promise(resolve => setTimeout(resolve, 650 - elapsed));
     replaceThinking(thinkId, null, data);
     await loadSessions();
   } catch(e) {
@@ -573,7 +576,7 @@ function appendThinking() {
     <div class="avatar agent">Ω</div>
     <div class="bubble">
       <div class="bubble-meta">R.A. Omega · ${ts()}</div>
-      <div class="bubble-text thinking">Running analysis${isDeepResearch ? ' — Deep research (10 loops)' : ''}...</div>
+      <div class="bubble-text thinking">${isDeepResearch ? 'Running deep research - 10 loops...' : 'Thinking...'}</div>
     </div>`;
   msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
@@ -1147,3 +1150,4 @@ if (pending) {
 </script>
 </body>
 </html>
+

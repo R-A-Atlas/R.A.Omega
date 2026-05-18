@@ -89,6 +89,15 @@ def test_auth_page_injects_public_supabase_config(
     assert "service-role-secret" not in r.text
 
 
+def test_auth_page_supports_google_oauth(client: TestClient) -> None:
+    r = client.get("/auth")
+    assert r.status_code == 200
+    assert "Continue with Google" in r.text
+    assert "signInWithOAuth" in r.text
+    assert "provider: 'google'" in r.text
+    assert "/auth?oauth=1" in r.text
+
+
 @pytest.mark.parametrize("path", ["/app"])
 def test_main_chat_routes_return_html(client: TestClient, path: str) -> None:
     r = client.get(path)
@@ -264,6 +273,12 @@ def test_post_query_fast_chat_skips_router_parse(monkeypatch: pytest.MonkeyPatch
     assert body["parsed_query"]["intent_route"] == "CONVERSATION"
     assert body["timing"]["loops"] == 0
     assert "Hey" in body["tldr"]
+    assert "ask me about stocks" not in body["tldr"].lower()
+    assert "full analysis pipeline" not in body["tldr"].lower()
+
+
+def test_broad_markets_question_does_not_use_fast_chat() -> None:
+    assert api_server._conversational_reply_text("can you tell me about the markets", None) is None
 
 
 def test_post_query_dispatches_router_and_returns_ui_payload(

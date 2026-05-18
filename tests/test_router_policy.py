@@ -14,6 +14,12 @@ def test_router_policy_routes_snapshot():
     assert d.tool_budget == 2
 
 
+def test_router_policy_routes_broad_markets_question_to_snapshot():
+    d = decide_route("can you tell me about the markets")
+    assert d.route_band == "market_snapshot"
+    assert d.tool_budget == 2
+
+
 def test_router_policy_routes_focused_analysis():
     d = decide_route("Analyze NVDA support, resistance, options flow, and catalysts")
     assert d.route_band == "focused_analysis"
@@ -31,4 +37,3 @@ def test_router_policy_routes_compliance_escalation():
     d = decide_route("Tell me what I should buy as a guaranteed risk-free trade")
     assert d.route_band == "compliance_escalation"
     assert "advice_or_prohibited_claim_risk" in d.compliance_flags
-

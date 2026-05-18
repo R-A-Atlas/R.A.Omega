@@ -1919,19 +1919,15 @@ class OmegaAgent:
 
     def _respond_casual(self, query: str) -> dict:
         """Return a plain conversational response for casual/off-topic queries."""
-        _fallback = (
-            "Hey there! I'm R.A. Omega, your financial intelligence assistant. "
-            "Ask me about stocks, real estate, debt, crypto, or anything money-related!"
-        )
+        _fallback = "I'm here. What do you want to work through?"
         client = self._get_client()
         if client:
             try:
                 import google.genai.types as gtypes
                 system = (
-                    "You are R.A. Omega, a friendly AI financial intelligence assistant. "
-                    "The user is making casual conversation. Respond warmly and briefly in plain text. "
-                    "If their message relates to finance, offer to help with analysis. "
-                    "Keep your response to 1-2 sentences."
+                    "You are R.A. Omega. Reply like a capable human assistant, not a product tour. "
+                    "Use plain text. Be direct, natural, and brief. Do not say 'as an AI'. "
+                    "Do not pitch features unless the user asks what you can do."
                 )
                 resp = client.models.generate_content(
                     model=os.environ.get("GEMINI_MODEL", "gemini-2.5-flash"),

@@ -763,7 +763,7 @@ _RESEARCH_FORCE_FULL_RE = re.compile(
     r"portfolio|my\s+position|my\s+trade|"
     r"catalyst|thesis|short\s+interest|float|"
     r"chart|technicals?|rsi\b|macd\b|vwap\b|sma\b|ema\b|"
-    r"market\s+(?:today|outlook|forecast)|\bspy\b|\bqqq\b|\biwm\b"
+    r"market\s+(?:today|outlook|forecast|conditions?)|\b(?:the\s+)?markets?\b|\bspy\b|\bqqq\b|\biwm\b"
     r")\b",
     re.I,
 )
@@ -785,53 +785,23 @@ def _conversational_reply_text(raw: str, user_display_name: Optional[str]) -> Op
     nick = nick[:72] if nick else ""
     addr = f", {nick}" if nick else ""
 
-    if re.match(
-        r"^(?:hi|hey|hello|yo|sup|howdy|greetings)\b",
-        sl,
-    ):
-        return (
-            f"Hey{addr}! I'm R.A. Omega - ready. "
-            "When you want real work done, ask me to research a name, pull data, compare tickers, "
-            "model risk, or dig into a finance topic and I'll run the full analysis pipeline."
-        )
+    if re.match(r"^(?:hi|hey|hello|yo|sup|howdy|greetings)\b", sl):
+        return f"Hey{addr}. I'm here. What are we looking at?"
     if re.match(r"^(?:thanks?|thank\s+you|thx|ty|much\s+appreciated)\b", sl):
         return f"Anytime{addr}."
-    if re.search(
-        r"\bwho\s+are\s+you\b|\bwhat\s+are\s+you\b|\bwhat\s+do\s+you\s+do\b",
-        sl,
-    ):
-        return (
-            "I'm R.A. Omega - a finance-first AI operating system. "
-            "Casual back-and-forth stays quick; when you ask me to analyze markets, debt, credit, business, real estate, tax strategy, or a portfolio, "
-            "I'll spin up the deep pipeline."
-        )
-    if re.match(
-        r"^(?:how\s+(?:are|r)\s+(?:you|u)\??|how'?s\s+it\s+going|how\s+are\s+things)\b",
-        sl,
-    ):
+    if re.search(r"\bwho\s+are\s+you\b|\bwhat\s+are\s+you\b|\bwhat\s+do\s+you\s+do\b", sl):
+        return "I'm R.A. Omega. I can talk normally, create files, and dig deeper when the question needs finance research."
+    if re.match(r"^(?:how\s+(?:are|r)\s+(?:you|u)\??|how'?s\s+it\s+going|how\s+are\s+things)\b", sl):
         well_addr = f", {nick}" if nick else ""
-        return (
-            f"I'm doing well{well_addr} - ready when you are. "
-            "Ask the financial question directly and I'll decide whether it needs quick chat or the deeper Omega pipeline."
-        )
-    if re.match(
-        r"^(?:ok+|okay|k\.|cool|nice|great|perfect|got\s+it|sounds\s+good|makes\s+sense)\.?!?\s*$",
-        sl,
-    ):
+        return f"I'm good{well_addr}. What are we working on?"
+    if re.match(r"^(?:ok+|okay|k\.|cool|nice|great|perfect|got\s+it|sounds\s+good|makes\s+sense)\.?!?\s*$", sl):
         return "Sounds good."
     if re.match(r"^(?:bye|goodbye|see\s+you|ttyl|cya|later)\b", sl):
-        return "Catch you later — ask anytime you want research."
-    if re.match(
-        r"^(?:sure|yep|yup|yeah|yes|nope|nah|maybe)\.?!?\s*$",
-        sl,
-    ) and len(sl) <= 24:
+        return "Catch you later."
+    if re.match(r"^(?:sure|yep|yup|yeah|yes|nope|nah|maybe)\.?!?\s*$", sl) and len(sl) <= 24:
         return "Got it."
     if re.match(r"^(?:help|commands|\?)\s*$", sl):
-        return (
-            "Ask naturally — e.g. “Research AAPL”, “What moved in crypto this week?”, "
-            "or “Compare X vs Y.” I'll use the full pipeline for those. "
-            "Short hellos and thanks stay in quick chat mode."
-        )
+        return "Ask naturally. I can answer, research, compare, summarize, or create files when you ask for them."
 
     return None
 
@@ -4094,3 +4064,4 @@ if __name__ == "__main__":
         reload=True,
         log_level="info",
     )
+

@@ -121,6 +121,30 @@
             cursor: not-allowed;
             opacity: 1;
         }
+        .btn-secondary {
+            background: transparent;
+            color: var(--color-text);
+            border: 1px solid var(--color-border-solid);
+        }
+        .btn-secondary:hover {
+            border-color: var(--color-accent);
+            opacity: 1;
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: var(--space-3);
+            color: var(--color-text-faint);
+            font-size: var(--text-xs);
+            margin: var(--space-5) 0 var(--space-3);
+        }
+        .divider::before,
+        .divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--color-border-solid);
+        }
         .error {
             background: var(--color-coral-dim);
             border: 1px solid var(--color-coral);
@@ -158,6 +182,8 @@
                 <input id="si-password" type="password" placeholder="Password" autocomplete="current-password" />
             </div>
             <button class="btn" id="btn-signin" onclick="signIn()">Sign In</button>
+            <div class="divider">or</div>
+            <button class="btn btn-secondary" id="btn-google-signin" onclick="signInWithGoogle()">Continue with Google</button>
         </div>
 
         <div id="panel-signup" class="hidden">
@@ -174,6 +200,8 @@
                 <input id="su-confirm" type="password" placeholder="Confirm password" autocomplete="new-password" />
             </div>
             <button class="btn" id="btn-signup" onclick="signUp()">Create Account</button>
+            <div class="divider">or</div>
+            <button class="btn btn-secondary" id="btn-google-signup" onclick="signInWithGoogle()">Continue with Google</button>
         </div>
     </div>
 
@@ -182,6 +210,30 @@
         const sb = (cfg.url && cfg.anonKey)
             ? supabase.createClient(cfg.url, cfg.anonKey)
             : null;
+
+        function persistSession(session) {
+            if (!session || !session.access_token) return false;
+            localStorage.setItem('atlas_access_token', session.access_token);
+            if (session.user && session.user.email) {
+                localStorage.setItem('atlas_user_email', session.user.email);
+            }
+            const maxAge = session.expires_in || 3600;
+            document.cookie = `atlas_access_token=${session.access_token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+            return true;
+        }
+
+        async function completeOAuthCallback() {
+            if (!sb) return;
+            const params = new URLSearchParams(window.location.search);
+            const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            const hasOAuthReturn = params.has('code') || params.has('oauth') || hash.has('access_token');
+            if (!hasOAuthReturn) return;
+            const { data, error } = await sb.auth.getSession();
+            if (error) { showError(error.message); return; }
+            if (persistSession(data && data.session)) {
+                window.location.replace('/command-center');
+            }
+        }
 
         function switchTab(tab) {
             const isSignin = tab === 'signin';
@@ -222,7 +274,7 @@
             const { data, error } = await sb.auth.signInWithPassword({ email, password });
             setLoading('btn-signin', false);
             if (error) { showError(error.message); return; }
-            localStorage.setItem('atlas_access_token', data.session.access_token);
+            persistSession(data.session);
             window.location.href = '/command-center';
         }
 
@@ -240,10 +292,43 @@
             setLoading('btn-signup', false);
             if (error) { showError(error.message); return; }
             if (data.session) {
-                localStorage.setItem('atlas_access_token', data.session.access_token);
+                persistSession(data.session);
                 window.location.href = '/command-center';
             } else {
                 showError('Check your email for a confirmation link, then sign in.');
+            }
+        }
+
+        async function signInWithGoogle() {
+            clearError();
+            if (!sb) { showError('Auth not configured - missing Supabase keys.'); return; }
+            const buttons = ['btn-google-signin', 'btn-google-signup'];
+            buttons.forEach((id) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.disabled = true;
+                    btn.textContent = 'Opening Google...';
+                }
+            });
+            const { error } = await sb.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth?oauth=1`,
+                    queryParams: {
+                        access_type: 'offline',
+                        prompt: 'select_account'
+                    }
+                }
+            });
+            if (error) {
+                buttons.forEach((id) => {
+                    const btn = document.getElementById(id);
+                    if (btn) {
+                        btn.disabled = false;
+                        btn.textContent = 'Continue with Google';
+                    }
+                });
+                showError(error.message);
             }
         }
 
@@ -252,6 +337,8 @@
             const isSignin = !document.getElementById('panel-signin').classList.contains('hidden');
             if (isSignin) signIn(); else signUp();
         });
+
+        completeOAuthCallback();
     </script>
 </body>
 </html>

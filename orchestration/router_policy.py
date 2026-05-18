@@ -48,7 +48,8 @@ _DEEP_RE = re.compile(
     re.I,
 )
 _SNAPSHOT_RE = re.compile(
-    r"\b(today|right\s+now|now|snapshot|overview|market\s+look|market\s+today|quick\s+look|chart|spy|qqq|vix|breadth)\b",
+    r"\b(today|right\s+now|now|snapshot|overview|market\s+look|market\s+today|quick\s+look|chart|spy|qqq|vix|breadth)\b"
+    r"|\b(?:the\s+)?markets?\b|\bmarket\s+conditions?\b",
     re.I,
 )
 _FOCUSED_RE = re.compile(
