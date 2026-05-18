@@ -2097,6 +2097,22 @@ def _dashboard_html_response(path: Path) -> FileResponse | HTMLResponse:
     return HTMLResponse(html, media_type="text/html; charset=utf-8")
 
 
+def _html_with_public_supabase_config(path: Path) -> HTMLResponse:
+    """Serve HTML with browser-safe Supabase config injected.
+
+    Only the project URL and anon/publishable key are exposed here. The service
+    key stays server-side.
+    """
+    raw = path.read_text(encoding="utf-8")
+    pub = omega_config.supabase_config().public
+    inject = f"<script>window.__ATLAS_SB_CONFIG__ = {json.dumps(pub)};</script>\n"
+    if "</head>" in raw:
+        html = raw.replace("</head>", inject + "</head>", 1)
+    else:
+        html = inject + raw
+    return HTMLResponse(html, media_type="text/html; charset=utf-8")
+
+
 def _pricing_html_response() -> HTMLResponse:
     """Self-contained pricing page with Stripe Checkout hooks."""
     html = """<!DOCTYPE html>
@@ -2213,11 +2229,7 @@ def _zenith_landing_response() -> HTMLResponse:
     """Zenith sign-in landing (3D background + AuthPanel); injects Supabase anon config."""
     if not ATLAS_ZENITH_LANDING.is_file():
         return HTMLResponse("<h1>Landing page not found</h1>", status_code=404)
-    html = ATLAS_ZENITH_LANDING.read_text(encoding="utf-8")
-    cfg = omega_config.supabase_config().public
-    injection = f"<script>window.__ATLAS_SB_CONFIG__ = {json.dumps(cfg)};</script>"
-    html = html.replace("</head>", injection + "\n</head>", 1)
-    return HTMLResponse(html, media_type="text/html; charset=utf-8")
+    return _html_with_public_supabase_config(ATLAS_ZENITH_LANDING)
 
 
 @app.get("/")
@@ -2680,7 +2692,7 @@ def serve_auth():
     """Clean vanilla-JS sign-in page (no CDN dependencies that Edge blocks)."""
     if not ATLAS_AUTH.is_file():
         return _zenith_landing_response()
-    return FileResponse(ATLAS_AUTH, media_type="text/html; charset=utf-8")
+    return _html_with_public_supabase_config(ATLAS_AUTH)
 
 
 @app.get("/rag/status")

@@ -73,6 +73,22 @@ def test_health_returns_ok(client: TestClient) -> None:
     assert "query_router" in body["engines"]
 
 
+def test_auth_page_injects_public_supabase_config(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("SUPABASE_URL", "https://example.supabase.co")
+    monkeypatch.setenv("SUPABASE_ANON_KEY", "anon-public-key")
+    monkeypatch.setenv("SUPABASE_KEY", "service-role-secret")
+
+    r = client.get("/auth")
+
+    assert r.status_code == 200
+    assert "window.__ATLAS_SB_CONFIG__" in r.text
+    assert "https://example.supabase.co" in r.text
+    assert "anon-public-key" in r.text
+    assert "service-role-secret" not in r.text
+
+
 @pytest.mark.parametrize("path", ["/app"])
 def test_main_chat_routes_return_html(client: TestClient, path: str) -> None:
     r = client.get(path)
