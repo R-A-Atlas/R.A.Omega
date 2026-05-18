@@ -99,3 +99,34 @@ class TestDeployCheckFunctions:
         mod = self._load_module()
         blockers = mod.check_env_not_staged()
         assert isinstance(blockers, list)
+
+    def test_load_local_dotenv_reads_values_without_overriding(self, tmp_path):
+        mod = self._load_module()
+        env_file = tmp_path / ".env"
+        env_file.write_text(
+            "SUPABASE_URL=https://example.supabase.co\n"
+            "GEMINI_API_KEY=from-file\n"
+            "EXISTING_VALUE=from-file\n",
+            encoding="utf-8",
+        )
+        old_existing = os.environ.get("EXISTING_VALUE")
+        old_supabase = os.environ.get("SUPABASE_URL")
+        old_gemini = os.environ.get("GEMINI_API_KEY")
+        os.environ.pop("SUPABASE_URL", None)
+        os.environ.pop("GEMINI_API_KEY", None)
+        os.environ["EXISTING_VALUE"] = "from-env"
+        try:
+            assert mod._load_local_dotenv(env_file) is True
+            assert os.environ["SUPABASE_URL"] == "https://example.supabase.co"
+            assert os.environ["GEMINI_API_KEY"] == "from-file"
+            assert os.environ["EXISTING_VALUE"] == "from-env"
+        finally:
+            for key, old in {
+                "EXISTING_VALUE": old_existing,
+                "SUPABASE_URL": old_supabase,
+                "GEMINI_API_KEY": old_gemini,
+            }.items():
+                if old is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = old

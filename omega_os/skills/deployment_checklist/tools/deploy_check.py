@@ -38,6 +38,25 @@ ROOT = Path(__file__).parent.parent.parent.parent.parent
 sys.path.insert(0, str(ROOT))
 
 
+def _load_local_dotenv(path: Path | None = None) -> bool:
+    """Load local .env values for manual pre-deploy checks without overriding env."""
+    env_path = path or (ROOT / ".env")
+    if not env_path.is_file():
+        return False
+    loaded = False
+    for raw_line in env_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        if key and key not in os.environ:
+            os.environ[key] = value
+            loaded = True
+    return loaded
+
+
 def _ok(msg: str)   -> None: print(f"  [OK]  {msg}")
 def _warn(msg: str) -> None: print(f"  [~~]  {msg}")
 def _fail(msg: str) -> None: print(f"  [!!]  {msg}")
@@ -62,14 +81,14 @@ def check_required_env_vars() -> list[str]:
     """Core env vars must be set for the app to function."""
     blockers = []
     required = {
-        "SUPABASE_URL":       "Supabase project URL",
-        "SUPABASE_KEY":       "Supabase anon key",
-        "GEMINI_API_KEY":     "Gemini API key (core AI brain)",
+        "SUPABASE_URL": ("Supabase project URL", ("SUPABASE_URL",)),
+        "SUPABASE_KEY": ("Supabase service/API key", ("SUPABASE_KEY",)),
+        "GEMINI_API_KEY": ("Gemini API key (core AI brain)", ("GEMINI_API_KEY", "GOOGLE_API_KEY")),
     }
-    for var, desc in required.items():
-        val = os.environ.get(var, "").strip()
+    for var, (desc, aliases) in required.items():
+        val = next((os.environ.get(alias, "").strip() for alias in aliases if os.environ.get(alias, "").strip()), "")
         if not val:
-            _fail(f"{var} not set — {desc}")
+            _fail(f"{var} not set - {desc}")
             blockers.append(f"Missing env var: {var}")
         else:
             _ok(f"{var} set ({len(val)} chars)")
@@ -225,6 +244,7 @@ def check_procfile() -> list[str]:
 def run_checks(strict: bool = False) -> tuple[list[str], list[str]]:
     """Return (blockers, warnings)."""
     sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    _load_local_dotenv()
     sep = "=" * 64
     mode = "STRICT" if strict else "STANDARD"
     print(sep)
